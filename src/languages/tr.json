@@ -1,0 +1,422 @@
+{
+    "translation": {
+        "common": {
+            "noData": "Veri bulunamadı!",
+            "noDataAvailable": "Veri yok",
+            "restaurantName": "Restoran Adı",
+            "km": "Km",
+            "new": "Yeni",
+            "termsLine1": "Devam ederek şunları kabul edersiniz",
+            "termsLine2": "Deneyiminizi geliştirmek için yalnızca gerekli verileri topluyoruz.",
+            "tnc": "Hizmet Koşulları",
+            "privacyPolicy": "Gizlilik Politikası",
+            "screenInfo": "Bu verileri yalnızca gösterge olarak değerlendirin, çünkü her zaman doğru veya eksiksiz olacağını garanti edemeyiz.",
+            "successMessage": "Başarılı",
+            "failureMessage": "Bir hata oluştu",
+            "confirm": "Bestätigen",
+            "retry": "Tekrar Dene",
+            "ok": "Devam Et",
+            "cancel": "İptal",
+            "setAsDefault": "Öntanımlı Yap",
+            "gpsInfo": "Görünüşe göre GPS devre dışı olduğu için konum erişimi kullanılamıyor. Lütfen cihazınızda GPS'i etkinleştirin ve devam etmek için geri gelin. Alternatif olarak, varsayılan konumu kullanmak için 'Varsayılan Olarak Ayarla'ya tıklayabilirsiniz.",
+            "unavailableInfo": "KebApp şu anda bulunduğunuz konumda kullanılamıyor. Varsayılan Berlin konumuna yönlendiriliyorsunuz.",
+            "searchforlocation": "Konum ara",
+            "delete data": "Verileri silmek istediğinizden emin misiniz?",
+            "cities": "Şehirler",
+            "operationalAreas": "Operasyon alanları",
+            "areas": "Bölgeler",
+            "Nocitiesavailable": "Kullanılabilir şehir yok",
+            "outsidezone": "Üzgünüz, ancak seçilen bölge hizmet alanımızın dışında.",
+            "Goback": "Geri dön",
+            "agree": "KabulEt",
+            "termsLine3": "revize edildi",
+            "use": "kullan",
+            "get": "al",
+            "off": "kapalı"
+        },
+        "splashScreen": {
+            "appName": "KEBAPP"
+        },
+        "following": {
+            "unfollowRestaurant": "{{restaurantName}} takibini bırakmak istiyor musunuz?",
+            "following": "Takip Ediliyor",
+            "follow": "Takip Et",
+            "distance": "Mesafe",
+            "confirm": "Onayla",
+            "cancel": "İptal"
+        },
+        "onboarding": {
+            "screen0": {
+                "title": "En iyi kebapları sipariş edin,",
+                "description": "Keşfedin, Sipariş Edin ve Şehrin En İyi Kebaplarının Tadını Çıkar",
+                "buttonText": "Başla"
+            },
+            "screen1": {
+                "title": "İstediğiniz zaman, istediğiniz yerde açlığınızı giderin.",
+                "description": "Lezzetleri Keşfedin • Kolay Sipariş • Çabuk Tat",
+                "buttonText": "Keşfe Başlayın"
+            },
+            "screen2": {
+                "title": "Kendinizi lezzetle şımartın!",
+                "description": "Her zaman tat • Taze hazırlanmış • Size özel",
+                "buttonText": "Sonraki"
+            },
+            "screen3": {
+                "title": "Lezzetli paket servisler, tam zamanında hazır!",
+                "description": "Lezzetleri Keşfedin • Kolay Sipariş • Çabuk tat",
+                "buttonText": "Hadi Başlayalım"
+            },
+            "skip": "Atla",
+            "kebapp": "Kebapp",
+            "kebappChefs": "Kebapp Şefleri",
+            "and": "ve"
+        },
+        "phoneVerification": {
+            "title": "Telefon numaranızı doğrulayın",
+            "description": "Size bir kod göndereceğiz. Hesabınızı güvende tutmaya yardımcı olur.",
+            "invalidNumber": "Telefon numarası geçersiz",
+            "phoneInput": {
+                "placeholder": "Telefon Numaranızı Girin",
+                "termsText": "Kabul ediyorum",
+                "termsLink": "Hizmet Koşulları",
+                "privacyLink": "Gizlilik Politikası",
+                "and": "ve",
+                "sendOtp": "Kod Gönder"
+            },
+            "otpInput": {
+                "title": "SMS ile gönderilen şifre'yi girin",
+                "description": "{{phoneNumber}} numarasına gönderdiğimiz güvenlik kodunu girin",
+                "noOtp": "Şifre almadınız mı?",
+                "retryIn": "00:{{seconds}} içinde tekrar deneyin",
+                "resendSms": "SMS'i Tekrar Gönder",
+                "verifyOtp": "Şifre'yi Doğrula"
+            },
+            "success": {
+                "message": "Telefon Numarası Başarıyla Doğrulandı!"
+            }
+        },
+        "emailVerification": {
+            "invalidEmail": "Lütfen geçerli bir e-posta adresi girin.",
+            "title": "E-postanızı doğrulayalım",
+            "description": "Size bir kod göndereceğiz. Hesabınızı güvende tutmaya yardımcı olur.",
+            "emailInput": {
+                "placeholder": "E-posta Adresinizi Girin",
+                "termsText": "Kabul ediyorum",
+                "termsLink": "Hizmet Koşulları",
+                "privacyLink": "Gizlilik Politikası",
+                "and": "ve",
+                "sendOtp": "Kod Gönder"
+            },
+            "otpInput": {
+                "title": "E-posta ile gönderilen şifre'yi girin",
+                "description": "{{email}} adresine gönderdiğimiz güvenlik kodunu girin",
+                "noOtp": "Şifre almadınız mı?",
+                "retryIn": "00:{{seconds}} içinde tekrar deneyin",
+                "resendEmail": "E-postayı Tekrar Gönder",
+                "verifyOtp": "Şifre'yi Doğrula"
+            },
+            "success": {
+                "message": "E-posta Adresi Başarıyla Doğrulandı!",
+                "description": "Devam etmeye hazırsınız!"
+            }
+        },
+        "location": {
+            "title": "Yakındaki Harika Restoranları Keşfedin!",
+            "description": "Size harika yemek yerleri göstermek için sabırsızlanıyoruz! Konumunuzu belirleyin, böylece size en iyi restoranları önerebiliriz.",
+            "enableLocation": "Cihaz Konumunu Etkinleştir",
+            "enterManually": "Konumunuzu manuel olarak girin",
+            "note": "Not",
+            "gpsAlert": "Lütfen bu özelliği kullanmak için GPS'i etkinleştirin!",
+            "locationfetchedsuccessfully": "Konum başarıyla alındı!"
+        },
+        "selectLocation": {
+            "title": "Bölgenizi veya apartman adınızı girin",
+            "searchPlaceholder": "Bölge, sokak adı ara...",
+            "currentLocation": "Mevcut konumunuzu kullanın",
+            "addNewAddress": "Yeni adres ekleyin",
+            "savedAddresses": "Kayıtlı Adresler",
+            "selected": "SEÇİLDİ",
+            "delete": "Sil",
+            "select": "Seç",
+            "warningText1": "Şunu ayarlamak istediğinizden emin misiniz:",
+            "thisaddress": "bu adres",
+            "warningText2": "tercih ettiğiniz adres olarak mı?"
+        },
+        "fetchLocation": {
+            "enterAddress": "Adres Detaylarını Girin",
+            "yourCurrentLocation": "Mevcut Konumunuz",
+            "saveAddressAs": "Adresi şu şekilde kaydet",
+            "addNewAddress": "Yeni adres ekleyin",
+            "other": "Diğer",
+            "change": "Değiştir",
+            "edit": "Düzenle",
+            "confirm": "Onayla",
+            "yourLocation": "Konumunuz",
+            "saveAddress": "Adresi Kaydet",
+            "home": "Ev",
+            "work": "İş",
+            "hotel": "Otel",
+            "saveas": "Farklı Kaydet",
+            "customlabel": "Özel Etiket",
+            "addressplaceholder": "Ev / Daire / Kat No. / Alan",
+            "doyouwanattodelete": "Silmek ister misin",
+            "deletedsuccessfully": "Başarıyla silindi",
+            "continue": "Devam Et"
+        },
+        "restaurant": {
+            "ratings": "Puanlamalar",
+            "followers": "Takipçiler",
+            "customize": "Özelleştir",
+            "follow": "Takip Et",
+            "map": "Harita",
+            "menu": "Menü",
+            "customizeAsPerYourTaste": "Zevkinize göre özelleştirin",
+            "notAvailable": "Bu restoran şu anda sipariş kabul etmiyor. Yakında açılacaktır.",
+            "orderAbove": "Şu tutarın üzerinde sipariş verin",
+            "hours": "Saatler",
+            "info": "yakında platformumuzda olacak! Bu arada, yönlendirme almak için haritaya tıklayın",
+            "otherInfo": "Diğer Bilgiler",
+            "cancel": "İptal",
+            "confirm": "Onayla",
+            "addMoreItems": "Daha Fazla Ürün Ekle",
+            "operatingHours": "Çalışma Saatleri",
+            "dishInfo": "Yemek Bilgisi",
+            "close": "Kapat",
+            "visit": "Restoranı Ziyaret Et"
+        },
+        "about": {
+            "title": "Hakkımızda",
+            "description": "Bu, hakkımızda sayfasıdır"
+        },
+        "home": {
+            "searchPlaceholder": "Ara...",
+            "peopleFavorite": "Topluluğun Favorisi",
+            "inTheSpotlight": "Gündemde",
+            "newlyAdded": "Yeni Eklenenler",
+            "restaurantsNearYou": "Yakınınızdaki Restoranlar",
+            "map": "Harita",
+            "home": "Ana",
+            "cod": "Kapıda Ödeme",
+            "available": "Mevcut",
+            "searchResults": "Arama Sonuçları",
+            "noRestaurantsFound": "Restoran bulunamadı",
+            "filter": "Filtre",
+            "closed": "Kapalı",
+            "offerAvailable": "Kampanya Mevcut",
+            "above": "Üzerinde"
+        },
+        "footer": {
+            "home": "Ana Sayfa",
+            "following": "Takip Edilenler",
+            "orders": "Siparişler",
+            "profile": "Profil"
+        },
+        "orders": {
+            "order": "Sipariş",
+            "ref": "Ref:",
+            "youSaved": "Şu kadar tasarruf ettiniz:",
+            "onThisOrder": "bu siparişte"
+        },
+        "profile": {
+            "email": "E-posta",
+            "mobile": "Telefon",
+            "addresses": "Kayıtlı Adresler",
+            "newAddress": "Yeni adres ekle",
+            "edit": "Düzenle",
+            "default": "Sil",
+            "details": "Kişisel Bilgileriniz",
+            "name": "Ad",
+            "update": "Güncelle",
+            "notifications": "Bildirimler",
+            "accountSettings": "Hesap Ayarları",
+            "others": "Diğerleri",
+            "agreement": "Kullanıcı Sözleşmesi",
+            "dataProtections": "Veri Koruma Politikası",
+            "dataDelete": "Veri Silme Talebi"
+        },
+        "screenTitle": {
+            "home": "Ana Sayfa",
+            "orderHistory": "Sipariş Geçmişi",
+            "following": "Takip Edilenler",
+            "profile": "Profil",
+            "coupons": "Kuponlar"
+        },
+        "checkout": {
+            "saved": "Kaydedildi!",
+            "orderText": "Bu siparişte",
+            "pikcUpLocation": "Teslim Alma Noktası:",
+            "viewDirections": "Yol Tarifi",
+            "customized": "Özelleştirilmiş",
+            "addCookingRequests": "Pişirme talepleri ekleyin",
+            "applyCoupon": "Kupon Uygula",
+            "sayThanksWithTips": "Bahşiş ile teşekkür edin",
+            "offersAndBenefits": "Teklifler ve Avantajlar",
+            "tipsContent": "Gece gündüz çalışan kuryelerimiz favori yemeklerinizi getiriyor. Onlara bir bahşişle teşekkür edin.",
+            "total": "Toplam",
+            "paymentDetails": "Ödeme Detayları",
+            "totalItem": "Ürün Toplamı",
+            "extraDiscount": "Size özel ekstra indirim",
+            "restaurantTip": "Restoran Bahşişi",
+            "platformFees": "Platform Ücretleri",
+            "serviceCharges": "Hizmet Ücretleri",
+            "mostTipped": "En Çok Bahşiş Verilen",
+            "toPay": "Ödenecek Tutar",
+            "choosePayment": "Ödeme Yöntemi Seçin",
+            "placeOrder": "Siparişi Ver",
+            "stepProgress": "Adım 0{{step}}/02",
+            "customizeTitle": "Zevkinize göre özelleştirin",
+            "addMoreItems": "Daha fazla ürün ekle",
+            "viewAll": "Tümünü Gör",
+            "applied": "Uygulandı",
+            "coupons": "Kuponlar",
+            "appliedCouponSentenceContinuation1": "uygulandı ve şu kadar tasarruf edildi",
+            "appliedCouponSentenceContinuation2": "bu siparişte",
+            "edit": "Düzenle",
+            "couponAlert": "Kupon Uyarısı",
+            "couponMessage1": "Bu kuponu kullanmak için satın alma tutarınız en az şu kadar olmalıdır",
+            "couponMessage2": "Bu tutarı aştığınızda indirimi uygulayabilirsiniz",
+            "ok": "Tamam"
+        },
+        "orderStatus": {
+            "orderId": "Sipariş no.",
+            "otp": "Tek kullanımlık şifre",
+            "viewDirections": "Yol Tarifi",
+            "orderPlacedText": "Siparişiniz başarıyla verildi",
+            "orderStatus": "Sipariş Durumu",
+            "orderConfirmed": "Sipariş Onaylandı",
+            "accepted": "KABUL EDİLDİ",
+            "prepared": "HAZIRLANDI",
+            "delivered": "TESLİM EDİLDİ",
+            "qrText": "Siparişinizi teslim alırken bu şifre'yi restorana gösterin",
+            "pending": "BEKLEMEDE",
+            "completed": "TAMAMLANDI",
+            "cancelled": "İPTAL EDİLDİ",
+            "orderStatusText": {
+                "pending": "Siparişiniz beklemede.",
+                "accepted": "Siparişiniz kabul edildi.",
+                "prepared": "Siparişiniz hazırlandı.",
+                "completed": "Siparişiniz tamamlandı.",
+                "cancelled": "Siparişiniz iptal edildi.",
+                "delivered": "Siparişiniz teslim edildi."
+            }
+        },
+        "orderDetails": "Sipariş Detayları",
+        "warningText1": "Yiyeceklerin tazeliğini ve kalitesini sağlamak için, siparişiniz hazırlandıktan sonra restoran belirli bir süre boyunca bekletecektir.",
+        "warningText2": "Bu süre içinde sipariş teslim alınmazsa, otomatik olarak iptal edilecektir.",
+        "okButton": "Tamam, Anladım",
+        "hr": "saat",
+        "min": "dakika",
+        "sec": "saniye",
+        "ratings": {
+            "howWas": "Deneyiminiz nasıldı?",
+            "thanksForReview": "Teşekkürler! Bir yorum da yazmak ister misiniz?",
+            "whatDidYouLike": "Neleri beğendiniz veya beğenmediniz?",
+            "shareReview": "Yorum Paylaş",
+            "loading": "Yükleniyor...",
+            "says": "diyor ki",
+            "thankYouFeedback": "Geri bildiriminiz ve değerlendirmeniz için teşekkür ederiz!",
+            "appreciateSupport": "Desteğiniz için teşekkür ederiz, yakında tekrar görüşmek dileğiyle! Geri bildiriminiz, lezzet deneyimini en üst seviyeye çıkarmamıza yardımcı oluyor.",
+            "backToHome": "Ana Sayfaya Dön"
+        },
+        "addons": {
+            "previous": "Önceki",
+            "continue": "Devam Et",
+            "selectUpto": "En fazla seç"
+        },
+        "buttons": {
+            "add": "Ekle"
+        },
+        "cartBottomSheet": {
+            "viewCart": "Sepeti Görüntüle",
+            "itemsAdded": "yemek(ler) eklendi"
+        },
+        "caurosel": {
+            "items": "yemek(ler)",
+            "viewCart": "Sepeti Görüntüle"
+        },
+        "googleSearchBox": {
+            "searchPlaceholder": "Bölge, sokak adı ara..."
+        },
+        "searchPage": {
+            "searchhere": "Burada ara",
+            "search": "Ara",
+            "sort": "Sırala",
+            "ratings": "Puanlar",
+            "searchKebabText": "Yakınınızdaki restoranları, yemekleri veya mutfakları arayın.",
+            "noKebab": "Burada kebap yok!",
+            "noKebabText": "Görünüşe göre bu yemek henüz mevcut değil. Başka bir şey deneyin."
+        },
+        "cart": {
+            "required": "gerekli",
+            "minimum": "Minimum miktar"
+        },
+        "contactUs": {
+            "supportCenter": "Destek Merkezi",
+            "reachoutTitle": "Bize e-posta ile ulaşın",
+            "reactoutDescription": "Harika destek ekibimizle sohbet edin"
+        },
+        "qrCode": {
+            "copy": "Kopyala",
+            "copied": "Kopyalandı"
+        },
+        "mapfilters": {
+            "filter": "Filtre",
+            "excitingoffers": "Heyecan verici teklifler",
+            "HappyHours": "Mutlu Saatler",
+            "specialday": "Özel Gün",
+            "chefspecial": "Şefin Son Çağrısı",
+            "searchnearbyshops": "Yakındaki Restoranları Ara",
+            "getdirections": "Yol Tarifi Al",
+            "Loading": "Yükleniyor...",
+            "clearall": "Tümünü Temizle",
+            "apply": "Uygula",
+            "sort": "Sırala",
+            "distancesort": "Mesafe (Düşükten Yükseğe)",
+            "ratingsort": "Değerlendirme (Yüksekten Düşüğe)"
+        },
+        "placeholdertext": {
+            "searchforlocation": "Konum ara"
+        },
+        "timings": {
+            "closedforthisweek": "Bu hafta kapalı",
+            "openson": "Şu saatte {{day}}",
+            "Monday": "Pazartesi",
+            "Tuesday": "Salı",
+            "Wednesday": "Çarşamba",
+            "Thursday": "Perşembe",
+            "Friday": "Cuma",
+            "Saturday": "Cumartesi",
+            "Sunday": "Pazar",
+            "at": "at"
+        },
+        "toasts": {
+            "locationdenied": "Location denied",
+            "Otpsentsuccessfully": "Tek kullanımlık şifre başarıyla gönderildi",
+            "location denied": "Konum reddedildi",
+            "updated successfully": "Başarıyla güncellendi",
+            "locationrequesttimeout": " Konum isteği zaman aşımına uğradı",
+            "locationrequesttimedoutpleasetryagain": "Konum isteği zaman aşımına uğradı. Lütfen tekrar deneyin",
+            "somethingwentwrongwiththelocationcheck": "Konum kontrolüyle ilgili bir şeyler yanlış gitti",
+            "locationunavailablepleasetryagain": "Konum mevcut değil. Lütfen tekrar deneyin",
+            "geolocationisnotsupportedbythisbrowser": "Geolocation bu tarayıcı tarafından desteklenmiyor",
+            "unabletoretrievelocationpleasetryagain": "Konum alınamadı. Lütfen tekrar deneyin",
+            "OTPvalidatedsuccessfully": "Tek kullanımlık şifre başarıyla doğrulandı",
+            "locationnotinservicezone": "Konum hizmet alanında değil",
+            "addressselected": "Adres seçildi",
+            "Nochangesmade": "Değişiklik yapılmadı",
+            "invalidotp": "Geçersiz OTP",
+            "userdenied": "Kullanıcı konum erişimini reddetti.",
+            "userdeniedIos": "iOS kullanıyorsunuz. Eğer zaten izin verdiyseniz ya da reddettiyseniz, Ayarlar’da izinleri sıfırlamadıkça başka bir açılır pencere görmeyeceksiniz.",
+            "Positionunavailable": "Konum bulunamadı",
+            "locationtimeout": "Konum isteği zaman aşımına uğradı",
+            "unknownerror": "Bilinmeyen bir hata oluştu",
+            "locationerror": "Konum hatası",
+            "errorfetching": "Koordinatlar alınırken hata oluştu, bu yüzden varsayılan konuma geri dönülüyor"
+        },
+        "language": {
+            "english": "İngilizce",
+            "german": "Almanca",
+            "turkish": "Türkçe"
+        }
+    }
+}

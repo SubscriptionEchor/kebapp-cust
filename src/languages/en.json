@@ -1,0 +1,426 @@
+{
+    "translation": {
+        "common": {
+            "noData": "No data available!",
+            "noDataAvailable": "No data available",
+            "restaurantName": "Restaurant Name",
+            "km": "Km",
+            "new": "New",
+            "termsLine1": "By proceeding, you accept our",
+            "termsLine2": "We only collect data necessary to improve your experience.",
+            "termsLine3": "revised",
+            "tnc": "Terms of Service",
+            "privacyPolicy": "Privacy Policy",
+            "screenInfo": "Please treat this data as an indicator only, since we can't always guarantee that it's accurate or complete.",
+            "successMessage": "Success",
+            "failureMessage": "Something went wrong",
+            "retry": "Retry",
+            "ok": "Proceed",
+            "cancel": "Cancel",
+            "setAsDefault": "Set as Default",
+            "gpsInfo": "It looks like location access is unavailable because GPS is disabled. Please enable GPS on your device and come back to continue. Alternatively, you can click 'Set as Default' to use the default location.",
+            "unavailableInfo": "KebApp is currently unavailable in your location. Redirecting to the default Berlin location.",
+            "agree": "Agree",
+            "searchforlocation": "Search for location",
+            "delete data": "Are you sure you want to delete the data",
+            "confirm": "Confirm",
+            "cities": "Cities",
+            "operationalAreas": "Operational Areas",
+            "areas": "Areas",
+            "Nocitiesavailable": "No cities available",
+            "outsidezone": "We're sorry, but the selected area is outside our service zone.",
+            "Goback": "Go back",
+            "use": "Use",
+            "get": "get",
+            "off": "Off"
+        },
+        "splashScreen": {
+            "appName": "KEBAPP"
+        },
+        "following": {
+            "unfollowRestaurant": "Do you want to unfollow {{restaurantName}}?",
+            "following": "Following",
+            "follow": "Follow",
+            "distance": "Distance",
+            "confirm": "Confirm",
+            "cancel": "Cancel"
+        },
+        "onboarding": {
+            "screen0": {
+                "title": "Discover the finest kebabs",
+                "description": "Enjoy the Best Kebabs in Town",
+                "buttonText": "Get Started"
+            },
+            "screen1": {
+                "title": "Discover Best Kebab and Kebab Shops Near You",
+                "description": "Find the best kebab spots on the map, explore menus, and grab amazing offers.",
+                "buttonText": "Start Exploring"
+            },
+            "screen2": {
+                "title": "Explore Best Deals Near You",
+                "description": "Save big with exclusive offers from nearby kebab shops. Enjoy more for less, all in one app!",
+                "buttonText": "Next"
+            },
+            "screen3": {
+                "title": "Navigate to Your Favorite Kebabs",
+                "description": "Get directions, check restaurant details, and enjoy quick takeaways. KebApp is your guide to tasty kebabs!",
+                "buttonText": "Let's Get Started"
+            },
+            "skip": "Skip",
+            "kebapp": "Kebapp",
+            "kebappChefs": "Kebapp Chef's",
+            "and": "and",
+            "complianceError": "Please accept compliance to proceed"
+        },
+        "phoneVerification": {
+            "title": "Verify your phone number",
+            "description": "We'll send you a code. It helps keep your account secure",
+            "invalidNumber": "Phone number is not valid",
+            "phoneInput": {
+                "placeholder": "Enter Phone Number",
+                "termsText": "I accept the",
+                "termsLink": "Terms of Service",
+                "privacyLink": "Privacy Policy",
+                "and": "and",
+                "sendOtp": "Send OTP"
+            },
+            "otpInput": {
+                "title": "Enter OTP sent via SMS",
+                "description": "Enter the security code we sent to {{phoneNumber}}",
+                "noOtp": "Didn't receive an OTP?",
+                "retryIn": "Retry in 00:{{seconds}}",
+                "resendSms": "Resend OTP",
+                "verifyOtp": "Verify OTP"
+            },
+            "success": {
+                "message": "Phone Number Verified Successfully!"
+            }
+        },
+        "emailVerification": {
+            "invalidEmail": "Please enter a valid email address.",
+            "title": "Let’s verify your email",
+            "description": "We'll send you a code. It helps keep your account secure",
+            "emailInput": {
+                "placeholder": "Enter Email Address",
+                "termsText": "I accept the",
+                "termsLink": "Terms of Service",
+                "privacyLink": "Privacy Policy",
+                "and": "and",
+                "sendOtp": "Send OTP"
+            },
+            "otpInput": {
+                "title": "Enter OTP sent via email",
+                "description": "Enter the security code we sent to {{email}}",
+                "noOtp": "Didn't receive an OTP?",
+                "retryIn": "Retry in 00:{{seconds}}",
+                "resendEmail": "Resend OTP",
+                "verifyOtp": "Verify OTP"
+            },
+            "success": {
+                "message": "Email Address Verified Successfully!",
+                "description": "You are all set to proceed!"
+            }
+        },
+        "location": {
+            "title": "Find Great Restaurants Nearby!",
+            "description": "We're excited to show you amazing places to eat! Turn-on your location so we can recommend the best restaurants close to you.",
+            "enableLocation": "Allow Location",
+            "enterManually": "Continue with default location",
+            "note": "Note",
+            "gpsAlert": "Please enable GPS to use this feature!",
+            "locationfetchedsuccessfully": "Location fetched successfully!"
+        },
+        "selectLocation": {
+            "title": "Enter your area or apartment name",
+            "searchPlaceholder": "Search for area, street name...",
+            "currentLocation": "Use your current location",
+            "addNewAddress": "Add new address",
+            "savedAddresses": "Saved Addresses",
+            "selected": "SELECTED",
+            "delete": "Delete",
+            "select": "Select",
+            "warningText1": "Are you sure you want to set",
+            "thisaddress": "this address",
+            "warningText2": "as your preferred address?"
+        },
+        "fetchLocation": {
+            "enterAddress": "Enter Address Details",
+            "yourCurrentLocation": "Your Current Location",
+            "saveAddressAs": "Save address as",
+            "addNewAddress": "Add new address",
+            "other": "Other",
+            "change": "Change",
+            "edit": "Edit",
+            "confirm": "Save",
+            "yourLocation": "your location",
+            "saveAddress": "Save Address",
+            "home": "Home",
+            "work": "Work",
+            "hotel": "Hotel",
+            "saveas": "Save as",
+            "customlabel": "Custom label",
+            "addressplaceholder": "House/ Flat/ Floor no./ Area",
+            "doyouwanattodelete": "Do you want to delete ",
+            "deletedsuccessfully": "Deleted Successfully",
+            "saveAs": "Save As",
+            "continue": "Continue"
+        },
+        "restaurant": {
+            "ratings": "rating(s)",
+            "followers": "Followers",
+            "customize": "Customize",
+            "follow": "Follow",
+            "map": "Map",
+            "menu": "Menu",
+            "customizeAsPerYourTaste": "Customize as per your taste",
+            "notAvailable": "This restaurant is not accepting any orders right now. It should be open soon.",
+            "orderAbove": "Order above",
+            "hours": "Hours",
+            "info": "is coming soon to our platform! Meanwhile, click on the map for directions",
+            "otherInfo": "Other Info",
+            "cancel": "Cancel",
+            "confirm": "Confirm",
+            "addMoreItems": "Add More Items",
+            "operatingHours": "Operating Hours",
+            "dishInfo": "Dish Info",
+            "close": "Close",
+            "visit": "Visit Shop"
+        },
+        "about": {
+            "title": "About Us",
+            "description": "This is about page"
+        },
+        "home": {
+            "searchPlaceholder": "Search for",
+            "peopleFavorite": "People's Favorite",
+            "inTheSpotlight": "In The Spotlight",
+            "newlyAdded": "Newly Added",
+            "restaurantsNearYou": "Restaurants Near You",
+            "map": "Map",
+            "home": "Home",
+            "cod": "cod",
+            "available": "available",
+            "searchResults": "Search Results",
+            "noRestaurantsFound": "No restaurants found",
+            "filter": "Filter",
+            "closed": "Closed",
+            "offerAvailable": "Offer Available",
+            "above": "Above",
+            "consentError": "Error accepting consent, Please try again later"
+        },
+        "footer": {
+            "home": "Home",
+            "following": "Following",
+            "orders": "Orders",
+            "profile": "Profile"
+        },
+        "orders": {
+            "order": "Order",
+            "ref": "Ref:",
+            "youSaved": "You saved",
+            "onThisOrder": "on this order",
+            "total": "Total"
+        },
+        "profile": {
+            "email": "Email",
+            "mobile": "Mobile",
+            "addresses": "Saved Addresses",
+            "newAddress": "Add new address",
+            "edit": "Edit",
+            "default": "Delete",
+            "details": "Your Details",
+            "name": "Name",
+            "update": "Update",
+            "notifications": "Notifications",
+            "accountSettings": "Account Settings",
+            "others": "Others",
+            "agreement": "User Agreement",
+            "dataProtections": "Data Protection Policy",
+            "dataDelete": "Request Data Deletion"
+        },
+        "screenTitle": {
+            "home": "Home",
+            "orderHistory": "Order History",
+            "following": "Following",
+            "profile": "Profile",
+            "coupons": "Coupons"
+        },
+        "checkout": {
+            "saved": "saved!",
+            "orderText": "On this order",
+            "pikcUpLocation": "Pick-up Location:",
+            "viewDirections": "Directions",
+            "customized": "Customized",
+            "addCookingRequests": "Add cooking requests",
+            "applyCoupon": "Apply coupon",
+            "sayThanksWithTips": "Say thanks with tips",
+            "offersAndBenefits": "Offers & Benefits",
+            "tipsContent": "Day & Night, our delivery partners bring your favorite meals. Thank them with a tip.",
+            "total": "Total",
+            "paymentDetails": "Payment Details",
+            "totalItem": "Item Total",
+            "extraDiscount": "Extra discount for you",
+            "restaurantTip": "Restaurant Tip",
+            "platformFees": "Platform Fees",
+            "serviceCharges": "Service Charges",
+            "mostTipped": "Most Tipped",
+            "toPay": "To pay",
+            "choosePayment": "Choose payment",
+            "placeOrder": "Place Order",
+            "stepProgress": "Step 0{{step}}/02",
+            "customizeTitle": "Customize as per your taste",
+            "addMoreItems": "Add more items",
+            "viewAll": "View All",
+            "applied": "Applied",
+            "coupons": "Coupons",
+            "appliedCouponSentenceContinuation1": "is applied and saved",
+            "appliedCouponSentenceContinuation2": "on this order",
+            "edit": "Edit",
+            "couponAlert": "Coupon Alert",
+            "couponMessage1": "To use this coupon, your purchase must total more than",
+            "couponMessage2": "Once you exceed that amount, you can apply the discount",
+            "ok": "Okay"
+        },
+        "orderStatus": {
+            "orderId": "Order id",
+            "otp": "OTP",
+            "viewDirections": "Directions",
+            "orderPlacedText": "Your order has been placed successfully",
+            "orderStatus": "Order status",
+            "orderConfirmed": "Order Confirmed",
+            "accepted": "ACCEPTED",
+            "prepared": "PREPARED",
+            "delivered": "DELIVERED",
+            "qrText": "Show this OTP at the restaurant while picking-up your order",
+            "pending": "PENDING",
+            "completed": "COMPLETED",
+            "cancelled": "CANCELLED",
+            "orderStatusText": {
+                "pending": "Your order is pending.",
+                "accepted": "Your order has been accepted.",
+                "prepared": "Your order has been prepared.",
+                "completed": "Your order has been completed.",
+                "cancelled": "Your order has been cancelled.",
+                "delivered": "Your order has been delivered."
+            },
+            "orderDetails": "Order details",
+            "warningText1": "To ensure food freshness and quality, once your order is prepared and ready for pickup, the restaurant will hold it for a limited time.",
+            "warningText2": "If the order is not picked up within this time frame, it will be automatically canceled.",
+            "okButton": "Ok, I Understand",
+            "hr": "hr",
+            "min": "min",
+            "sec": "sec"
+        },
+        "ratings": {
+            "howWas": "How was",
+            "thanksForReview": "Thanks! Would you like to write a review too?",
+            "whatDidYouLike": "What did you like or dislike?",
+            "shareReview": "Share review",
+            "loading": "Loading...",
+            "says": "says",
+            "thankYouFeedback": "Thank you for sharing your feedback and rating!",
+            "appreciateSupport": "We appreciate your support and look forward to serving you again soon. Your feedback helps us keep the flavor experience top-notch!",
+            "backToHome": "Back to Home"
+        },
+        "addons": {
+            "previous": "Previous",
+            "continue": "Continue",
+            "selectUpto": "select upto"
+        },
+        "buttons": {
+            "add": "Add"
+        },
+        "cartBottomSheet": {
+            "viewCart": "View Cart",
+            "itemsAdded": "item(s) added"
+        },
+        "caurosel": {
+            "items": "item(s)",
+            "viewCart": "View Cart"
+        },
+        "googleSearchBox": {
+            "searchPlaceholder": "Search for area, street name..."
+        },
+        "searchPage": {
+            "searchhere": "Search here",
+            "search": "Search",
+            "sort": "Sort",
+            "ratings": "Ratings",
+            "searchKebabText": "Search for restaurants, dishes, or cuisines near you.",
+            "noKebab": "No kebabs here!",
+            "noKebabText": "It looks like we don’t have that item yet. Try another"
+        },
+        "cart": {
+            "required": "required",
+            "minimum": "Minimum quantity"
+        },
+        "contactUs": {
+            "supportCenter": "Support Center",
+            "reachoutTitle": "Reach out to us via email",
+            "reactoutDescription": "Chat with our awesome support team"
+        },
+        "qrCode": {
+            "copy": "Copy",
+            "copied": "Copied"
+        },
+        "mapfilters": {
+            "filter": "Filter",
+            "excitingoffers": "Exciting offers",
+            "HappyHours": "Happy Hours",
+            "specialday": "Special Day",
+            "chefspecial": "Chef's Last Call",
+            "searchnearbyshops": "Search Nearby Shops",
+            "getdirections": "Get Directions",
+            "Loading": "Loading...",
+            "clearall": "Clear All",
+            "apply": "Apply",
+            "sort": "Sort",
+            "distancesort": "Distance (Low to High)",
+            "ratingsort": "Rating (High to low)"
+        },
+        "placeholdertext": {
+            "searchforlocation": "Search for location"
+        },
+        "timings": {
+            "closedforthisweek": "Closed for this week",
+            "openson": "Opens on {{day}}",
+            "Monday": "Monday",
+            "Tuesday": "Tuesday",
+            "Wednesday": "Wednesday",
+            "Thursday": "Thursday",
+            "Friday": "Friday",
+            "Saturday": "Saturday",
+            "Sunday": "Sunday",
+            "at": "at"
+        },
+        "toasts": {
+            "locationdenied": "Location denied",
+            "Otpsentsuccessfully": "OTP sent successfully",
+            "location denied": "Location denied",
+            "updated successfully": "Updated successfully",
+            "locationrequesttimeout": "Location request timed out",
+            "locationrequesttimedoutpleasetryagain": "Location request timed out. Please try again.",
+            "somethingwentwrongwiththelocationcheck": "Something went wrong with the location check",
+            "geolocationisnotsupportedbythisbrowser": "Geolocation is not supported by this browser.",
+            "unabletoretrievelocationpleasetryagain": "Unable to retrieve location. Please try again.",
+            "locationunavailablepleasetryagain": "Location not available. Please try again.",
+            "OTPvalidatedsuccessfully": "OTP validated successfully",
+            "locationnotinservicezone": "Location not in service zone",
+            "addressselected": "Address selected",
+            "Nochangesmade": "No changes made",
+            "invalidotp": "Invalid OTP",
+            "userdenied": "User denied access to location.",
+            "userdeniedIos": "You're on iOS. If you've already granted or denied permission, you won't see another popup unless you reset permissions in Settings.",
+            "Positionunavailable": "Position unavailable",
+            "locationtimeout": "Location request timed out",
+            "unknownerror": "An unknown error occurred",
+            "locationerror": "Location error",
+            "errorfetching": "Error fetching coordinates, So falling back to default location"
+        },
+        "language": {
+            "english": "English",
+            "german": "German",
+            "turkish": "Turkish"
+        }
+    }
+}

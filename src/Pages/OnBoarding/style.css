@@ -1,0 +1,94 @@
+/* Existing styles */
+.onboarding-container {
+    display: flex;
+    overflow-x: auto;
+    width: 100%;
+    height: 100vh;
+}
+
+.onboarding-screen {
+    flex: 0 0 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.onboarding-screen-new {
+    flex: 0 0 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    position: relative;
+}
+
+.overlay {
+    background: linear-gradient(180deg, rgba(6, 6, 6, 0.00) 29.93%, #000 100%);
+    color: white;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.onboarding-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.skip-button {
+    background: rgba(255, 255, 255, 0.30);
+    border-radius: 0.625rem;
+    padding: 0.5rem 1.25rem;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.content {
+    text-align: start;
+    padding: 10px;
+}
+
+.app-title {
+    color: var(--whitecolor);
+    font-size: 2.125rem;
+    font-style: normal;
+    line-height: 1.21;
+}
+
+.screen-title {
+    color: var(--whitecolor);
+    font-size: 1.5rem;
+    font-style: normal;
+    line-height: normal;
+}
+
+.action-button {
+    height: 3.438rem;
+    background-color: var(--secondarycolor);
+    border: none;
+    color: var(--blackcolor);
+    cursor: pointer;
+    border-radius: 0.625rem;
+}
+
+.onboardImg {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    overflow: visible;
+    border-radius: 12px;
+}
+
+.checkbox {
+    width: 50px !important;
+    height: 50px !important;
+}
+
+/* Dropdown styles are now handled by the LanguageDropdown component via inline styles */

@@ -1,0 +1,59 @@
+.restaurant-card {
+    height: 290px;
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+    border-radius: 12px;
+    background: #FFF;
+    box-shadow: 0px 6px 4px 0px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+    border: 0;
+    /* z-index: 1; */
+}
+
+.close-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    padding: 10px;
+    border-radius: 50px;
+    background-color: var(--whitecolor);
+}
+
+.card-content {
+    width: 100%;
+}
+
+.new {
+    border: 1.2px solid var(--tertiarycolor);
+    border-radius: 4px;
+}
+
+.following-container-style {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 40px;
+    border-radius: 4px;
+    /* position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    border-radius: 12px; */
+    background-color: var(--whitecolor);
+}
+
+.tick-size {
+    height: 20px;
+    width: 20px;
+}
+
+.image-overlay-items {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    padding-right: 12px;
+    padding-top: 12px;
+}

@@ -1,0 +1,26 @@
+.dish-card {
+    height: 200px;
+    width: 180px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center
+}
+
+.horizontal-item-card-total-price {
+    text-decoration: line-through;
+    color: rgb(221, 221, 211);
+
+}
+
+.horizontal-item-card-text {
+    z-index: 1;
+    position: absolute;
+    bottom: 0px;
+    background-color: #fff;
+    width: 100%;
+}

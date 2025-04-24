@@ -1,0 +1,255 @@
+.heading {
+    color: var(--placeholdercolor);
+    text-transform: uppercase;
+}
+
+.line {
+    height: 5px;
+    width: 25%;
+}
+
+.star {
+    height: 15px;
+    width: 15px;
+}
+
+.card-spacing {
+    margin-right: 12px;
+}
+
+.card-content-1 {
+    padding: 2px;
+    margin-top: 5px;
+    width: 131px;
+}
+
+.new {
+    border: 1.2px solid var(--tertiarycolor);
+    border-radius: 4px;
+}
+
+.card-content-2 {
+    margin-top: 10px;
+    width: 237px;
+}
+
+.section-3-bg {
+    background-color: #EFEFEF;
+}
+
+.card-content-3 {
+    padding: 2px;
+    margin-top: 10px;
+    width: 156px;
+}
+
+.filter-pill1 {
+    border: 1px solid #E5E9EF;
+    border-radius: 10px;
+    padding: 5px 10px;
+}
+
+.filter-pill-selected1 {
+    background-color: #FAFAF9;
+    border: 1px solid #000;
+    border-radius: 10px;
+    padding: 5px 10px;
+}
+
+.section-4-card {
+    width: 100%;
+}
+
+.card-content-4 {
+    width: 40%;
+    padding: 2px;
+}
+
+.available {
+    background-color: #FFFCE8;
+    height: 100%;
+    width: 65%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.campaign-container {
+    height: 45px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 8px 0px 0px 8px;
+    background: linear-gradient(268deg, rgba(105, 117, 134, 0.00) 1.3%, rgba(36, 45, 60, 0.50) 38.89%, #121926 76.94%);
+}
+
+.map {
+    height: 40px;
+    width: 25%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    position: fixed;
+    right: 5%;
+    z-index: 1000;
+    background: #000;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25), 0px 9px 4px 0px rgba(0, 0, 0, 0.10);
+}
+
+.bottom-spacing {
+    height: 10%;
+}
+
+.restaurant-card-container {
+    position: fixed;
+    bottom: 3%;
+    left: 0;
+    right: 0;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: auto;
+    z-index: 10000;
+}
+
+.restaurant-card-container.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.rating-clear-btn {
+    cursor: pointer;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+}
+
+.home-page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.home-loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #0C2237;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-top: 10%;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.bg-dull {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+}
+
+.content-fontsize {
+    font-size: 0.7rem;
+}
+
+/* Slide in from Left */
+@keyframes slideFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-30%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Slide in from Right */
+@keyframes slideFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(30%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Apply the keyframes to your classes */
+.slide-left {
+    animation: slideFromLeft 0.5s ease-in-out forwards;
+}
+
+.slide-right {
+    animation: slideFromRight 0.5s ease-in-out forwards;
+}
+
+/* Slide down from the top */
+@keyframes slideDownBanner {
+    0% {
+        opacity: 0;
+        transform: translateY(-20%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-down-banner {
+    animation: slideDownBanner 0.5s ease-in-out forwards;
+}
+
+.popup-bg-home {
+    height: 100vh;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.popup-container-home {
+    width: 90%;
+    max-width: 400px;
+    background-color: #FFF;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+}

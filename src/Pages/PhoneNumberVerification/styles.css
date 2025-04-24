@@ -1,0 +1,125 @@
+.otp-verification-component {
+    display: flex;
+    /* overflow-x: auto; */
+    width: 100%;
+    background: #F4F4F4;
+    height: 100vh;
+}
+
+.page-title {
+    color: #333;
+    font-size: 1.5rem;
+    font-style: normal;
+    line-height: 1.5rem;
+}
+
+.page-description {
+    color: #333;
+    font-style: normal;
+    line-height: normal;
+}
+
+.otp-button {
+    height: 3.438rem;
+    background-color: var(--secondarycolor);
+    border: none;
+    color: var(--blackcolor);
+    cursor: pointer;
+    border-radius: 0.625rem;
+}
+
+
+.verification-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    color: #333;
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+}
+
+
+.otp-container {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.otp-input {
+    width: 49px;
+    height: 54px;
+    padding: 10px;
+    margin-right: 15px;
+    font-size: 18px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.otp-input:focus {
+    border-color: var(--tertiarycolor);
+}
+
+.verify-button {
+    height: 3.438rem;
+    background-color: var(--secondarycolor);
+    border: none;
+    color: var(--blackcolor);
+    cursor: pointer;
+    border-radius: 0.625rem;
+}
+
+.success-text {
+    color: var(--blackcolor);
+    text-align: center;
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-size: 1.5rem;
+    font-style: normal;
+    line-height: 2rem;
+    letter-spacing: 0.031rem;
+    text-transform: capitalize;
+}
+
+
+.otp-input {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Remove spinner buttons for webkit browsers */
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.react-international-phone-input {
+    width: 100%;
+}
+
+.react-international-phone-country-selector-button {
+    height: 100% !important;
+    border-top-left-radius: 0.75rem !important;
+    border-bottom-left-radius: 0.75rem !important;
+}
+
+.react-international-phone-country-selector-dropdown {
+    border-radius:  0.75rem !important;
+    margin-top: 15px !important;
+    border:none !important;
+}

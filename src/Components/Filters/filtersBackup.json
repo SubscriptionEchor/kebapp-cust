@@ -1,0 +1,195 @@
+[
+    {
+        "key": "sortBy",
+        "label": "sort",
+        "filterType": "single_select",
+        "options": [
+            {
+                "label": "Rating (High to low)",
+                "value": "reviewAverage",
+                "selected": false
+            },
+            {
+                "label": "Distance (Low to High)",
+                "value": "distanceInMeters",
+                "selected": false
+            }
+        ]
+    },
+    {
+        "label": "Cuisines",
+        "key": "cuisines",
+        "filterType": "multi_select",
+        "options": [
+            {
+                "label": "Turkish",
+                "value": "turkish",
+                "selected": false
+            },
+            {
+                "label": "Lebanese",
+                "value": "lebanese",
+                "selected": false
+            },
+            {
+                "label": "Persian/ Iranian",
+                "value": "persian_iranian",
+                "selected": false
+            },
+            {
+                "label": "Syrian",
+                "value": "syrian",
+                "selected": false
+            }
+        ]
+    },
+    {
+        "key": "filter",
+        "label": "Filter",
+        "sideLabels": [
+            "SortBy",
+            "Distance",
+            "Rating",
+            "Campaign"
+        ],
+        "options": [
+            {
+                "index": 1,
+                "key": "sortBy",
+                "label": "Sort",
+                "filterType": "single_select",
+                "options": [
+                    {
+                        "label": "Distance (Low to High)",
+                        "value": "distanceInMeters",
+                        "selected": false
+                    },
+                    {
+                        "label": "Rating",
+                        "value": "reviewAverage",
+                        "selected": false
+                    }
+                ]
+            },
+            {
+                "index": 2,
+                "label": "Distance",
+                "filterType": "range",
+                "key": "distance",
+                "description": "You can get results of all the kebab shops near you",
+                "range": {
+                    "min": 0,
+                    "max": 50,
+                    "selectedMin": 0,
+                    "selectedMax": 0
+                }
+            },
+            {
+                "index": 3,
+                "key": "rating",
+                "label": "Rating",
+                "filterType": "single_select",
+                "options": [
+                    {
+                        "label": "Rating 4.5+",
+                        "value": 4.5,
+                        "selected": false
+                    },
+                    {
+                        "label": "Rating 4.0+",
+                        "value": 4,
+                        "selected": false
+                    },
+                    {
+                        "label": "Rating 3.5+",
+                        "value": 3.5,
+                        "selected": false
+                    }
+                ]
+            },
+            {
+                "index": 4,
+                "key": "campaign",
+                "label": "Exciting offers",
+                "filterType": "single_select",
+                "options": [
+                    {
+                        "label": "Happy Hours",
+                        "value": "HAPPYHOUR",
+                        "selected": false
+                    },
+                    {
+                        "label": "Special Day",
+                        "value": "TODAY",
+                        "selected": false
+                    },
+                    {
+                        "label": "Chef's Last Call",
+                        "value": "CHEF",
+                        "selected": false
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "key": "mapFilter",
+        "label": "Filter",
+        "options": [
+            {
+                "index": 1,
+                "key": "offers",
+                "label": "Exciting offers",
+                "filterType": "single_select",
+                "options": [
+                    {
+                        "label": "Happy Hours",
+                        "value": "HAPPYHOUR",
+                        "selected": false
+                    },
+                    {
+                        "label": "Special Day",
+                        "value": "TODAY",
+                        "selected": false
+                    },
+                    {
+                        "label": "Chef's Last Call",
+                        "value": "CHEF",
+                        "selected": false
+                    }
+                ]
+            },
+            {
+                "index": 2,
+                "label": "Search Nearby Shops",
+                "filterType": "range",
+                "key": "distance",
+                "description": "",
+                "range": {
+                    "min": 0,
+                    "max": 50,
+                    "selectedMin": 0,
+                    "selectedMax": 0
+                }
+            },
+            {
+                "index": 3,
+                "key": "options",
+                "label": "More options",
+                "filterType": "single_select",
+                "options": [
+                    {
+                        "label": "Shop's, I am following",
+                        "value": "following",
+                        "selected": false
+                    },
+                    {
+                        "label": "Closed shops",
+                        "value": "closed",
+                        "selected": false
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -1,0 +1,48 @@
+{
+
+"mapfilters": {
+    "filter": "Filter",
+    "excitingoffers": "Exciting offers",
+    "HappyHours": "Happy Hours",
+    "specialday": "Special Day",
+    "chefspecial": "Chef's Last Call",
+    "searchnearbyshops": "Search Nearby Shops",
+    "getdirections": "Get Directions",
+    "Loading:": "Loading...",
+    "clearall": "Clear All",
+    "apply": "Apply"
+},
+"placeholdertext": {
+    "searchforlocation": "Search for location"
+},
+"timings": {
+    "closedforthisweek": "Closed for this week",
+    "open on at": "Open on at",
+    "Monday": "Monday",
+    "Tuesday": "Tuesday",
+    "Wednesday": "Wednesday",
+    "Thursday": "Thursday",
+    "Friday": "Friday",
+    "Saturday": "Saturday",
+    "Sunday": "Sunday"
+},
+"retry": "Retry",
+    "ok": "Proceed",
+    "cancel": "Cancel",
+    "setAsDefault": "Set as Default",
+    "gpsInfo": "It looks like location access is unavailable because GPS is disabled. Please enable GPS on your device and come back to continue. Alternatively, you can click 'Set as Default' to use the default location.",
+    "unavailableInfo": "KebApp is currently unavailable in your location. Redirecting to the default Berlin location.",
+"searchforlocation":"Search for location",
+"delete data": "Are you sure you want to delete the data"
+},
+"toasts":{
+    "Otpsentsuccessfully": "OTP sent successfully",
+    "location denied": "Location denied",
+    "updated successfully": "Updated successfully"
+
+},
+"location":{
+"gpsAlert": "Please enable GPS to use this feature!",
+"location fetched successfully": "Location fetched successfully!"
+}
+

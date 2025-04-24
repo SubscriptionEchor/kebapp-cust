@@ -1,0 +1,11 @@
+.bottom-sheet-btns {
+    width: 48%;
+    border: 1px solid var(--secondarycolor);
+    background: rgba(237, 204, 39, 1)
+}
+
+.prev-btn {
+    width: 48%;
+    border: 1px solid var(--secondarycolor);
+    background: rgba(237, 204, 39, 0.2)
+}

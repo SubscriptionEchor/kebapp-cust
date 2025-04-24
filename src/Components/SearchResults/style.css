@@ -1,0 +1,67 @@
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: red;
+}
+
+/* Card style for each list */
+.list-card {
+    margin-top: 20px;
+    /* background-color: var(--blackcolor); */
+    /* padding: 1rem; */
+    /* border-radius: 10px; */
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); */
+}
+
+/* Card headers use secondary color */
+.list-card h3 {
+    /* color: var(--secondarycolor); */
+    margin-bottom: 0.75rem;
+}
+
+/* Styling for the lists */
+.list-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Each list item styled as a card with hover effect */
+.list-card li {
+    /* background-color: var(--tertiarycolor); */
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 5px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.list-card li:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+}
+
+
+.not-found-container {
+    height: 100vh;
+}
+
+.tertiary-text {
+    color: var(--tertiarycolor) !important;
+}
+
+.btn-tertiary {
+    background-color: var(--tertiarycolor);
+    border: none;
+    color: var(--whitecolor);
+    padding: 0.75rem 1.5rem;
+    font-size: 1.25rem;
+    border-radius: 0.3rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-tertiary:hover {
+    background-color: #3b6b0d;
+    /* slightly darker shade than #4D7C0F */
+    color: var(--whitecolor);
+}

@@ -1,0 +1,12 @@
+.bottom-sheet-btns {
+    width: 48%;
+    border: 1px solid var(--secondarycolor);
+    background: rgba(237, 204, 39, 1)
+}
+
+.variation {
+    border: 1px solid rgba(229, 231, 235, 1)
+}
+.discount-price{
+    color: rgba(30, 41, 59, 0.66)
+}

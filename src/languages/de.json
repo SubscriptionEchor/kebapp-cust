@@ -1,0 +1,422 @@
+{
+  "translation": {
+    "common": {
+      "noData": "Keine Daten verfügbar!",
+      "noDataAvailable": "Keine Daten verfügbar",
+      "restaurantName": "Restaurant Name",
+      "km": "km",
+      "new": "Neu",
+      "termsLine1": "Mit dem Fortfahren akzeptierst du unsere",
+      "termsLine2": "Wir sammeln nur Daten, die zur Verbesserung deines Erlebnisses erforderlich sind.",
+      "tnc": "Nutzungsbedingungen",
+      "privacyPolicy": "Datenschutzbestimmungen",
+      "screenInfo": "Bitte behandle diese Daten nur als Anhaltspunkt, da wir nicht immer garantieren können, dass sie korrekt oder vollständig sind.",
+      "successMessage": "Erfolg",
+      "failureMessage": "Etwas ist schief gelaufen",
+      "confirm": "Bestätigen",
+      "retry": "Wiederholen",
+      "ok": "Fortfahren",
+      "cancel": "Abbrechen",
+      "setAsdefault": "Als Standard festlegen",
+      "gpsInfo": "Es scheint, als wäre der Standortzugriff nicht verfügbar, da GPS deaktiviert ist. Bitte aktivieren Sie GPS auf Ihrem Gerät und kommen Sie zurück, um fortzufahren. Alternativ können Sie auf „Als Standard festlegen“ klicken, um den Standardstandort zu verwenden.",
+      "unavailableInfo": "KebApp ist an Ihrem Standort derzeit nicht verfügbar. Weiterleitung zum Standardstandort Berlin.",
+      "searchforlocation": "Nach Standort suchen",
+      "delete data": "Sind Sie sicher, dass Sie die Daten löschen möchten?",
+      "cities": "Städte",
+      "operationalAreas": "Betriebs Gebiete",
+      "areas": "Gebiete",
+      "Nocitiesavailable": "Keine Städte verfügbar",
+      "outsidezone": "Es tut uns leid, aber der ausgewählte Bereich liegt außerhalb unseres Servicebereichs.",
+      "Goback": "Zurück",
+      "invalidotp": "Ungültiges Einmal-Passwort",
+      "agree": "Ja",
+      "termsLine3": "überarbeitet",
+      "use": "verwenden",
+      "get": "holen",
+      "off": "aus"
+    },
+    "splashScreen": {
+      "appName": "KEBAPP"
+    },
+    "following": {
+      "unfollowRestaurant": "Willst du {{restaurantName}} wirklich entfolgen?",
+      "following": "Gefolgt",
+      "follow": "Folgen",
+      "distance": "Entfernung",
+      "confirm": "Bestätigen",
+      "cancel": "Abbrechen"
+    },
+    "onboarding": {
+      "screen0": {
+        "title": "Bestelle die leckersten Döner,",
+        "description": "Entdecke, bestelle und genieße die leckersten Döner der Stadt",
+        "buttonText": "Los geht's"
+      },
+      "screen1": {
+        "title": "Still deine Gelüste, jederzeit und überall.",
+        "description": "Gerichte entdecken • Einfach bestellen • Schnell genießen",
+        "buttonText": "Jetzt erkunden"
+      },
+      "screen2": {
+        "title": "Gönn dir etwas Leckeres!",
+        "description": "Mahlzeit jederzeit • Frisch zubereitet • Für dich gemacht",
+        "buttonText": "Weiter"
+      },
+      "screen3": {
+        "title": "Leckerer Genuss, wann immer du willst!",
+        "description": "Gerichte entdecken • Einfach bestellen • Schnell genießen",
+        "buttonText": "Los geht's"
+      },
+      "skip": "Überspringen",
+      "kebapp": "Kebapp",
+      "kebappChefs": "Kebapp Chef's",
+      "and": "und"
+    },
+    "phoneVerification": {
+      "title": "Verifiziere deine Telefonnummer",
+      "description": "Wir senden dir einen Code. Das hilft dabei, dein Konto sicher zu halten",
+      "invalidNumber": "Telefonnummer ist ungültig",
+      "phoneInput": {
+        "placeholder": "Telefonnummer eingeben",
+        "termsText": "Ich akzeptiere die",
+        "termsLink": "Nutzungsbedingungen",
+        "privacyLink": "Datenschutzbestimmungen",
+        "and": "und",
+        "sendOtp": "Einmalcode senden"
+      },
+      "otpInput": {
+        "title": "Gib den per SMS gesendeten Einmalcode ein",
+        "description": "Gib den Sicherheitscode ein, den wir an {{phoneNumber}} gesendet haben",
+        "noOtp": "Kein Einmalcode erhalten?",
+        "retryIn": "Neuer Versuch in 00:{{seconds}}",
+        "resendSms": "SMS erneut senden",
+        "verifyOtp": "Einmalcode überprüfen"
+      },
+      "success": {
+        "message": "Telefonnummer erfolgreich verifiziert!"
+      }
+    },
+    "emailVerification": {
+      "invalidEmail": "Bitte gib eine gültige E-Mail-Adresse ein.",
+      "title": "Lasst uns deine E-Mail verifizieren",
+      "description": "Wir senden dir einen Code. Das hilft dabei, dein Konto sicher zu halten",
+      "emailInput": {
+        "placeholder": "E-Mail-Adresse eingeben",
+        "termsText": "Ich akzeptiere die",
+        "termsLink": "Nutzungsbedingungen",
+        "privacyLink": "Datenschutzbestimmungen",
+        "and": "und",
+        "sendOtp": "Einmalcode senden"
+      },
+      "otpInput": {
+        "title": "Gib den per E-Mail gesendeten Einmalcode ein",
+        "description": "Gib den Sicherheitscode ein, den wir an {{email}} gesendet haben",
+        "noOtp": "Kein Einmalcode erhalten?",
+        "retryIn": "Neuer Versuch in 00:{{seconds}}",
+        "resendEmail": "E-Mail erneut senden",
+        "verifyOtp": "Einmalcode überprüfen"
+      },
+      "success": {
+        "message": "E-Mail-Adresse erfolgreich verifiziert!",
+        "description": "Du kannst jetzt fortfahren!"
+      }
+    },
+    "location": {
+      "title": "Finden Sie großartige Dönerläden in der Nähe!",
+      "description": "Wir freuen uns, dir fantastische Dönerläden zu zeigen! Lege deinen Standort fest, damit wir dir die besten Läden in deiner Nähe empfehlen können.",
+      "enableLocation": "Gerätestandort aktivieren",
+      "enterManually": "Gib deinen Standort manuell ein",
+      "note": "Hinweis",
+      "gpsAlert": "Bitte aktivieren Sie GPS, um diese Funktion zu nutzen!",
+      "locationfetchedsuccessfully": "Standort erfolgreich abgerufen!"
+    },
+    "selectLocation": {
+      "title": "Gib deinen Bereich oder deinen Apartmentnamen ein",
+      "searchPlaceholder": "Nach Standort, Straßenname suchen...",
+      "currentLocation": "Aktuellen Standort verwenden",
+      "addNewAddress": "Neue Adresse hinzufügen",
+      "savedAddresses": "Deine gespeicherten Adressen",
+      "selected": "AUSGEWÄHLT",
+      "delete": "Löschen",
+      "select": "Auswählen",
+      "warningText1": "Sind Sie sicher, dass Sie",
+      "thisaddress": "diese Adresse",
+      "warningText2": "als Ihre bevorzugte Adresse festlegen möchten?"
+    },
+    "fetchLocation": {
+      "enterAddress": "Adressdetails eingeben",
+      "yourCurrentLocation": "Dein aktueller Standort",
+      "saveAddressAs": "Adresse speichern als",
+      "addNewAddress": "Neue Adresse hinzufügen",
+      "other": "Andere",
+      "change": "Ändern",
+      "edit": "Bearbeiten",
+      "confirm": "Bestätigen",
+      "yourLocation": "Dein Standort",
+      "saveAddress": "Adresse speichern",
+      "home": "Zuhause",
+      "work": "Arbeit",
+      "hotel": "Hotel",
+      "saveas": "Speichern als",
+      "customlabel": "Eigenetikett",
+      "addressplaceholder": "Haus / Wohnung / Etage Nr. / Fläche",
+      "doyouwanattodelete": "Möchtest du löschen",
+      "deletedsuccessfully": "Erfolgreich gelöscht",
+      "continue": "Weiter"
+    },
+    "restaurant": {
+      "ratings": "Bewertung(en)",
+      "followers": "Follower",
+      "customize": "Anpassen",
+      "follow": "Folgen",
+      "map": "Karte",
+      "menu": "Menü",
+      "customizeAsPerYourTaste": "Nach deinem Geschmack anpassen",
+      "notAvailable": "Dieses Restaurant nimmt derzeit keine Bestellungen an. Es sollte bald geöffnet sein.",
+      "orderAbove": "Mindestbestellwert",
+      "hours": "Öffnungszeiten",
+      "info": "kommt bald auf unsere Plattform! Klicke in der Zwischenzeit auf die Karte für eine Wegbeschreibung",
+      "otherInfo": "Weitere Informationen",
+      "cancel": "Abbrechen",
+      "confirm": "Bestätigen",
+      "addMoreItems": "Weitere Artikel hinzufügen",
+      "operatingHours": "Öffnungszeiten",
+      "dishInfo": "Gerichtsinformationen",
+      "close": "Schließen",
+      "visit": "Shop besuchen"
+    },
+    "about": {
+      "title": "Über uns",
+      "description": "Dies ist die Über-uns-Seite"
+    },
+    "home": {
+      "searchPlaceholder": "Suchen nach",
+      "peopleFavorite": "Beliebt bei den Leuten",
+      "inTheSpotlight": "Im Rampenlicht",
+      "newlyAdded": "Neu hinzugefügt",
+      "restaurantsNearYou": "Restaurants in deiner Nähe",
+      "map": "Karte",
+      "home": "Liste",
+      "cod": "cod",
+      "available": "verfügbar",
+      "searchResults": "Suchergebnisse",
+      "noRestaurantsFound": "Keine Restaurants gefunden",
+      "filter": "Filter",
+      "closed": "Geschlossen",
+      "offerAvailable": "Angebot verfügbar",
+      "above": "Über"
+    },
+    "footer": {
+      "home": "Startseite",
+      "following": "Gefolgt",
+      "orders": "Deine Bestellungen",
+      "profile": "Dein Profil"
+    },
+    "orders": {
+      "order": "Bestellung",
+      "ref": "Ref:",
+      "youSaved": "Du hast gespart",
+      "onThisOrder": "bei dieser Bestellung"
+    },
+    "profile": {
+      "email": "Deine E-Mail",
+      "mobile": "Deine Handynummer",
+      "addresses": "Deine gespeicherten Adressen",
+      "newAddress": "Neue Adresse hinzufügen",
+      "edit": "Bearbeiten",
+      "default": "Löschen",
+      "details": "Deine Daten",
+      "name": "Dein Name",
+      "update": "Aktualisieren",
+      "notifications": "Deine Benachrichtigungen",
+      "accountSettings": "Deine Kontoeinstellungen",
+      "others": "Sonstiges",
+      "agreement": "Nutzervereinbarung",
+      "dataProtections": "Datenschutzbestimmungen",
+      "dataDelete": "Datenlöschung beantragen"
+    },
+    "screenTitle": {
+      "home": "Startseite",
+      "orderHistory": "Deine Bestellungen",
+      "following": "Gefolgt",
+      "profile": "Profil",
+      "coupons": "Gutscheine"
+    },
+    "checkout": {
+      "saved": "gespeichert!",
+      "orderText": "Bei dieser Bestellung",
+      "pikcUpLocation": "Abholort:",
+      "viewDirections": "Wegbeschreibung",
+      "customized": "Angepasst",
+      "addCookingRequests": "Zubereitung hinzufügen",
+      "applyCoupon": "Gutschein anwenden",
+      "sayThanksWithTips": "Sag Danke mit Trinkgeld",
+      "offersAndBenefits": "Angebote & Vorteile",
+      "tipsContent": "Tag und Nacht bringen unsere Lieferpartner deine Lieblingsgerichte. Bedank dich mit einem Trinkgeld.",
+      "total": "Gesamt",
+      "paymentDetails": "Zahlungsdetails",
+      "totalItem": "Gesamtpreis der Artikel",
+      "extraDiscount": "Extra Rabatt für dich",
+      "restaurantTip": "Restaurant Trinkgeld",
+      "platformFees": "Plattformgebühren",
+      "serviceCharges": "Servicegebühren",
+      "mostTipped": "Am häufigsten Trinkgeld gegeben",
+      "toPay": "Zu zahlen",
+      "choosePayment": "Zahlung wählen",
+      "placeOrder": "Bestellung aufgeben",
+      "stepProgress": "Schritt 0{{step}}/02",
+      "customizeTitle": "Nach deinem Geschmack anpassen",
+      "addMoreItems": "Weitere Artikel hinzufügen",
+      "viewAll": "Alle anzeigen",
+      "applied": "Angewendet",
+      "coupons": "Gutscheine",
+      "appliedCouponSentenceContinuation1": "wird angewendet und gespeichert",
+      "appliedCouponSentenceContinuation2": "bei dieser Bestellung",
+      "edit": "Bearbeiten",
+      "couponAlert": "Gutschein-Alarm",
+      "couponMessage1": "Um diesen Gutschein zu nutzen, muss dein Einkauf mehr als",
+      "couponMessage2": "betragen. Sobald du diesen Betrag überschritten hast, kannst du den Rabatt anwenden",
+      "ok": "Okay"
+    },
+    "orderStatus": {
+      "orderId": "Bestellnummer",
+      "otp": "Einmalcode",
+      "viewDirections": "Wegbeschreibung",
+      "orderPlacedText": "Deine Bestellung wurde erfolgreich aufgegeben",
+      "orderStatus": "Bestellstatus",
+      "orderConfirmed": "Bestellung bestätigt",
+      "accepted": "ANGENOMMEN",
+      "prepared": "VORBEREITET",
+      "delivered": "GELIEFERT",
+      "qrText": "Zeige diesen Einmalcode im Restaurant vor, während du deine Bestellung abholst",
+      "pending": "AUSSTEHEND",
+      "completed": "ABGESCHLOSSEN",
+      "cancelled": "STORNIERT",
+      "orderStatusText": {
+        "pending": "Deine Bestellung ist noch ausstehend.",
+        "accepted": "Deine Bestellung wurde angenommen.",
+        "prepared": "Deine Bestellung wurde zubereitet.",
+        "completed": "Deine Bestellung wurde abgeschlossen.",
+        "cancelled": "Deine Bestellung wurde storniert.",
+        "delivered": "Deine Bestellung wurde geliefert."
+      },
+      "orderDetails": "Bestelldetails",
+      "warningText1": "Um die Frische und Qualität der Speisen zu gewährleisten, wird das Restaurant deine Bestellung nach der Zubereitung und Bereitschaft zur Abholung für eine begrenzte Zeit aufbewahren.",
+      "warningText2": "Wenn die Bestellung nicht innerhalb dieses Zeitraums abgeholt wird, wird sie automatisch storniert.",
+      "okButton": "Ok, ich verstehe",
+      "hr": "Std.",
+      "min": "Min.",
+      "sec": "Sek."
+    },
+    "ratings": {
+      "howWas": "Wie war",
+      "thanksForReview": "Danke! Möchtest du auch eine Bewertung schreiben?",
+      "whatDidYouLike": "Was hat dir gefallen oder nicht gefallen?",
+      "shareReview": "Bewertung teilen",
+      "loading": "Lädt...",
+      "says": "sagt",
+      "thankYouFeedback": "Vielen Dank für dein Feedback und deine Bewertung!",
+      "appreciateSupport": "Wir schätzen deine Unterstützung und freuen uns darauf, dir bald wieder zu dienen. Dein Feedback hilft uns, das Geschmackserlebnis auf höchstem Niveau zu halten!",
+      "backToHome": "Zurück zur Startseite"
+    },
+    "addons": {
+      "previous": "Zurück",
+      "continue": "Weiter",
+      "selectUpto": "bis zu auswählen"
+    },
+    "buttons": {
+      "add": "Hinzufügen"
+    },
+    "cartBottomSheet": {
+      "viewCart": "Warenkorb anzeigen",
+      "itemsAdded": "Artikel hinzugefügt"
+    },
+    "caurosel": {
+      "items": "Artikel",
+      "viewCart": "Warenkorb anzeigen"
+    },
+    "googleSearchBox": {
+      "searchPlaceholder": "Nach Standort, Straßenname suchen..."
+    },
+    "searchPage": {
+      "searchhere": "Hier suchen",
+      "search": "Suchen",
+      "sort": "Sortierung",
+      "ratings": "Bewertungen",
+      "searchKebabText": "Suche nach Restaurants, Gerichten oder Küchen in deiner Nähe.",
+      "noKebab": "Keine Döner hier!",
+      "noKebabText": "Es sieht so aus, als hätten wir diesen Artikel noch nicht. Probiere einen anderen"
+    },
+    "cart": {
+      "required": "erforderlich",
+      "minimum": "Mindestmenge"
+    },
+    "contactUs": {
+      "supportCenter": "Support Center",
+      "reachoutTitle": "Kontaktiere uns per E-Mail",
+      "reactoutDescription": "Chatte mit unserem Support-Team"
+    },
+    "qrCode": {
+      "copy": "Kopieren",
+      "copied": "Kopiert"
+    },
+    "mapfilters": {
+      "filter": "Filter",
+      "excitingoffers": "Spannende Angebote",
+      "HappyHours": "Happy Hour",
+      "specialday": "Besonderer Tag",
+      "chefspecial": "Spezialität des Küchenchefs",
+      "searchnearbyshops": "Suche nach Geschäften in der Nähe",
+      "getdirections": "Route",
+      "Loading": "Lädt...",
+      "clearall": "Alles löschen",
+      "apply": "Anwenden",
+      "sort": "Sortieren",
+      "distancesort": "Entfernung (Niedrig bis Hoch)",
+      "ratingsort": "Bewertung (Hoch bis Niedrig)"
+    },
+    "placeholdertext": {
+      "searchforlocation": "Nach Standort suchen"
+    },
+    "timings": {
+      "closedforthisweek": "Für diese Woche geschlossen",
+      "openson": "Geöffnet am {{day}}",
+      "Monday": "Montag",
+      "Tuesday": "Dienstag",
+      "Wednesday": "Mittwoch",
+      "Thursday": "Donnerstag",
+      "Friday": "Freitag",
+      "Saturday": "Samstag",
+      "Sunday": "Sonntag",
+      "at:": "um:"
+    },
+    "toasts": {
+      "unabletoretrievelocationpleasetryagain": "Standort konnte nicht abgerufen werden. Bitte versuchen Sie es erneut.",
+      "Otpsentsuccessfully": "Einmalcode erfolgreich gesendet",
+      "locationdenied": "Standort verweigert",
+      "updated successfully": "Erfolgreich aktualisiert",
+      "locationrequesttimeout": "Standortanfrage ist abgelaufen",
+      "locationrequesttimedoutpleasetryagain": "Standortanfrage ist abgelaufen. Bitte versuche es erneut",
+      "somethingwentwrongwiththelocationcheck": "Etwas ist mit der Standortprüfung schief gelaufen",
+      "locationunavailablepleasetryagain": "Standort nicht verfügbar. Bitte versuche es erneut",
+      "geolocationisnotsupportedbythisbrowser": "Geolocation wird von diesem Browser nicht unterstützt",
+      "OTPvalidatedsuccessfully": "Einmalcode erfolgreich validiert",
+      "locationnotinservicezone": "Standort nicht im Servicebereich",
+      "addressselected": "Adresse ausgewählt",
+      "Nochangesmade": "Keine Änderungen vorgenommen",
+      "invalidotp": "Ungültiges Einmal-Passwort",
+      "userdenied": "Benutzer verweigerte den Zugriff auf den Standort.",
+      "userdeniedIos": "Sie verwenden iOS. Wenn Sie bereits die Erlaubnis erteilt oder verweigert haben, wird Ihnen kein weiteres Pop-up angezeigt, es sei denn, Sie setzen die Berechtigungen in den Einstellungen zurück.",
+      "Positionunavailable": "Position nicht verfügbar",
+      "locationtimeout": "Standortanfrage zeitüberschritten",
+      "unknownerror": "Ein unbekannter Fehler ist aufgetreten",
+      "locationerror": "Standortfehler",
+      "errorfetching": "Fehler beim Abrufen der Koordinaten, daher wird auf den Standardstandort zurückgegriffen"
+    },
+    "language": {
+      "english": "Englisch",
+      "german": "Deutsch",
+      "turkish": "Türkisch"
+    }
+  }
+}
