@@ -1,2 +1,0 @@
-# Kebab Telegram Customer App
-
