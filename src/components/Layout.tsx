@@ -19,9 +19,9 @@ const Layout: React.FC<LayoutProps> = ({
   headerRightComponent,
 }) => {
   const { colorScheme, isLoading } = useTelegram();
-  
+
   const isDarkMode = colorScheme === 'dark';
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -29,20 +29,20 @@ const Layout: React.FC<LayoutProps> = ({
       </div>
     );
   }
-  
+
   return (
-    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-primary text-white' : 'bg-gray-50 text-primary'}`}>
+    <div className={`min-h-screen flex flex-col`}>
       {showHeader && (
-        <Header 
-          title={title} 
+        <Header
+          title={title}
           rightComponent={headerRightComponent}
         />
       )}
-      
+
       <main className="flex-1 container mx-auto px-4 py-4 max-w-none pb-[72px]">
         {children}
       </main>
-      
+
       {showNavigation && (
         <div className="fixed bottom-0 left-0 right-0">
           <Navigation />
