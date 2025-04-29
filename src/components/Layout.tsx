@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({
         />
       )}
 
-      <main className="flex-1 container mx-auto px-4 py-4 max-w-none pb-[72px]">
+      <main className="flex-1 container mx-auto px-2 py-4 max-w-none pb-[72px]">
         {children}
       </main>
 
