@@ -10,10 +10,21 @@ import { config } from '../../config';
 const RADIUS_THRESHOLDS = [5.02, 6.97, 9.67, 13.44, 18.66, 25.92, 36.0, 50.0];
 const DEBOUNCE_DELAY = 2000; // 500ms delay
 
-const MapController: React.FC<{ userLocation: any; radius: number; onMapMove: (center: L.LatLng, radius: number) => void }> = ({ 
+const MapController: React.FC<{ 
+  userLocation: any; 
+  radius: number; 
+  onMapMove: (center: L.LatLng, radius: number) => void;
+  showRoute?: boolean;
+  restaurantLocation?: {
+    lat: number;
+    lng: number;
+  };
+}> = ({ 
   userLocation, 
   radius,
-  onMapMove 
+  onMapMove,
+  showRoute = false,
+  restaurantLocation
 }) => {
   const map = useMap();
   const [currentRadius, setCurrentRadius] = useState(radius);
@@ -22,6 +33,11 @@ const MapController: React.FC<{ userLocation: any; radius: number; onMapMove: (c
   const [prevRadiusAbove3km, setPrevRadiusAbove3km] = useState(currentRadius > 3);
   const [clusterMarkers, setClusterMarkers] = useState<L.Marker[]>([]);
   const [restaurantMarkers, setRestaurantMarkers] = useState<L.Marker[]>([]);
+  const [routeElements, setRouteElements] = useState<{
+    polyline?: L.Polyline;
+    userMarker?: L.Marker;
+    restaurantMarker?: L.Marker;
+  }>({});
 
   const { data: clustersData, refetch: refetchClusters, loading: clustersLoading } = useQuery(GET_RESTAURANT_CLUSTERS, {
     variables: {
@@ -123,6 +139,67 @@ const MapController: React.FC<{ userLocation: any; radius: number; onMapMove: (c
     setIsInitialized(true);
     onMapMove(center, effectiveRadius);
   }, [map, userLocation, radius]);
+
+  // Handle route display
+  useEffect(() => {
+    if (showRoute && userLocation && restaurantLocation) {
+      // Clean up previous route elements
+      if (routeElements.polyline) routeElements.polyline.remove();
+      if (routeElements.userMarker) routeElements.userMarker.remove();
+      if (routeElements.restaurantMarker) routeElements.restaurantMarker.remove();
+
+      // Create polyline between user and restaurant
+      const polyline = L.polyline(
+        [
+          [userLocation.lat, userLocation.lng],
+          [restaurantLocation.lat, restaurantLocation.lng]
+        ],
+        {
+          color: '#93c5fd',
+          weight: 3,
+          opacity: 0.8,
+          dashArray: '10, 10'
+        }
+      ).addTo(map);
+
+      // Add markers
+      const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+        icon: L.divIcon({
+          className: 'custom-marker',
+          html: `<div class="w-8 h-8 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        })
+      }).addTo(map);
+
+      const restaurantMarker = L.marker([restaurantLocation.lat, restaurantLocation.lng], {
+        icon: L.divIcon({
+          className: 'custom-marker',
+          html: `<div class="w-8 h-8 bg-secondary rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+            <div class="w-4 h-4 bg-black rounded-full"></div>
+          </div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        })
+      }).addTo(map);
+
+      // Fit bounds to show both markers
+      const bounds = L.latLngBounds([
+        [userLocation.lat, userLocation.lng],
+        [restaurantLocation.lat, restaurantLocation.lng]
+      ]);
+      map.fitBounds(bounds, { padding: [50, 50] });
+
+      // Store route elements for cleanup
+      setRouteElements({ polyline, userMarker, restaurantMarker });
+
+      return () => {
+        polyline.remove();
+        userMarker.remove();
+        restaurantMarker.remove();
+      };
+    }
+  }, [showRoute, userLocation, restaurantLocation, map]);
 
   useEffect(() => {
     const shouldUpdateRadius = RADIUS_THRESHOLDS.some((threshold, index) => {
@@ -303,12 +380,19 @@ interface OpenStreetMapProps {
     lat: number;
     lng: number;
   } | null;
+  restaurantLocation?: {
+    lat: number;
+    lng: number;
+  };
+  showRoute?: boolean;
   radius?: number;
 }
 
 const OpenStreetMap: React.FC<OpenStreetMapProps> = ({ 
   height = '100%', 
   userLocation = null,
+  restaurantLocation = null,
+  showRoute = false,
   radius = 50 
 }) => {
   const defaultCenter = [52.516267, 13.322455];
@@ -343,6 +427,8 @@ const OpenStreetMap: React.FC<OpenStreetMapProps> = ({
           userLocation={userLocation}
           radius={radius}
           onMapMove={handleMapMove}
+          showRoute={showRoute}
+          restaurantLocation={restaurantLocation}
         />
 
         <Circle

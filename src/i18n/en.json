@@ -98,7 +98,7 @@
         },
         "emailVerification": {
             "invalidEmail": "Please enter a valid email address.",
-            "title": "Let’s verify your email",
+            "title": "Let's verify your email",
             "description": "We'll send you a code. It helps keep your account secure",
             "emailInput": {
                 "placeholder": "Enter Email Address",
@@ -284,6 +284,8 @@
         "orderStatus": {
             "orderId": "Order id",
             "otp": "OTP",
+            "holdingTime": "Holding time",
+            "whatsThis": "What's this?",
             "viewDirections": "Directions",
             "orderPlacedText": "Your order has been placed successfully",
             "orderStatus": "Order status",
@@ -307,6 +309,12 @@
             "warningText1": "To ensure food freshness and quality, once your order is prepared and ready for pickup, the restaurant will hold it for a limited time.",
             "warningText2": "If the order is not picked up within this time frame, it will be automatically canceled.",
             "okButton": "Ok, I Understand",
+            "timeAndLocation": "Time and location",
+            "getDirections": "Get directions",
+            "distance": "Distance",
+            "kilometers": "Kilometers",
+            "saved": "saved",
+            "onThisOrder": "on this order",
             "hr": "hr",
             "min": "min",
             "sec": "sec"
@@ -348,7 +356,7 @@
             "ratings": "Ratings",
             "searchKebabText": "Search for restaurants, dishes, or cuisines near you.",
             "noKebab": "No kebabs here!",
-            "noKebabText": "It looks like we don’t have that item yet. Try another"
+            "noKebabText": "It looks like we don't have that item yet. Try another"
         },
         "cart": {
             "required": "required",

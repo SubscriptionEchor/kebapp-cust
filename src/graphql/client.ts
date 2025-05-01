@@ -17,8 +17,8 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 });
 
 const httpLink = createHttpLink({
-  uri: config.api.baseUrl,
-  // credentials: 'include',
+  uri: config.api.graphql,
+  credentials: 'include',
   fetchOptions: {
     mode: 'cors',
   },
@@ -60,7 +60,7 @@ const cache = new InMemoryCache({
           keyArgs: false,
           merge(existing = {}, incoming = {}) {
             if (!existing) return incoming;
-
+            
             return {
               ...incoming,
               restaurants: [...(existing.restaurants || []), ...(incoming.restaurants || [])],

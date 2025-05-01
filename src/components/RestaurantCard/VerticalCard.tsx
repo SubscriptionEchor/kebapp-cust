@@ -168,8 +168,8 @@ const VerticalCard: React.FC<RestaurantProps> = ({
   };
 
   return (
-    <div
-      className="w-full bg-white rounded-xl overflow-hidden shadow-md hover:shadow-md transition-shadow cursor-pointer mb-4"
+    <div 
+      className="w-full bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer mb-4"
       onClick={handleCardClick}
     >
       <div className="flex px-4 pt-4 pb-2">
@@ -240,7 +240,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
           <div className="flex  items-center bg-secondary/10 text-black px-3 py-1.5 rounded-lg">
             <div className="flex items-center gap-1.5">
               <BadgePercent size={14} className="text-secondary" />
-              <span className="text-[11px] font-bold">{showPromotion?.displayName}</span>
+              <span className="text-[11px] font-bold">{showPromotion?.displayName }</span>
             </div>
           </div>
         )}
@@ -254,7 +254,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
             </div>
           </div>
         )}
-      </div>
+        </div>
     </div>
   );
 };
