@@ -47,6 +47,9 @@ const cache = new InMemoryCache({
   typePolicies: {
     Query: {
       fields: {
+        profile: {
+          merge: true,
+        },
         userFavourite: {
           keyArgs: false,
           merge(existing = [], incoming = []) {
@@ -57,7 +60,7 @@ const cache = new InMemoryCache({
           keyArgs: false,
           merge(existing = {}, incoming = {}) {
             if (!existing) return incoming;
-            
+
             return {
               ...incoming,
               restaurants: [...(existing.restaurants || []), ...(incoming.restaurants || [])],
