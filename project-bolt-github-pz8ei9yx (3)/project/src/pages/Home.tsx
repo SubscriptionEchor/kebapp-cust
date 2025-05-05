@@ -15,6 +15,7 @@ import { Map, Home as HomeIcon, SlidersHorizontal } from 'lucide-react';
 import { useQuery } from '@apollo/client';
 import { COMBINED_RESTAURANTS_QUERY } from '../graphql/queries';
 import { useTranslation } from 'react-i18next';
+import CartSummary from '../components/Restaurant/CartSummary';
 
 const HOME_API_PARAMETERS = {
   DISTANCE: 50,
@@ -211,6 +212,7 @@ const Home: React.FC = () => {
       </div>
     );
   }
+
   return (
     <Layout title="" showHeader={false}>
       <HomeHeader />
@@ -266,7 +268,6 @@ const Home: React.FC = () => {
                   ))}
                 </div>
 
-                
                 <div className="mt-6">
                   <Filters />
                 </div>
@@ -309,12 +310,16 @@ const Home: React.FC = () => {
         )}
 
         <button
+          style={{bottom:170}}
           onClick={() => setShowMap(true)}
-          className="fixed bottom-20 right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all duration-200 z-50"
+          className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all duration-200 z-50"
         >
           <Map size={24} />
         </button>
       </div>
+
+      <div className="h-24" /> {/* Spacer for cart summary */}
+      <CartSummary />
     </Layout>
   );
 };

@@ -47,9 +47,6 @@ const cache = new InMemoryCache({
   typePolicies: {
     Query: {
       fields: {
-        profile: {
-          merge: true,
-        },
         userFavourite: {
           keyArgs: false,
           merge(existing = [], incoming = []) {

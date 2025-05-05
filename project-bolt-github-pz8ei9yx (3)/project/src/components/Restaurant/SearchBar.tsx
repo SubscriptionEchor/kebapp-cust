@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
+import { useBootstrap } from '../../context/BootstrapContext';
 
 interface SearchBarProps {
   value: string;
@@ -22,7 +23,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   selectedTags,
   onTagSelect
 }) => {
-  const tags = ["Bestseller", "Chef's Special"];
+  const { bootstrapData } = useBootstrap();
 
   return (
     <div className="bg-white border-b border-gray-100">
@@ -73,17 +74,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
           </div>
 
           <div className="flex gap-2 shrink-0">
-            {tags.map((tag) => (
+            {bootstrapData?.foodTags.map((tag) => (
               <button
-                key={tag}
-                onClick={() => onTagSelect(tag)}
+                key={tag?.enumVal}
+                onClick={() => onTagSelect(tag?.enumVal)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 ${
-                  selectedTags.includes(tag)
+                  selectedTags.includes(tag?.enumVal)
                     ? 'bg-secondary text-black'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {tag}
+                {tag?.displayName}
               </button>
             ))}
           </div>

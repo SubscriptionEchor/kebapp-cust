@@ -266,6 +266,24 @@ export const SINGLE_RESTAURANT_QUERY = gql`
       }
       __typename
     }
+    campaigns:getCampaignsByRestaurant(restaurantId: $restaurantId) {
+      _id
+      restaurant
+      name
+      description
+      couponCode
+      campaignType
+      promotion
+      minimumOrderValue
+      percentageDiscount
+      maxDiscount
+      flatDiscount
+      startDate
+      endDate
+      startTime
+      endTime
+      isActive
+    }
     menu: getMenu(restaurantId: $restaurantId) {
       _id
       restaurantId
@@ -403,6 +421,46 @@ export const PROFILE = gql`
         docVersionId
         consentTime
       }
+    }
+  }
+`;
+
+export const sendOtpToPhoneNumber = gql`
+  mutation SendOtpToPhoneNumber($phone: String!) {
+    sendOtpToPhoneNumber(phone: $phone) {
+      result
+      message
+      retryAfter
+    }
+  }
+`;
+
+export const ValidatePhoneOtp = gql`
+  mutation ValidatePhoneOtp($validatePhoneOtpOtp2: String!) {
+    validatePhoneOtp(otp: $validatePhoneOtpOtp2) {
+      message
+      result
+      retryAfter
+    }
+  }
+`;
+
+export const sendOtpToEmail = gql`
+  mutation SendOtpToEmail($email: String!) {
+    sendOtpToEmail(email: $email) {
+      message
+      result
+      retryAfter
+    }
+  }
+`;
+
+export const ValidateEmailOtp = gql`
+  mutation ValidateEmailOtp($otp: String!) {
+    validateEmailOtp(otp: $otp) {
+      message
+      result
+      retryAfter
     }
   }
 `;

@@ -18,12 +18,12 @@ const DishInfoModal: React.FC<DishInfoModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const allergens = [
-    'Contains Gluten',
-    'Contains Dairy',
-    'Contains Nuts',
-    'Contains Soy'
-  ];
+  // const allergens = [
+  //   'Contains Gluten',
+  //   'Contains Dairy',
+  //   'Contains Nuts',
+  //   'Contains Soy'
+  // ];
 
   return (
     <>
@@ -66,7 +66,7 @@ const DishInfoModal: React.FC<DishInfoModalProps> = ({
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">Allergen Information</h4>
             <ul className="space-y-2">
-              {allergens.map((allergen, index) => (
+              {item?.allergen?.map((allergen, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="w-1.5 h-1.5 bg-gray-600 rounded-full" />
                   {allergen}
@@ -75,13 +75,13 @@ const DishInfoModal: React.FC<DishInfoModalProps> = ({
             </ul>
           </div>
 
-          <Button
+          {/* <Button
             fullWidth
             onClick={() => onAddToCart?.(item._id)}
             disabled={item.outOfStock}
           >
             {item.outOfStock ? 'Out of Stock' : `Add to Cart • ₹${item.variationList[0]?.price}`}
-          </Button>
+          </Button> */}
         </div>
       </div>
     </>

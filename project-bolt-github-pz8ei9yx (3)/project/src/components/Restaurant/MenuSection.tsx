@@ -17,29 +17,40 @@ export interface MenuItem {
   variationList: {
     price: number;
   }[];
+  restaurantId?: string;
+  restaurantName?: string;
+  categoryId?: string;
 }
 
 interface MenuSectionProps {
   name: string;
   items: MenuItem[];
   fallbackImage: string;
-  cartItems: Record<string, number>;
-  onAddToCart: (itemId: string) => void;
-  onRemoveFromCart: (itemId: string) => void;
   layout?: 'horizontal' | 'vertical';
+  restaurantId: string;
+  restaurantName: string;
+  categoryId: string;
 }
 
 export const MenuSection: React.FC<MenuSectionProps> = ({
   name,
   items,
   fallbackImage,
-  cartItems,
-  onAddToCart,
-  onRemoveFromCart,
-  layout = 'horizontal'
+  layout = 'horizontal',
+  restaurantId,
+  restaurantName,
+  categoryId,
+  optionSetList
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(true);
-  console.log(cartItems,"CI")
+
+  // Add restaurant and category info to each item
+  const enrichedItems = items.map(item => ({
+    ...item,
+    restaurantId,
+    restaurantName,
+    categoryId
+  }));
 
   return (
     <div className="mb-6">
@@ -67,24 +78,21 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
             : 'space-y-2'
           }
         `}>
-          {items.map((item) => (
+          {enrichedItems.map((item) => (
             layout === 'horizontal' ? (
               <HorizontalMenuCard
                 key={item._id}
                 item={item}
                 fallbackImage={fallbackImage}
-                cartItems={cartItems}
-                onAddToCart={onAddToCart}
-                onRemoveFromCart={onRemoveFromCart}
+                optionSetList={optionSetList}
               />
             ) : (
               <VerticalMenuCard
                 key={item._id}
                 item={item}
-                fallbackImage={fallbackImage}
-                cartItems={cartItems}
-                onAddToCart={onAddToCart}
-                onRemoveFromCart={onRemoveFromCart}
+                fallbackImage={fallbackImage} 
+                optionSetList={optionSetList}
+                
               />
             )
           ))}

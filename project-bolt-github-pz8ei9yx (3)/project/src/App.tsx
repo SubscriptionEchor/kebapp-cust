@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { TelegramProvider } from './context/TelegramContext';
 import { BootstrapProvider } from './context/BootstrapContext';
 import { UserProvider } from './context/UserContext';
 import { AuthProvider } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
 
 import Splash from './pages/Splash';
 import Onboarding from './pages/Onboarding';
@@ -20,7 +20,6 @@ function App() {
       <TelegramProvider>
         <AuthProvider>
           <BootstrapProvider>
-            <CartProvider>
               <UserProvider>
                 <Routes>
                   {/* Default route redirects to splash */}
@@ -34,8 +33,8 @@ function App() {
                   <Route path="/checkout" element={<Checkout />} />
                 </Routes>
               </UserProvider>
-            </CartProvider>
           </BootstrapProvider>
+          <Toaster position="top-center" />
         </AuthProvider>
       </TelegramProvider>
     </Router>

@@ -22,69 +22,75 @@ export const useFavorite = ({
   const [isLoading, setIsLoading] = useState(false);
   const client = useApolloClient();
 
-  const updateRestaurantCache = (isNowFavorited: boolean) => {
-    // Update all instances of this restaurant in the cache
-    const restaurantId = id.toString();
-    const newFavoriteCount = isNowFavorited ? likeCount + 1 : Math.max(0, likeCount - 1);
-
-    // Update in allRestaurants query
+  const updateRestaurantInCache = (restaurantId: string, isNowFavorited: boolean) => {
+    const newCount = isNowFavorited ? likeCount + 1 : Math.max(0, likeCount - 1);
+    
+    // Update the restaurant in all relevant queries
+    // Update in all restaurant queries
     client.cache.modify({
       fields: {
         allRestaurants: (existingData = {}) => {
           if (!existingData.restaurants) return existingData;
-          return {
-            ...existingData,
-            restaurants: existingData.restaurants.map((ref: any) => {
-              const refId = client.cache.identify(ref);
-              if (refId === `Restaurant:${restaurantId}`) {
-                return {
-                  ...ref,
-                  favoriteCount: newFavoriteCount
-                };
-              }
-              return ref;
-            })
-          };
-        }
-      }
-    });
-
-    // Update in userFavourite query
-    client.cache.modify({
-      fields: {
-        userFavourite: (existingData = []) => {
-          if (!Array.isArray(existingData)) return existingData;
-
-          if (!isNowFavorited && showUnfavorite) {
-            return existingData.filter((ref: any) => {
-              const refId = client.cache.identify(ref);
-              return refId !== `Restaurant:${restaurantId}`;
-            });
-          }
-
-          return existingData.map((ref: any) => {
-            const refId = client.cache.identify(ref);
-            if (refId === `Restaurant:${restaurantId}`) {
+          const newRestaurants = existingData.restaurants.map((restaurant: any) => {
+            if (restaurant._id === restaurantId) {
               return {
-                ...ref,
-                favoriteCount: newFavoriteCount
+                ...restaurant,
+                favoriteCount: newCount
               };
             }
-            return ref;
+            return restaurant;
           });
+          return {
+            ...existingData,
+            restaurants: newRestaurants
+          };
+        },
+        restaurantsMapApi: (existingData = {}) => {
+          if (!existingData.restaurants) return existingData;
+          const newRestaurants = existingData.restaurants.map((restaurant: any) => {
+            if (restaurant._id === restaurantId) {
+              return {
+                ...restaurant,
+                favoriteCount: newCount
+              };
+            }
+            return restaurant;
+          });
+          return {
+            ...existingData,
+            restaurants: newRestaurants
+          };
+        },
+        userFavourite: (existingData = []) => {
+          if (!Array.isArray(existingData)) return existingData;
+          const newFavorites = existingData.map((restaurant: any) => {
+            if (restaurant._id === restaurantId) {
+              return {
+                ...restaurant,
+                favoriteCount: newCount
+              };
+            }
+            return restaurant;
+          });
+          return newFavorites;
         }
       }
     });
 
-    // Update the individual restaurant in the cache
-    client.cache.modify({
-      id: `Restaurant:${restaurantId}`,
-      fields: {
-        favoriteCount: () => newFavoriteCount
-      }
-    });
+    // Update individual restaurant in cache
+    try {
+      client.cache.modify({
+        id: `Restaurant:${restaurantId}`,
+        fields: {
+          favoriteCount: () => newCount
+        }
+      });
+    } catch (error) {
+      console.log('Restaurant not found in cache');
+    }
 
-    setLikeCount(newFavoriteCount);
+    // Update the local state
+    setLikeCount(newCount);
   };
 
   const [toggleFavorite] = useMutation(TOGGLE_FAVORITE, {
@@ -92,9 +98,10 @@ export const useFavorite = ({
       if (data?.toggleFavorite) {
         const newFavorites = data.toggleFavorite.favourite;
         const isNowFavorited = newFavorites.includes(id.toString());
-        
         setIsLiked(isNowFavorited);
-        updateRestaurantCache(isNowFavorited);
+
+        // Update all instances in cache
+        updateRestaurantInCache(id.toString(), isNowFavorited);
 
         if (!isNowFavorited && showUnfavorite && onUnfavorite) {
           onUnfavorite();
@@ -109,7 +116,6 @@ export const useFavorite = ({
     if (profile?.favourite) {
       const isFavorited = profile.favourite.includes(id.toString());
       setIsLiked(isFavorited);
-      setLikeCount(initialLikeCount);
     }
   }, [profile, id, initialLikeCount]);
 
@@ -124,7 +130,7 @@ export const useFavorite = ({
     } catch (error) {
       console.error('Error toggling favorite:', error);
       setIsLiked(prev => !prev);
-      setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+      setLikeCount(prev => prev); // Keep previous count on error
     } finally {
       setIsLoading(false);
     }
