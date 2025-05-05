@@ -1,8 +1,19 @@
 import { ApolloClient, InMemoryCache, createHttpLink, from, ApolloLink } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
-import { config } from '../config';
 import { getAuthToken, getLangCode } from '../utils/auth';
 
+// Configuration object with corrected baseUrl
+export const config = {
+  api: {
+    baseUrl: 'https://del-qa-api.kebapp-chefs.com',
+    graphql: '/graphql',
+    maps: {
+      tiles: 'https://maps.kebapp-chefs.com/styles/basic-preview/512/{z}/{x}/{y}.png'
+    }
+  }
+} as const;
+
+// Error handling link
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors) {
     graphQLErrors.forEach(({ message, locations, path }) => {
@@ -16,14 +27,16 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   }
 });
 
+// HTTP link with the full GraphQL URL
 const httpLink = createHttpLink({
-  uri: config.api.graphql,
+  uri: `${config.api.baseUrl}${config.api.graphql}`, // Results in 'https://del-qa-api.kebapp-chefs.com/graphql'
   credentials: 'include',
   fetchOptions: {
     mode: 'cors',
   },
 });
 
+// Authentication link to set headers
 const authLink = new ApolloLink((operation, forward) => {
   const token = getAuthToken();
   const langCode = getLangCode();
@@ -33,9 +46,6 @@ const authLink = new ApolloLink((operation, forward) => {
       ...headers,
       authorization: token ? `Bearer ${token}` : '',
       lang: langCode,
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Content-Type': 'application/json',
     },
   }));
@@ -43,6 +53,7 @@ const authLink = new ApolloLink((operation, forward) => {
   return forward(operation);
 });
 
+// Cache configuration with type policies
 const cache = new InMemoryCache({
   typePolicies: {
     Query: {
@@ -113,6 +124,7 @@ const cache = new InMemoryCache({
   },
 });
 
+// Apollo Client instance
 export const client = new ApolloClient({
   link: from([errorLink, authLink, httpLink]),
   cache,

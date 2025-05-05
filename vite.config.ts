@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/graphql': {
-        target: config.api.baseUrl,
+        target: "https://del-qa-api.kebapp-chefs.com",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/graphql/, '/graphql'),
@@ -28,5 +28,5 @@ export default defineConfig({
       },
     },
     cors: true
-  },
+  }
 });
