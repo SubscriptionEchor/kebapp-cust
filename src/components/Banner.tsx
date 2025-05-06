@@ -168,22 +168,7 @@ const Banner: React.FC<BannerProps> = ({ banners = [] }) => {
         ))}
       </div>
 
-      {/* Navigation Buttons */}
-      <button
-        onClick={handlePrevious}
-        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-        aria-label="Previous slide"
-      >
-        <ChevronLeft size={20} className="text-gray-700" />
-      </button>
-
-      <button
-        onClick={handleNext}
-        className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-        aria-label="Next slide"
-      >
-        <ChevronRight size={20} className="text-gray-700" />
-      </button>
+      
     </div>
   );
 };

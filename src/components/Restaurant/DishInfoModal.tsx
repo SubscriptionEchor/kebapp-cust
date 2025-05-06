@@ -29,12 +29,13 @@ const DishInfoModal: React.FC<DishInfoModalProps> = ({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 animate-fade-in"
+       style={{zIndex:150}} 
+        className="fixed inset-0 bg-black bg-opacity-50  animate-fade-in"
         onClick={onClose}
       />
       
       {/* Modal */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[90vh] overflow-auto animate-slide-up">
+      <div  style={{zIndex:150}} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl  max-h-[90vh] overflow-auto animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white px-4 py-3 flex justify-end border-b border-gray-100">
           <button 

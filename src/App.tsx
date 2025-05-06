@@ -12,7 +12,15 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Following from './pages/Following';
 import RestaurantDetails from './pages/RestaurantDetails';
+import UserDetails from './pages/UserDetails';
+import SavedAddresses from './pages/SavedAddresses';
+import OrderStatus from './pages/OrderStatus';
+import Orders from './pages/Orders';
 import Checkout from './pages/Checkout';
+import Review from './pages/Review';
+import Coupons from './pages/Coupons';
+import Search from './pages/Search';
+import Support from './pages/Support';
 
 function App() {
   return (
@@ -29,8 +37,18 @@ function App() {
                   <Route path="/home" element={<Home />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/following" element={<Following />} />
+                 <Route path="/orders" element={<Orders />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/profile/addresses" element={<SavedAddresses />} />
+                  <Route path="/profile/details" element={<UserDetails />} />
+                  <Route path="/profile/addresses" element={<SavedAddresses />} />
+                  <Route path="/profile/support" element={<Support />} />
+                  <Route path="/order/:id" element={<OrderStatus />} />
                   <Route path="/restaurant/:id" element={<RestaurantDetails />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/coupons" element={<Coupons />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/review" element={<Review />} />
                 </Routes>
               </UserProvider>
           </BootstrapProvider>

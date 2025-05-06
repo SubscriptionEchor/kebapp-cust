@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../context/TelegramContext';
 import { useBootstrap } from '../context/BootstrapContext';
-import { Search, MapPin, UserCircle2 } from 'lucide-react';
+import { Search, MapPin, UserCircle2, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import TelegramBackButton from './TelegramBackButton';
 
 interface HomeHeaderProps {
   onSearch?: (query: string) => void;
 }
 
 const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
+  const navigate = useNavigate();
   const { colorScheme } = useTelegram();
   const { bootstrapData } = useBootstrap();
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,6 +50,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
       {/* Address Selection */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1">
+          <TelegramBackButton />
           <MapPin size={20} className="text-white" />
           <div className="flex flex-col">
             <span className="font-sans font-semibold truncate text-white">Abacus IT Park</span>
@@ -60,12 +64,14 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
 
       {/* Search Bar */}
       <div className="px-4 pb-3">
-        <div className="relative">
+        <div 
+          className="relative cursor-pointer"
+          onClick={() => navigate('/search')}
+        >
           <input
             type="text"
             placeholder={`search for "${getCurrentPlaceholder()}"`}
-            value={searchQuery}
-            onChange={handleSearchChange}
+            readOnly
             className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white text-gray-900 placeholder-gray-500 border-none focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 font-sans"
           />
           <Search 

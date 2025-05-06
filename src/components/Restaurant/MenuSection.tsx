@@ -54,7 +54,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
 
   return (
     <div className="mb-6">
-      <div className="px-4 py-3 sticky top-0 bg-white z-10">
+      <div className="px-4 py-3 sticky top-0 bg-white z-40">
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full flex items-center justify-between"

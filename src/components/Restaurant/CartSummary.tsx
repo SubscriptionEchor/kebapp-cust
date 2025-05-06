@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
-import { ChevronLeft, ChevronRight, Store, ChevronUp, ChevronDown,X  } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Store, ChevronUp, ChevronDown, X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
@@ -17,7 +17,7 @@ interface CartSummaryProps {
 }
 
 const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
-  const { cart } = useCart();
+  const { cart,setCart } = useCart();
   const navigate = useNavigate();
   const [touchStart, setTouchStart] = React.useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -174,6 +174,15 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
                 </div>
                 <div className="text-right flex items-center">
                   <button onClick={()=>navigate('/checkout',{state:{restaurantId:restaurantCarts[0].restaurantId}})} className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCart(cart.filter(item => item.restaurantId !== restaurantCarts[0].restaurantId));
+                    }}
+                    className="bg-red-50 p-2 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 size={16} className="text-red-500" />
+                  </button>
                   {/* <p className="text-sm font-medium">€{restaurantCarts[0].total.toFixed(2)}</p> */}
                 </div>
               </div>
@@ -207,6 +216,15 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
                    <button 
                      onClick={()=>navigate('/checkout',{state:{restaurantId:item.restaurantId}})}
                      className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCart(cart.filter(cartItem => cartItem.restaurantId !== item.restaurantId));
+                    }}
+                    className="bg-red-50 p-2 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 size={16} className="text-red-500" />
+                  </button>
                 </div>
               </div>
             </div>

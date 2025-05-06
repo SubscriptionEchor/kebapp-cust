@@ -179,6 +179,7 @@ const FilterOptionsSheet: React.FC<FilterOptionsSheetProps> = ({
                   className="range-slider w-full"
                   style={{ 
                     '--value-percent': `${(distance - 3) / 47 * 100}%`,
+                    '--range-color': '#FFCD38'
                   } as React.CSSProperties}
                 />
               </div>

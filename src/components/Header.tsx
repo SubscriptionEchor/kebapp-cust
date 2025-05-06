@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTelegram } from '../context/TelegramContext';
 import { Menu } from 'lucide-react';
+import TelegramBackButton from './TelegramBackButton';
 
 interface HeaderProps {
   title: string;
@@ -22,7 +23,8 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className={`sticky top-0 z-10 w-full py-4 px-4 ${isDarkMode ? 'bg-primary text-white' : 'bg-white text-primary'} shadow-sm`}>
       <div className="container flex items-center justify-between max-w-none">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <TelegramBackButton />
           {showMenu && (
             <button 
               onClick={onMenuClick}

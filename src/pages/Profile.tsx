@@ -1,17 +1,19 @@
-import React, { useEffect } from 'react';
-import { useTelegram } from '../context/TelegramContext';
-import { useUser } from '../context/UserContext';
-import Layout from '../components/Layout';
-import Card from '../components/Card';
-import Button from '../components/Button';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User, MapPin, Bell, ChevronRight, Globe2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Globe2, Bell, Mail, Phone } from 'lucide-react';
+import { useUser } from '../context/UserContext';
+import { useLanguage } from '../hooks/useLanguage';
+import CustomDropdown from '../components/CustomDropdown';
+import Layout from '../components/Layout';
 
 const Profile: React.FC = () => {
-  const { user, webApp } = useTelegram();
-  const { profile, loading } = useUser();
-  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { profile } = useUser();
+  const { currentLanguage, changeLanguage } = useLanguage();
   const [notifications, setNotifications] = React.useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
   const languages = [
     { code: 'en', name: t('language.english') },
@@ -19,145 +21,153 @@ const Profile: React.FC = () => {
     { code: 'tr', name: t('language.turkish') }
   ];
 
-  const handleLanguageChange = (langCode: string) => {
-    i18n.changeLanguage(langCode);
-    localStorage.setItem('selectedLanguage', langCode);
-    if (webApp?.showAlert) {
-      webApp.showAlert(t('toasts.updated successfully'));
-    }
-  };
-
-  useEffect(() => {
-    if (webApp && webApp.BackButton) {
-      webApp.BackButton.show();
-      webApp.BackButton.onClick(() => {
-        window.history.back();
-      });
-    }
-
-    return () => {
-      if (webApp && webApp.BackButton) {
-        webApp.BackButton.hide();
-        webApp.BackButton.offClick(() => {});
-      }
-    };
-  }, [webApp]);
-
-  if (loading) {
-    return (
-      <Layout title={t('screenTitle.profile')}>
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-secondary"></div>
-        </div>
-      </Layout>
-    );
-  }
-
   return (
-    <Layout title={t('screenTitle.profile')}>
-      <div className="space-y-6">
-        <div className="text-center">
-          <div className="w-24 h-24 bg-secondary text-primary rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-            {profile?.name ? profile.name.charAt(0).toUpperCase() : user?.first_name.charAt(0)}
-          </div>
-          <h2 className="text-xl font-semibold font-proxima">
-            {profile?.name || `${user?.first_name} ${user?.last_name || ''}`}
-          </h2>
-          {user?.username && (
-            <p className="text-gray-500 dark:text-gray-400">@{user.username}</p>
-          )}
+     <Layout>
+    <div className="min-h-screen bg-gray-50">
+      {/* Profile Header */}
+      <div className="bg-white flex items-center gap-4">
+        <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center text-white">
+          <User size={24} />
         </div>
-
-        <Card title={t('profile.details')}>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Mail size={20} className="text-gray-600" />
-              <div>
-                <p className="text-sm text-gray-500">{t('profile.email')}</p>
-                <p className="font-medium">{profile?.email || 'Not verified'}</p>
-                {profile?.emailIsVerified && (
-                  <span className="text-xs text-green-600">✓ Verified</span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Phone size={20} className="text-gray-600" />
-              <div>
-                <p className="text-sm text-gray-500">{t('profile.mobile')}</p>
-                <p className="font-medium">{profile?.phone || 'Not verified'}</p>
-                {profile?.phoneIsVerified && (
-                  <span className="text-xs text-green-600">✓ Verified</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card title={t('profile.accountSettings')}>
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Bell size={20} className="text-gray-600" />
-                <span>{t('profile.notifications')}</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={notifications}
-                  onChange={() => setNotifications(!notifications)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-secondary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-secondary"></div>
-              </label>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Globe2 size={20} className="text-gray-600" />
-                <span className="font-medium">{t('language.english')}</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => handleLanguageChange(lang.code)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      i18n.language === lang.code
-                        ? 'bg-secondary text-primary'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {lang.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card title={t('profile.others')}>
-          <div className="space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('common.screenInfo')}
-            </p>
-          </div>
-        </Card>
-
-        <div className="flex justify-center mt-6">
-          <Button 
-            variant="outline"
-            onClick={() => {
-              if (webApp && webApp.showAlert) {
-                webApp.showAlert(t('common.successMessage'));
-              }
-            }}
-          >
-            {t('profile.update')}
-          </Button>
+        <div>
+          <h1 className="text-[15px] font-medium text-gray-900">
+            {profile?.name || 'Phanindha Kondru'}
+          </h1>
+          <p className="text-[13px] text-gray-500">
+            {profile?.email || 'phani@echortech.com'}
+          </p>
         </div>
       </div>
-    </Layout>
+
+      {/* Account Settings */}
+      <div className="mt-4">
+        <h2 className="px-4 text-[13px] font-medium text-gray-500 mb-2">
+          Account Settings
+        </h2>
+        
+        <div className="bg-white">
+          <button 
+            onClick={() => navigate('/profile/details')}
+            className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
+          >
+            <span className="text-[15px] text-gray-900">Your Details</span>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
+
+          <button 
+            onClick={() => navigate('/profile/addresses')}
+            className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
+          >
+            <span className="text-[15px] text-gray-900">Saved Addresses</span>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
+
+          <button 
+            onClick={() => navigate('/profile/support')}
+            className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
+          >
+            <span className="text-[15px] text-gray-900">Support Center</span>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
+
+          <div className="px-4 py-3 flex items-center justify-between">
+            <span className="text-[15px] text-gray-900">Notifications</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifications}
+                onChange={() => setNotifications(!notifications)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Language Selection */}
+      <div className="mt-4">
+        <h2 className="px-4 text-[13px] font-medium text-gray-500 mb-2">
+          Language
+        </h2>
+        
+        <div className="bg-white">
+          <div className="">
+            <CustomDropdown
+              value={currentLanguage}
+              options={languages.map(lang => ({
+                value: lang.code,
+                label: lang.name
+              }))}
+              onChange={(value) => changeLanguage(value as 'en' | 'de' | 'tr')}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Other */}
+      <div className="mt-4">
+        <h2 className="px-4 text-[13px] font-medium text-gray-500 mb-2">
+          Other
+        </h2>
+        
+        <div className="bg-white">
+          <button 
+            onClick={() => navigate('/agreement')}
+            className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
+          >
+            <span className="text-[15px] text-gray-900">User Agreement</span>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
+
+          <button 
+            onClick={() => navigate('/privacy')}
+            className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
+          >
+            <span className="text-[15px] text-gray-900">Data Protection Policy</span>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
+
+          <button 
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full px-4 py-3 flex items-center justify-between"
+          >
+            <span className="text-[15px] text-red-500">Request Data Deletion</span>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 mx-4 w-full max-w-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Account Data</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to request deletion of your account data? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-2.5 border border-gray-200 rounded-lg text-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  navigate('/delete-data');
+                }}
+                className="flex-1 py-2.5 bg-secondary text-white rounded-lg font-medium"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+     </Layout>
   );
 };
 

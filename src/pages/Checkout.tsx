@@ -3,18 +3,21 @@ import { Navigation, Clock, MapPin, Info, Store, PersonStanding as Person, Chevr
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
+import toast from 'react-hot-toast';
 import { useUser } from '../context/UserContext';
 import { SINGLE_RESTAURANT_QUERY } from '../graphql/queries';
 import HoldingTimeInfoSheet from '../components/HoldingTimeInfoSheet';
 import VerificationModal from '../components/Verification/VerificationModal';
 import { useCart } from '../context/CartContext';
 import VariationBottomSheet from '../components/Restaurant/VariationBottomSheet';
+import { usePlaceOrder } from '../hooks/usePlaceOrder';
 
 const Checkout: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useUser();
   const { cart, setCart, addToCart, removeFromCart, getItemCount, getCartItems } = useCart();
+  const { placeOrder, loading: placeOrderLoading } = usePlaceOrder();
   const [isMobileVerified, setIsMobileVerified] = React.useState(profile?.phoneIsVerified || false);
   const [isEmailVerified, setIsEmailVerified] = React.useState(profile?.emailIsVerified || false);
   const [showMobileVerification, setShowMobileVerification] = React.useState(false);
@@ -172,8 +175,8 @@ const Checkout: React.FC = () => {
   // Update verification status when profile changes
   React.useEffect(() => {
     if (profile) {
-      setIsMobileVerified(!profile.phoneIsVerified || false);
-      setIsEmailVerified(!profile.emailIsVerified || false);
+      setIsMobileVerified(profile.phoneIsVerified || false);
+      setIsEmailVerified(profile.emailIsVerified || false);
     }
   }, [profile]);
 
@@ -204,23 +207,63 @@ const Checkout: React.FC = () => {
   const handleTouchEnd = () => {
     if (!slideComplete) {
       setSlidePosition(0);
-    }
-    else {
-
+    } else {
+      console.log(placeOrderLoading,"ss")
       if (!isMobileVerified) {
         // Show mobile verification first
         setShowMobileVerification(true);
       } else if (!isEmailVerified) {
         // Then show email verification
         setShowEmailVerification(true);
-      } else {
-        // setSlidePosition(0);
-        // setSlideComplete(false);
-        // Both verified, can proceed with order
-        console.log('Place order');
+      } else if (!placeOrderLoading) {
+        handlePlaceOrder();
       }
     }
     setIsSliding(false);
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!restaurantId || !profile) return;
+
+    const orderInput = restaurantCartItems.map(item => ({
+      food: item.foodId,
+      quantity: item.itemCount,
+      variation: item.variationName,
+      addons: item.optionSetList.map(addon => ({
+        _id: addon.addonId,
+        options: addon.selectedOptions.map(opt => opt.id)
+      })),
+      specialInstructions: item.note || ''
+    }));
+
+    // Use dummy Berlin address
+    const dummyAddress = {
+      label: "Berlin Office",
+      deliveryAddress: "Kaiser-Friedrich-Straße 29, 10585 Berlin",
+      longitude: "13.322455",
+      latitude: "52.516267"
+    };
+
+    const orderData = {
+      restaurant: restaurantId,
+      orderInput,
+      paymentMethod: 'COD',
+      couponCode: appliedCoupon || '',
+      tipping: 0,
+      taxationAmount: calculateSubtotal() * 0.1, // 10% tax
+      address: dummyAddress,
+      isPickedUp: true,
+      deliveryCharges: 0
+    };
+
+    try {
+      await placeOrder(orderData);
+      setSlidePosition(0);
+      setSlideComplete(false);
+    } catch (error) {
+      setSlidePosition(0);
+      setSlideComplete(false);
+    }
   };
 
   const handleMobileVerify = (mobile: string) => {
@@ -247,7 +290,7 @@ const Checkout: React.FC = () => {
     setSelectedItem(item);
     setShowVariations(true);
   };
-  console.log(selectedItem, restaurantId, restaurant, restaurantCartItems, "sss")
+
   if (restaurantLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
@@ -622,7 +665,10 @@ const Checkout: React.FC = () => {
 
       {/* Coupon Section */}
       <div className="bg-white mt-4 p-4 m-3 rounded-lg">
-        <button className="w-full flex items-center justify-between py-2">
+        <button 
+          onClick={() => navigate('/coupons')}
+          className="w-full flex items-center justify-between py-2"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#FFF3D0] rounded-full flex items-center justify-center">
               <Ticket size={20} className="text-secondary" />
@@ -683,7 +729,7 @@ const Checkout: React.FC = () => {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 select-none">
         {!isMobileVerified || !isEmailVerified ? (
           <div className="space-y-3">
-            {!isMobileVerified && (
+            {!isMobileVerified ? (
               <button
                 onClick={() => setShowMobileVerification(true)}
                 className="w-full py-3 bg-secondary text-black rounded-lg font-medium flex items-center justify-center gap-2"
@@ -691,8 +737,7 @@ const Checkout: React.FC = () => {
                 <Phone size={20} />
                 Verify Mobile Number
               </button>
-            )}
-            {isMobileVerified && !isEmailVerified && (
+            ) : !isEmailVerified && (
               <button
                 onClick={() => setShowEmailVerification(true)}
                 className="w-full py-3 bg-secondary text-black rounded-lg font-medium flex items-center justify-center gap-2"
@@ -704,10 +749,14 @@ const Checkout: React.FC = () => {
           </div>
         ) : (
           <div>
-            <p className="text-center font-bold text-lg pb-3">Pay on pickup</p>
+            <p className="text-center font-bold text-lg pb-3">
+              {placeOrderLoading ? 'Placing your order...' : 'Pay on pickup'}
+            </p>
             <div
               ref={sliderRef}
-              className="relative h-12 bg-[#16B364] rounded-full overflow-hidden mx-auto"
+              className={`relative h-12 rounded-full overflow-hidden mx-auto ${
+                placeOrderLoading ? 'bg-gray-300' : 'bg-[#16B364]'
+              }`}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -726,12 +775,29 @@ const Checkout: React.FC = () => {
                   transform: `translateX(${slidePosition}px)`
                 }}
               >
-                <ChevronRight className="text-green-900 w-20" style={{ marginRight: -16 }} size={24} />
-                <ChevronRight className="text-green-900 w-20 p-0" size={24} />
+                {placeOrderLoading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-secondary border-t-transparent" />
+                ) : (
+                  <>
+                    <ChevronRight className="text-green-900 w-20" style={{ marginRight: -16 }} size={24} />
+                    <ChevronRight className="text-green-900 w-20 p-0" size={24} />
+                  </>
+                )}
               </div>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <span className="text-white font-medium text-sm">
-                  Slide to place order | €{(calculateTotal() + 0.99).toFixed(2)}
+                  {placeOrderLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-pulse">Processing your order</div>
+                      <div className="flex gap-1">
+                        <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    `Slide to place order | €${(calculateTotal() + 0.99).toFixed(2)}`
+                  )}
                 </span>
               </div>
             </div>

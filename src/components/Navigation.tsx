@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, User, Heart } from 'lucide-react';
+import { Home, User, Heart, ShoppingBag } from 'lucide-react';
 import { useTelegram } from '../context/TelegramContext';
 import { useTranslation } from 'react-i18next';
 
@@ -34,6 +34,15 @@ const Navigation: React.FC = () => {
             <>
               <Heart size={20} className={isActive ? 'text-secondary' : ''} />
               <span className="text-xs mt-1">{t('footer.following')}</span>
+            </>
+          )}
+        </NavLink>
+        
+        <NavLink to="/orders" className={navLinkClass}>
+          {({ isActive }) => (
+            <>
+              <ShoppingBag size={20} className={isActive ? 'text-secondary' : ''} />
+              <span className="text-xs mt-1">{t('footer.orders')}</span>
             </>
           )}
         </NavLink>

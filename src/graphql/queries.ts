@@ -464,3 +464,95 @@ export const ValidateEmailOtp = gql`
     }
   }
 `;
+
+export const PLACE_ORDER = gql`
+  mutation PlaceOrder(
+    $restaurant: String!,
+    $orderInput: [OrderInput!]!,
+    $paymentMethod: String!,
+    $couponCode: String,
+    $tipping: Float!,
+    $taxationAmount: Float!,
+    $address: AddressInput!,
+    $orderDate: String!,
+    $isPickedUp: Boolean!,
+    $deliveryCharges: Float!
+  ) {
+    placeOrder(
+      restaurant: $restaurant
+      orderInput: $orderInput
+      paymentMethod: $paymentMethod
+      couponCode: $couponCode
+      tipping: $tipping
+      taxationAmount: $taxationAmount
+      address: $address
+      orderDate: $orderDate
+      isPickedUp: $isPickedUp
+      deliveryCharges: $deliveryCharges
+    ) {
+      _id
+      orderId
+      restaurant {
+        _id
+        name
+        image
+        slug
+        address
+        location {
+          coordinates
+        }
+      }
+      deliveryAddress {
+        location {
+          coordinates
+        }
+        deliveryAddress
+      }
+      items {
+        _id
+        title
+        food
+        description
+        quantity
+        variation {
+          title
+          price
+          discountedPrice
+        }
+        addons {
+          _id
+          options {
+            _id
+            price
+          }
+          title
+          description
+          minQty
+          maxQty
+        }
+        specialInstructions
+      }
+      user {
+        _id
+        name
+        phone
+      }
+      review {
+        _id
+      }
+      paymentMethod
+      paidAmount
+      orderAmount
+      orderStatus
+      orderDate
+      expectedTime
+      isPickedUp
+      deliveryCharges
+      tipping
+      taxationAmount
+      createdAt
+      completionTime
+      preparationTime
+    }
+  }
+`;
