@@ -19,7 +19,7 @@ const TelegramBackButton: React.FC = () => {
       webApp.BackButton.hide();
     } else {
       // Show custom back button
-      webApp.BackButton.hide();
+      webApp.BackButton.show();
     }
   }, [webApp, location.pathname, isEntryPage]);
 
