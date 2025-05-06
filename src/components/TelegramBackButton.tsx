@@ -11,6 +11,7 @@ const TelegramBackButton: React.FC = () => {
   const isEntryPage = ['/', '/splash', '/home'].includes(location.pathname);
 
   useEffect(() => {
+    console.log(webApp, "webapp")
     if (!webApp) return;
 
     if (isEntryPage) {
@@ -27,7 +28,7 @@ const TelegramBackButton: React.FC = () => {
   }
 
   return (
-    <button 
+    <button
       onClick={() => navigate(-1)}
       className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
     >
