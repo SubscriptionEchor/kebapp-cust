@@ -37,6 +37,7 @@ const Checkout: React.FC = () => {
   const [isDecrementing, setIsDecrementing] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<any>(null);
   const [showAll, setShowAll] = React.useState(false);
+  const [notes,setNotes]=React.useState('')
   const location = useLocation();
   const state = location.state as { restaurantId?: string } || {};
   const restaurantId = state.restaurantId;
@@ -80,67 +81,46 @@ const Checkout: React.FC = () => {
     return calculateSubtotal() - calculateDiscount();
   };
 
-  const handleNoteChange = (itemId: string, note: string) => {
-    setCart((prev: any) => prev.map((item: any) => {
-      if (item.foodId === itemId && item.restaurantId === restaurantId) {
-        return {
-          ...item,
-          tempNote: note
-        };
-      }
-      return item;
-    }));
+  const handleNoteChange = (itemIndex:number, note: string) => {
+    // setCart((prev: any) => prev.map((item: any) => {
+    //   if (item.itemIndex==itemIndex) {
+    //     return {
+    //       ...item,
+    //       instructions: note
+    //     };
+    //   }
+    //   return item;
+    // }));
+    setNotes(note)
   };
 
-  const handleNoteDone = (itemId: string) => {
-    const cartItem = cart.find(item =>
-      item.foodId === itemId && item.restaurantId === restaurantId
-    ) as any
-    const trimmedNote = cartItem?.tempNote?.trim();
+  const handleNoteDone = (itemIndex: string) => {
+    
+    const trimmedNote = notes?.trim();
 
     if (trimmedNote) {
       setCart((prev: any) => prev.map((item: any) => {
-        if (item.foodId === itemId && item.restaurantId === restaurantId) {
-          const { tempNote, ...rest } = item;
+        if (item.itemIndex === itemIndex) {
+          const { instructions, ...rest } = item;
           return {
             ...rest,
-            note: trimmedNote
+            instructions: trimmedNote
           };
         }
         return item;
       }));
-    } else {
-      setCart((prev: any) => prev.map((item: any) => {
-        if (item.foodId === itemId && item.restaurantId === restaurantId) {
-          const { note, tempNote, ...rest } = item;
-          return rest;
-        }
-        return item;
-      }));
     }
-
+     setNotes('')
     setEditingNoteId(null);
     setShowNoteInput(prev => ({
       ...prev,
-      [itemId]: false
+      [itemIndex]: false
     }));
   };
 
-  const toggleNoteInput = (itemId: string) => {
-    setEditingNoteId(itemId);
+  const toggleNoteInput = (itemId: string,note:string) => {
 
-    // When opening note input, set tempNote to current note
-    if (!showNoteInput[itemId]) {
-      setCart((prev: any) => prev.map((item: any) => {
-        if (item.foodId === itemId && item.restaurantId === restaurantId) {
-          return {
-            ...item,
-            tempNote: item.note || ''
-          };
-        }
-        return item;
-      }));
-    }
+    setNotes(note)
 
     setShowNoteInput(prev => ({
       ...prev,
@@ -194,7 +174,6 @@ const Checkout: React.FC = () => {
 
     let newPosition = touch.clientX - sliderRect.left;
     newPosition = Math.max(0, Math.min(newPosition, maxSlide));
-    console.log(newPosition, "sss")
     setSlidePosition(newPosition);
 
     // Only complete when fully slid (>= 98% of max)
@@ -208,7 +187,6 @@ const Checkout: React.FC = () => {
     if (!slideComplete) {
       setSlidePosition(0);
     } else {
-      console.log(placeOrderLoading,"ss")
       if (!isMobileVerified) {
         // Show mobile verification first
         setShowMobileVerification(true);
@@ -233,7 +211,7 @@ const Checkout: React.FC = () => {
         _id: addon.addonId,
         options: addon.selectedOptions.map(opt => opt.id)
       })),
-      specialInstructions: item.note || ''
+      specialInstructions: item.instructions || ''
     }));
 
     // Use dummy Berlin address
@@ -253,13 +231,17 @@ const Checkout: React.FC = () => {
       taxationAmount: calculateSubtotal() * 0.1, // 10% tax
       address: dummyAddress,
       isPickedUp: true,
-      deliveryCharges: 0
+      deliveryCharges: 0,
+      specialInstructions:confirmedCookingRequest
     };
 
     try {
       await placeOrder(orderData);
       setSlidePosition(0);
       setSlideComplete(false);
+      setConfirmedCookingRequest('')
+      setCookingRequest('')
+      setCart((prev)=>prev?.filter(prevItem=>prevItem?.restaurantId!==restaurantId))
     } catch (error) {
       setSlidePosition(0);
       setSlideComplete(false);
@@ -318,7 +300,6 @@ const Checkout: React.FC = () => {
       </div>
     );
   }
-  console.log(isEmailVerified, isMobileVerified)
   return (
     <div className="min-h-screen bg-[#F8F9FA]" style={{ paddingBottom: 125 }}>
       {/* Location Section */}
@@ -494,7 +475,7 @@ const Checkout: React.FC = () => {
                 </div>
 
                 {/* Customizations */}
-                {item.note && (
+                {item?.instructions && !showNoteInput[item.itemIndex] && (
                   <div className="mt-3 flex items-center gap-2">
                     <div className="w-5 h-5 rounded-full bg-[#E6FFE6] flex items-center justify-center">
                       <PenLine size={12} className="text-[#00B37A]" />
@@ -505,29 +486,24 @@ const Checkout: React.FC = () => {
 
                 {/* Note Button/Input */}
                 <div className="mt-3">
-                  {showNoteInput[item.foodId] && (
+                  {showNoteInput[item.itemIndex] && (
                     <div className="bg-gray-50 p-3 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="text-[13px] font-medium">Add Note</h4>
-                        <button
-                          onClick={() => handleNoteDone(item.foodId)}
-                          className="text-[13px] text-gray-500"
-                        >
-                          Done
-                        </button>
+                    
                       </div>
                       <textarea
                         placeholder="Add special instructions for this item..."
-                        value={item.tempNote || ''}
-                        onChange={(e) => handleNoteChange(item.foodId, e.target.value)}
+                        value={notes || ''}
+                        onChange={(e) => handleNoteChange(item.itemIndex, e.target.value)}
                         className="w-full h-20 bg-white rounded-lg p-2 text-[13px] outline-none border border-gray-200 focus:border-secondary resize-none"
                       />
                     </div>
                   )}
 
-                  {!item.note && !showNoteInput[item.foodId] && (
+                  {!item.instructions && !showNoteInput[item.itemIndex] && (
                     <button
-                      onClick={() => toggleNoteInput(item.foodId)}
+                      onClick={() => toggleNoteInput(item.itemIndex,item?.instructions)}
                       className="flex items-center gap-2 text-[13px] text-gray-600 hover:text-gray-900 transition-colors"
                     >
                       <MessageSquare size={16} />
@@ -535,17 +511,35 @@ const Checkout: React.FC = () => {
                     </button>
                   )}
 
-                  {item.note && !showNoteInput[item.foodId] && (
+                   {item.instructions && !showNoteInput[item.itemIndex] && (
                     <div className="mt-2 bg-gray-50 p-3 rounded-lg flex items-center justify-between">
-                      <p className="text-[13px] text-gray-600 flex-1">{item.note}</p>
+                      <p className="text-[13px] text-gray-600 flex-1">{item.instructions}</p>
                       <button
-                        onClick={() => toggleNoteInput(item.foodId)}
+                        onClick={() => toggleNoteInput(item.itemIndex,item?.instructions)}
                         className="ml-3 text-[13px] text-secondary font-medium"
                       >
                         Edit
                       </button>
                     </div>
                   )}
+                  {showNoteInput[item.itemIndex] &&<div className="flex justify-end">
+                    <button
+                          onClick={() => {
+                            setNotes('')
+                            setShowNoteInput((prev)=>({...prev,[item.itemIndex]:!prev[item.itemIndex]}))
+                          }}
+                          className="me-3 text-[13px] p-2 py-1 rounded-lg text-secondary border border-secondary"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleNoteDone(item.itemIndex)}
+                          className="text-[13px] text-[13px] p-2 py-1 rounded-lg text-white bg-secondary"
+                        >
+                          Done
+                        </button>
+                        
+                         </div>}
                 </div>
 
                 {/* Edit button for customized items */}
@@ -554,7 +548,7 @@ const Checkout: React.FC = () => {
                     onClick={() => handleEditItem(item)}
                     className="mt-3 text-sm text-secondary font-medium flex items-center"
                   >
-                    Edit customization
+                    Edit
                     <ChevronRight size={16} />
                   </button>
                 )}
@@ -566,7 +560,7 @@ const Checkout: React.FC = () => {
         {/* Bottom Actions */}
         <div className="flex items-center gap-3 mt-6">
           <button
-            onClick={() => setShowCookingRequests(true)}
+            onClick={() =>{setCookingRequest(confirmedCookingRequest); setShowCookingRequests(true)}}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-lg text-[13px] font-medium"
           >
 
@@ -600,6 +594,17 @@ const Checkout: React.FC = () => {
           <div className="mt-4 bg-gray-50 p-3 rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-[13px] font-medium">Add Cooking Instructions</h4>
+              <div>
+              <button
+                onClick={() => {
+                  
+                  setCookingRequest('');
+                  setShowCookingRequests(false);
+                }}
+                className="text-[13px] text-gray-500"
+              >
+                Cancel
+              </button>
               <button
                 onClick={() => {
                   const trimmedRequest = cookingRequest.trim();
@@ -607,14 +612,15 @@ const Checkout: React.FC = () => {
                   setCookingRequest('');
                   setShowCookingRequests(false);
                 }}
-                className="text-[13px] text-gray-500"
+                className="ms-3 text-[13px] text-secondary"
               >
                 Done
               </button>
+                </div>
             </div>
             <textarea
               placeholder="Add any special cooking instructions..."
-              value={cookingRequest || confirmedCookingRequest}
+              value={cookingRequest }
               onChange={(e) => setCookingRequest(e.target.value)}
               className="w-full h-20 bg-white rounded-lg p-2 text-[13px] outline-none border border-gray-200 focus:border-secondary resize-none"
             />
@@ -657,7 +663,7 @@ const Checkout: React.FC = () => {
               restaurantName: selectedItem.restaurantName,
               categoryId: selectedItem.categoryId || ''
             });
-            setShowVariations(false);
+            // setShowVariations(false);
           }}
           isDecrementing={isDecrementing}
         />

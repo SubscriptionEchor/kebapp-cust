@@ -21,6 +21,7 @@ import Review from './pages/Review';
 import Coupons from './pages/Coupons';
 import Search from './pages/Search';
 import Support from './pages/Support';
+import LocationSearch from './pages/LocationSearch';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/coupons" element={<Coupons />} />
                   <Route path="/search" element={<Search />} />
+                  <Route path="/location/search" element={<LocationSearch />} />
                   <Route path="/review" element={<Review />} />
                 </Routes>
               </UserProvider>

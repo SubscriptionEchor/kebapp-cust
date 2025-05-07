@@ -2,6 +2,9 @@ import React, { ReactNode } from 'react';
 import { useTelegram } from '../context/TelegramContext';
 import Header from './Header';
 import Navigation from './Navigation';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import TelegramBackButton from './TelegramBackButton';
 
 interface LayoutProps {
   children: ReactNode;
@@ -19,8 +22,13 @@ const Layout: React.FC<LayoutProps> = ({
   headerRightComponent,
 }) => {
   const { colorScheme, isLoading } = useTelegram();
+  const location = useLocation();
   
   const isDarkMode = colorScheme === 'dark';
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   
   if (isLoading) {
     return (
@@ -32,12 +40,7 @@ const Layout: React.FC<LayoutProps> = ({
   
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-primary text-white' : 'bg-gray-50 text-primary'}`}>
-      {showHeader && (
-        <Header 
-          title={title} 
-          rightComponent={headerRightComponent}
-        />
-      )}
+       <TelegramBackButton />
       
       <main className="flex-1 container mx-auto px-4 py-4 max-w-none pb-[72px]">
         {children}

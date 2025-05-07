@@ -1,30 +1,51 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useMutation } from '@apollo/client';
+import { UPDATE_USER } from '../graphql/queries';
 import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 
 const UserDetails: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile } = useUser();
+  const { profile, refetchProfile } = useUser();
   const [name, setName] = useState(profile?.name || 'Phanindha Kondru');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = () => {
-    // Handle update logic here
-    navigate(-1);
+  const [updateUser] = useMutation(UPDATE_USER);
+
+  const handleSubmit = async () => {
+    if (!name.trim()) {
+      toast.error('Name cannot be empty');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data } = await updateUser({
+        variables: { name: name.trim() }
+      });
+
+      if (data?.updateUser) {
+        await refetchProfile();
+        toast.success('Profile updated successfully');
+        navigate(-1);
+      }
+    } catch (error) {
+      toast.error('Failed to update profile');
+      console.error('Update error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center">
-        <button 
-          onClick={() => navigate(-1)}
-          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronLeft size={20} className="text-gray-600" />
-        </button>
+       
         <h1 className="text-[15px] font-semibold text-gray-900 ml-2">
           {t('profile.details')}
         </h1>
@@ -73,9 +94,10 @@ const UserDetails: React.FC = () => {
         {/* Update Button */}
         <button
           onClick={handleSubmit}
+          disabled={isLoading}
           className="w-full py-3 bg-secondary text-black rounded-lg font-medium mt-6"
         >
-          Update
+          {isLoading ? 'Updating...' : 'Update'}
         </button>
       </div>
     </div>

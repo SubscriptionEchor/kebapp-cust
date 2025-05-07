@@ -206,14 +206,6 @@ const VerticalCard: React.FC<RestaurantProps> = ({
         </div>
 
         <div className="flex-1 ml-4">
-          <div className="flex items-center justify-center justify-between mb-2">
-            <div className="flex items-center justify-center bg-emerald-600 px-2 py-1 rounded-lg">
-              <span className="text-white font-bold text-xs mr-1">{rating.toFixed(1)}</span>
-              <Star className="text-white" size={14} />
-              <span className="text-xs text-white/90 ml-1">({reviews})</span>
-            </div>
-          </div>
-
           <h3 className="font-bold text-gray-900 mb-1 text-sm line-clamp-1">{name}</h3>
           <p className="text-xs text-gray-600 mb-2 line-clamp-1">{description}</p>
 
@@ -223,6 +215,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
               <span>{openingStatus.message}</span>
             </div>
           </div>
+          
           <div className="flex items-center gap-3 text-xs text-gray-600">
             <div className="flex items-center gap-1">
               <MapPin size={14} />
@@ -233,7 +226,15 @@ const VerticalCard: React.FC<RestaurantProps> = ({
               <span>{likeCount}</span>
             </div>
           </div>
+           <div className="flex items-center  justify-between mb-2">
+            <div className="flex items-center justify-center mt-2 py-1 rounded-lg">
+              <span className="text-emerald-600  font-bold text-xs mr-1">{rating.toFixed(1)}</span>
+              <Star className="text-emerald-600 " size={14} />
+              <span className="text-xs text-emerald-600  ml-1">({reviews})</span>
+            </div>
+          </div>
         </div>
+        
       </div>
       <div className="flex items-center px-4  pb-3 gap-2">
         {showPromotion && (

@@ -276,7 +276,6 @@ const handleNext = () => {
         return true;
       }) : null;
       
-      console.log(editingVariation, matchingCartItem, "ss");
       
       if (editingVariation) {
         if (matchingCartItem) {

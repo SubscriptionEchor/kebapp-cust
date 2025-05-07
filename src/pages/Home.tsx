@@ -10,6 +10,7 @@ import Banner from '../components/Banner';
 import Filters from '../components/Filters';
 import FilterBottomSheet from '../components/Filters/FilterBottomSheet';
 import OpenStreetMap from '../components/Map/OpenStreetMap';
+import ConsentPopup from '../components/ConsentPopup';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { Map, Home as HomeIcon, SlidersHorizontal } from 'lucide-react';
 import { useQuery } from '@apollo/client';
@@ -27,6 +28,7 @@ const Home: React.FC = () => {
   const { colorScheme } = useTelegram();
   const { bootstrapData, loading: bootstrapLoading } = useBootstrap();
   const { profile, loading: profileLoading } = useUser();
+  const [showConsentPopup, setShowConsentPopup] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedRadius, setSelectedRadius] = useState(50);
@@ -38,12 +40,6 @@ const Home: React.FC = () => {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    if (profile) {
-      console.log('User Profile:', profile);
-    }
-  }, [profile]);
-
   const selectedLocation = {
     latitude: 52.516267,
     longitude: 13.322455
@@ -54,9 +50,7 @@ const Home: React.FC = () => {
       const restaurantCampaigns = campaigns?.filter(
         campaign => campaign.restaurant === restaurant._id
       ).map(campaign => {
-     
         if (campaign.promotion) {
-          // Find the promotion in bootstrapData
           const promotion = bootstrapData?.promotions?.find(
             (p: any) => p._id === campaign.promotion
           );
@@ -89,14 +83,13 @@ const Home: React.FC = () => {
       limit: HOME_API_PARAMETERS.LIMIT,
       location: [Number(selectedLocation.longitude), Number(selectedLocation.latitude)]
     },
-    skip:!bootstrapData,
+    skip: !bootstrapData,
     onCompleted: (data) => {
       if (data?.allRestaurants?.restaurants) {
         const processedRestaurants = processRestaurants(
           data.allRestaurants.restaurants,
           data.allRestaurants.campaigns
         );
-        // Process sections and their restaurants
         const sectionData = data.allRestaurants.sections.map((section: any) => ({
           ...section,
           restaurants: section.restaurants
@@ -173,6 +166,19 @@ const Home: React.FC = () => {
     };
   }, [loadMoreRestaurants, isLoadingMore, pagination]);
 
+  useEffect(() => {
+    if (profile) {
+      console.log('User Profile:', profile);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (bootstrapData?.activeConsentDocData && profile?.consentInfo) {
+      const needsConsent = bootstrapData.activeConsentDocData.docVersionId !== profile.consentInfo[0].docVersionId;
+      setShowConsentPopup(needsConsent);
+    }
+  }, [bootstrapData, profile]);
+
   const handleFilterUpdate = (radius: number) => {
     setSelectedRadius(radius);
   };
@@ -217,6 +223,13 @@ const Home: React.FC = () => {
     <Layout title="" showHeader={false}>
       <HomeHeader />
       <div className="pt-[120px] pb-20">
+        <ConsentPopup
+          isOpen={showConsentPopup}
+          onClose={() => setShowConsentPopup(false)}
+          docVersionId={bootstrapData?.activeConsentDocData?.docVersionId}
+          privacyPolicyUrl={bootstrapData?.activeConsentDocData?.privacyPolicyUrl}
+          termsUrl={bootstrapData?.activeConsentDocData?.termsUrl}
+        />
         {(loading || profileLoading) && !allRestaurants.length && (
           <div className="flex justify-center py-8">
             <LoadingAnimation />
@@ -310,9 +323,9 @@ const Home: React.FC = () => {
         )}
 
         <button
-          style={{bottom:170}}
+          style={{bottom:170,zIndex:60}}
           onClick={() => setShowMap(true)}
-          className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all duration-200 z-50"
+          className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all duration-200"
         >
           <Map size={24} />
         </button>

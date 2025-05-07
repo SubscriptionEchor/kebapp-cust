@@ -1,262 +1,191 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ShoppingBag, ChefHat, Utensils, Package, ThumbsUp, XCircle, Store, PersonStanding, ChevronDown, ChevronUp,X } from 'lucide-react';
+import { Check, ShoppingBag, ChefHat, Utensils, PackageCheck, ThumbsUp, XCircle, Store, PersonStanding, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from '@apollo/client';
+import { GET_ORDER } from '../graphql/queries'; 
+import LoadingAnimation from '../components/LoadingAnimation';
+
+const ORDER_STATUS = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  PREPARED: 'PREPARED',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED',
+};
+
+const STATUS_CONFIG = {
+  [ORDER_STATUS.PENDING]: {
+    icon: ShoppingBag,
+    title: 'Order Placed',
+    description: 'Thank you! Your order has been received and is awaiting confirmation.',
+    color: '#00B37A'
+  },
+  [ORDER_STATUS.ACCEPTED]: {
+    icon: ChefHat,
+    title: 'Order Accepted',
+    description: 'Restaurant has accepted your order and your order is being prepared with care.',
+    color: '#00B37A'
+  },
+  [ORDER_STATUS.PREPARED]: {
+    icon: Utensils,
+    title: 'Prepared',
+    description: 'Your order preparation completed.',
+    color: '#00B37A'
+  },
+  [ORDER_STATUS.DELIVERED]: {
+    icon: PackageCheck,
+    title: 'Delivered',
+    description: 'Order delivered successfully.',
+    color: '#00B37A'
+  },
+  [ORDER_STATUS.CANCELLED]: {
+    icon: XCircle,
+    title: 'Cancelled',
+    description: 'Order cancelled.',
+    color: '#EF4444'
+  }
+};
+
+const STATUS_ORDER = [
+  ORDER_STATUS.PENDING,
+  ORDER_STATUS.ACCEPTED,
+  ORDER_STATUS.PREPARED,
+  ORDER_STATUS.DELIVERED
+];
 
 const OrderStatus: React.FC = () => {
   const { t } = useTranslation();
-  const [currentStatus, setCurrentStatus] = useState(0);
+  const navigate = useNavigate();
+  const { id } = useParams();
+  
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [isCancelled, setIsCancelled] = useState(false);
-  const [isRejected, setIsRejected] = useState<boolean>(false);
   const [showHoldingTimeInfo, setShowHoldingTimeInfo] = useState(false);
   const [showBillingDetails, setShowBillingDetails] = useState(false);
   const [showRefIdSheet, setShowRefIdSheet] = useState(false);
+  let totalDiscount=0
 
-  const orderItems = [
-    {
-      name: "Special Chicken Kebab",
-      description: "Choice Extra Cheese, Choice Chicken, Extra",
-      price: 20
-    },
-    {
-      name: "Special Chicken Kebab",
-      description: "Choice Extra Cheese, Choice Chicken",
-      price: 20
-    },
-    {
-      name: "Special Chicken Kebab",
-      description: "Choice Extra Cheese",
-      price: 20
-    },
-    {
-      name: "Special Chicken Kebab",
-      description: "Choice Extra Cheese",
-      price: 20
-    }
-  ];
+  const { loading, error, data } = useQuery(GET_ORDER, {
+    variables: { orderId: id },
+    pollInterval: 10000,
+    skip: !id
+  });
 
-  const subtotal = orderItems.reduce((sum, item) => sum + item.price, 0);
-  const savedAmount = 45;
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + tax;
-  
-  const baseStatuses = [
-    {
-      title: 'Order Placed',
-      description: 'Thank you! Your order has been received and is awaiting confirmation.',
-      icon: ShoppingBag
-    },
-    {
-      title: 'Order Accepted',
-      description: 'Great news! The restaurant has accepted your order.',
-      icon: ChefHat
-    },
-    {
-      title: 'In Preparation',
-      description: 'Your order is being prepared with care.',
-      icon: Utensils
-    },
-    {
-      title: 'Ready for Pickup',
-      description: 'Your order is ready! You can pick it up now.',
-      icon: Package
-    },
-    {
-      title: 'Delivered',
-      description: 'Enjoy your meal! Thank you for ordering.',
-      icon: ThumbsUp
-    }
-  ];
+  const currentStatus = data?.order?.orderStatua || ORDER_STATUS.PENDING;
+  const statusConfig = STATUS_CONFIG[currentStatus];
+  const statusIndex = STATUS_ORDER.indexOf(currentStatus);
+  const progress = (statusIndex / (STATUS_ORDER.length - 1)) * 100;
 
-  const cancelledStatus = {
-    title: 'Cancelled',
-    description: 'Order cancelled due to no pickup within 2 hours.',
-    icon: XCircle
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <LoadingAnimation />
+      </div>
+    );
+  }
 
-  const rejectedStatus = {
-    title: 'Order Rejected',
-    description: 'Restaurant has rejected your order.',
-    icon: XCircle
-  };
+  if (error || !data?.order) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Failed to load order details</p>
+          <button
+            onClick={() => navigate('/orders')}
+            className="px-4 py-2 bg-secondary text-black rounded-lg"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const statuses = isCancelled ? [...baseStatuses.slice(0, 4), cancelledStatus] : baseStatuses;
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStatus((prev) => {
-        // Simulate order rejection at second status
-        if (prev === 3) {
-          // setIsRejected(true);
-          clearInterval(interval);
-          return prev;
-        }
-        // Continue if not rejected
-        else if (prev < 3 && !isRejected) {
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Start 2-hour timer when order is ready for pickup
-  useEffect(() => {
-    if (currentStatus === 3) {
-      // Set initial time to 2 hours in seconds
-      setTimeLeft(1 *1 * 1);
-
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev === null) return null;
-          if (prev <= 1) {
-            clearInterval(timer);
-            setIsCancelled(true);
-            setCurrentStatus(4); // Move to cancelled state
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [currentStatus]);
-
-  const formatTime = (seconds: number | null) => {
-    if (seconds === null) return '';
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}h ${minutes}m ${secs}s`;
-  };
+  const order = data.order;
 
   return (
     <div className="min-h-screen bg-white">
       <div className="p-4 space-y-6">
-        <h1 className="text-xl font-semibold text-gray-900">Order placed successfully</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Order #{order.orderId}</h1>
 
-        {/* Current Status Text */}
         <div className="mt-6 mb-4">
           <div className="flex items-center gap-3">
-            {React.createElement(statuses[currentStatus].icon, { 
+            {React.createElement(statusConfig.icon, { 
               size: 20,
-              className: isCancelled || isRejected ? "text-red-500" : "text-[#00B37A]"
+              className: `text-[${statusConfig.color}]`
             })}
             <div>
               <h2 className="text-[15px] font-semibold text-gray-900">
-                {isRejected ? rejectedStatus.title : statuses[currentStatus].title}
+                {statusConfig.title}
               </h2>
               <p className="text-sm text-gray-600 mt-0.5">
-                {isRejected ? rejectedStatus.description : statuses[currentStatus].description}
+                {statusConfig.description}
               </p>
-              
             </div>
           </div>
         </div>
 
-        {/* Status Bar */}
-        <div className="mt-8 relative ">
-          {/* Progress Line */}
+        <div className="mt-8 relative">
           <div className="absolute top-5 left-4 right-4 h-0.5 bg-gray-200">
-            <div 
-              className={`h-full transition-all duration-300 ease-in-out ${isRejected ? 'bg-red-500' : 'bg-[#00B37A]'}`}
-              style={{ width: isRejected ? '25%' : `${((currentStatus-(isCancelled?1:0)) / (statuses.length - 1)) * 100}%` }}
+            <motion.div 
+              className={`h-full bg-[${statusConfig.color}]`}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
             />
-            {isCancelled && (
-              <div 
-                className="h-full absolute -top-0  right-0 bg-red-500 transition-all duration-300"
-                style={{ width: '25%' }}
-              />
-            )}
           </div>
 
-          {/* Status Points */}
           <div className="relative flex justify-between px-4">
-            {baseStatuses.slice(0, isCancelled ? 4 : undefined).map((status, index) => (
+            {STATUS_ORDER.map((status, index) => {
+              const isComplete = index <= statusIndex;
+              const isCurrent = index === statusIndex;
+              const config = STATUS_CONFIG[status];
+              
+              return (
               <div 
-                key={index}
-                className={`flex flex-col items-center ${
-                  index <= currentStatus
-                    ? (isCancelled && index === currentStatus)
-                      ? 'text-red-500'
-                      : 'text-[#00B37A]'
-                    : 'text-gray-400'
+               key={index}
+               className={`flex flex-col items-center ${
+                  isComplete ? `text-[${config.color}]` : 'text-gray-400'
                 }`}
-                style={{ width: '20%' }}
+               style={{ width: '20%' }}
               >
-                <div
-                  className="relative"
-                >
-                  {/* Outer glowing circle for current status */}
-                  {((isRejected && index === 1) || (!isRejected && index === currentStatus)) && (
-                    <div className={`absolute -inset-3 rounded-full opacity-20 animate-pulse ${
-                      isRejected ? 'bg-red-500' : 'bg-[#00B37A]'
-                    }`} />
+               <div className="relative">
+                  {isCurrent && (
+                    <motion.div
+                      className={`absolute -inset-3 rounded-full opacity-20`}
+                      style={{ backgroundColor: config.color }}
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
                   )}
                   
-                  {/* Main status circle */}
-                  <div 
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isRejected && index > 1 
-                      ? 'bg-gray-200 text-gray-400'
-                      : isRejected && index === 1
-                        ? 'bg-red-500 text-white'
-                        : (index <= currentStatus && !isCancelled) || (isCancelled && index === currentStatus)
-                          ? isCancelled 
-                            ? 'bg-red-500 text-white' 
-                            : 'bg-[#00B37A] text-white'
-                        : 'bg-[#00B37A] text-white'
-                  }`}
+                  <motion.div 
+                    className={`w-10 h-10 rounded-full flex items-center justify-center`}
+                    style={{
+                      backgroundColor: isComplete ? config.color : '#E5E7EB',
+                      color: isComplete ? 'white' : '#9CA3AF'
+                    }}
+                    initial={false}
+                    animate={{
+                      scale: isCurrent ? [1, 1.1, 1] : 1,
+                      rotate: isCurrent ? [0, 10, -10, 0] : 0
+                    }}
+                    transition={{
+                      duration: 0.5,
+                      ease: "easeInOut",
+                      repeat: isCurrent ? Infinity : 0,
+                      repeatDelay: 1
+                    }}
                   >
-                  {(index < currentStatus && !isRejected) || (isRejected && index < 1) ? (
-                    <Check size={20} />
-                  ) : (
-                    <AnimatePresence>
-                      {index === currentStatus ? (
-                        <motion.div 
-                          initial={{ scale: 0.5, opacity: 0 }} 
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.5, opacity: 0 }}>
-                          {React.createElement(isRejected ? rejectedStatus.icon : statuses[index].icon, { size: 20 })}
-                        </motion.div>
-                      ) : (
-                        React.createElement(statuses[index].icon, { 
-                          size: 20, 
-                          className: isRejected && index > 1 ? "text-gray-400" : "text-current"
-                        })
-                      )}
-                    </AnimatePresence>
-                  )}
-                  </div>
+                    {isComplete && !isCurrent ? (
+                      <Check size={20} />
+                    ) : (
+                      React.createElement(config.icon, { size: 20 })
+                    )}
+                  </motion.div>
                 </div>
               </div>
-            ))}
-            {/* Cancelled Status */}
-            {isCancelled && (
-              <div 
-                className="flex flex-col items-center text-red-500"
-                style={{ width: '20%' }}
-              >
-                <div className="relative">
-                  <div className="absolute -inset-3 rounded-full bg-red-500 opacity-20 animate-pulse" />
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500 text-white"
-                  >
-                    <motion.div 
-                      initial={{ scale: 0.5, opacity: 0 }} 
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.5, opacity: 0 }}
-                    >
-                      <XCircle size={20} />
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
-            )}
+            )})}
           </div>
         </div>
 
@@ -271,11 +200,8 @@ const OrderStatus: React.FC = () => {
             
             <div className="flex-1">
               <div className="mb-3">
-                <h3 className="text-[15px] font-medium text-gray-900">Gasthaus Kater Alex</h3>
-               
-                
-              
-                <p className="text-[13px] text-gray-500 mt-1">Kaiser Place 123 Place Road, Downtown, Berlin, Germany, 10115</p>
+                <h3 className="text-[15px] font-medium text-gray-900">{order.restaurant.name}</h3>
+                <p className="text-[13px] text-gray-500 mt-1">{order.restaurant.address}</p>
               </div>
               
               <div className="flex gap-2">
@@ -295,51 +221,61 @@ const OrderStatus: React.FC = () => {
             </div>
             <div>
               <p className="text-[13px] text-gray-900">Distance</p>
-              <p className="text-xs text-gray-600 mt-0.5">17 kilometers</p>
+              <p className="text-xs text-gray-600 mt-0.5">{(order.restaurant.distanceInMeters / 1000).toFixed(1)} kilometers</p>
             </div>
           </div>
        
           <div className="flex items-center gap-4 mt-4 justify-between">
-              <div>
-                <h3 className="text-[15px] font-semibold text-gray-900">Reference ID</h3>
-                <p className="text-[13px] text-green-600 mt-1">QMQPI-58</p>
-              </div>
-             
+            <div>
+              <h3 className="text-[15px] font-semibold text-gray-900">Reference ID</h3>
+              <p className="text-[13px] text-green-600 mt-1">{order.orderId}</p>
             </div>
+          </div>
         </div>
 
         {/* Section 3: Order Items and Billing */}
         <div className="bg-gray-50 rounded-xl p-4">
           <div className="flex justify-between items-center mb-4">
-          
-           
-        <div className="flex items-center gap-1 mt-1">
-                  <p className="text-[13px] text-gray-900">
-                    {t('orderStatus.holdingTime')}:
-                  </p>
-                  <p className="text-[13px] text-red-500 font-medium">
-                    4 hrs
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setShowHoldingTimeInfo(true)}
-                  className="text-[13px] text-[#00B37A] font-medium ml-1"
-                >
-                  {t('orderStatus.whatsThis')}
-                </button>
-        
+            <div className="flex items-center gap-1 mt-1">
+              <p className="text-[13px] text-gray-900">
+                {t('orderStatus.holdingTime')}:
+              </p>
+              <p className="text-[13px] text-red-500 font-medium">
+                4 hrs
+              </p>
+            </div>
+            <button 
+              onClick={() => setShowHoldingTimeInfo(true)}
+              className="text-[13px] text-[#00B37A] font-medium ml-1"
+            >
+              {t('orderStatus.whatsThis')}
+            </button>
           </div>
-           <h2 className="text-[15px] font-semibold text-gray-900">Your Items</h2>
-          <div className="space-y-3">
-            {orderItems.map((item, index) => (
+
+          <h2 className="text-[15px] font-semibold text-gray-900">Your Items</h2>
+          <div className="space-y-3 mt-4">
+            {order.items.map((item, index) => {
+       totalDiscount+=(item.variation.discountedPrice||0)* item.quantity
+      return(
               <div key={index} className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-[13px] text-gray-900">{item.name}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                  <h3 className="text-[13px] text-gray-900">{item.title}</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{item.description || ''}</p>
+                  
                 </div>
-                <span className="text-[13px] font-medium">€{item.price.toFixed(2)}</span>
+                <div className="text-right">
+                  <span className="text-[13px] font-medium">
+                    €{(((item.variation?.price || 0) + (item.addons?.reduce((sum, addon) => 
+                      sum + addon.options.reduce((optSum, opt) => optSum + (opt.price || 0), 0), 0) || 0)) * item.quantity).toFixed(2)}
+                  </span>
+                  {item.variation?.discountedPrice > 0 && (
+                    <p className="text-xs text-green-600">
+                      Saved €{((item.variation.discountedPrice) * item.quantity).toFixed(2)}
+                    </p>
+                  )}
+                </div>
               </div>
-            ))}
+            )})}
           </div>
 
           <div className="mt-6 border-t border-gray-200 pt-4">
@@ -368,22 +304,26 @@ const OrderStatus: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Item total</span>
-                      <span>€{subtotal.toFixed(2)}</span>
+                      <span>€{(order.orderAmount-order.taxationAmount).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-[13px] text-gray-900">
+                    {/* <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Restaurant tip</span>
-                      <span>€45.00</span>
-                    </div>
-                    <div className="flex justify-between text-[13px] text-gray-900">
+                      <span>€{order.tipping.toFixed(2)}</span>
+                    </div> */}
+                    {/* <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Platform fee</span>
-                      <span>€45.00</span>
+                      <span>€{order.deliveryCharges.toFixed(2)}</span>
+                    </div> */}
+                    <div className="flex justify-between text-[13px] text-gray-900">
+                      <span>Tax</span>
+                      <span>€{order.taxationAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-[13px] font-medium text-gray-900 pt-2 border-t border-gray-100">
                       <span>Total</span>
                       <div className="text-right">
-                        <p>€297.00</p>
+                        <p>€{order.orderAmount.toFixed(2)}</p>
                         <p className="text-[11px] text-green-600 font-normal">
-                          €45 saved on this order
+                          €{totalDiscount.toFixed(2)} saved on this order
                         </p>
                       </div>
                     </div>
@@ -396,9 +336,9 @@ const OrderStatus: React.FC = () => {
               <div className="mt-3 flex justify-between items-end">
                 <span className="text-[13px] text-gray-900">Total</span>
                 <div className="text-right">
-                  <p className="text-[13px] font-medium text-gray-900">€297.00</p>
+                  <p className="text-[13px] font-medium text-gray-900">€{order?.orderAmount?.toFixed(2)}</p>
                   <p className="text-[11px] text-green-600">
-                    €45 saved on this order
+                    €{totalDiscount?.toFixed(2)} saved on this order
                   </p>
                 </div>
               </div>
@@ -414,45 +354,7 @@ const OrderStatus: React.FC = () => {
           </p>
         </div>
 
-        {/* Reference ID Section - Show when order is completed */}
-
        
-
-        {/* Reference ID Validation Sheet */}
-        {showRefIdSheet && (
-          <>
-            <div 
-              className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
-              onClick={() => setShowRefIdSheet(false)}
-            />
-            <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 animate-slide-up">
-              <div className="flex justify-end p-4">
-                <button 
-                  onClick={() => setShowRefIdSheet(false)}
-                  className="text-gray-400"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="px-4 pb-6">
-                <h3 className="text-[15px] font-semibold text-gray-900 mb-4">Validate Order</h3>
-                <p className="text-[13px] text-gray-600 mb-6">
-                  Show this reference ID to the restaurant staff to validate your order:
-                </p>
-                <div className="bg-gray-50 p-4 rounded-lg mb-8 text-center">
-                  <p className="text-2xl font-bold text-gray-900">QMQPI-58</p>
-                </div>
-                <button
-                  onClick={() => setShowRefIdSheet(false)}
-                  className="w-full py-3 bg-[#00B37A] text-white rounded-lg text-[13px] font-medium"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
         {/* Holding Time Info Modal */}
         {showHoldingTimeInfo && (
           <>

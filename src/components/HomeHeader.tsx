@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../context/TelegramContext';
 import { useBootstrap } from '../context/BootstrapContext';
-import { Search, MapPin, UserCircle2, ChevronLeft } from 'lucide-react';
+import { Search, MapPin, UserCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import TelegramBackButton from './TelegramBackButton';
 
@@ -49,14 +49,20 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-teal-800 to-blue-900">
       {/* Address Selection */}
       <div className="px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-1">
+        <div 
+          onClick={() => navigate('/location/search')}
+          className="flex items-center gap-2 flex-1 cursor-pointer"
+        >
           <TelegramBackButton />
-          <MapPin size={20} className="text-white" />
-          <div className="flex flex-col">
-            <span className="font-sans font-semibold truncate text-white">Abacus IT Park</span>
-            <span className="text-xs text-gray-300 truncate font-sans">
-              Kaiser-Friedrich-Straße 29, 10585 Berlin, Germany
-            </span>
+          <div className="flex items-center flex-1">
+            <MapPin size={20} className="text-white" />
+            <div className="flex flex-col flex-1 mx-2">
+              <span className="font-sans font-semibold truncate text-white">Abacus IT Park</span>
+              <span className="text-xs text-gray-300 truncate font-sans">
+                Kaiser-Friedrich-Straße 29, 10585 Berlin, Germany
+              </span>
+            </div>
+            <ChevronRight size={20} className="text-white" />
           </div>
         </div>
         <UserCircle2 size={28} className="text-white" />

@@ -95,9 +95,8 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
     
           <div className="absolute bottom-0 left-0 right-0">
             <div className={`px-2.5 py-1.5 rounded-lg backdrop-blur-sm ${
-              campaigns.length > 1
-                ? 'bg-gradient-to-r from-black/80 to-gray-900/80 text-white'
-                : 'bg-gradient-to-r from-secondary/90 to-secondary/80 text-black'
+            'bg-gradient-to-r from-black/80 to-gray-900/80 text-white'
+               
             }`}>
               {campaigns.length > 1 ? (
                 <span className="text-[11px] flex items-center font-medium">

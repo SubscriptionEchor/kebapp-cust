@@ -75,7 +75,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return newCart;
       }
 
-      return [...prevCart, item];
+      return [...prevCart, {...item,itemIndex:cart?.length+1}];
     });
   };
 

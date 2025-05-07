@@ -1,36 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, MapPin, Plus, MoreVertical } from 'lucide-react';
+import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast'; 
 import { useEffect, useRef } from 'react';
 
-// Mock data for addresses
-const initialAddresses = [
-  {
-    id: 1,
-    label: 'Home',
-    address: 'Kaiser-Friedrich-Straße 29, 10585 Berlin, Germany',
-    isSelected: true
-  },
-  {
-    id: 2,
-    label: 'Work',
-    address: 'Potsdamer Platz 1, 10785 Berlin, Germany',
-    isSelected: false
-  },
-  {
-    id: 3,
-    label: 'Hotel',
-    address: 'Budapester Str. 2, 10787 Berlin, Germany',
-    isSelected: false
-  }
-];
-
 const SavedAddresses: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [addresses, setAddresses] = useState(initialAddresses);
+  const { profile } = useUser();
+  const [addresses, setAddresses] = useState(profile?.addresses || []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -41,6 +21,12 @@ const SavedAddresses: React.FC = () => {
     label: '',
     address: ''
   });
+  
+  useEffect(() => {
+    if (profile?.addresses) {
+      setAddresses(profile.addresses);
+    }
+  }, [profile]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,10 +40,12 @@ const SavedAddresses: React.FC = () => {
   }, []);
 
   const handleSelect = (id: number) => {
-    setAddresses(addresses.map(addr => ({
-      ...addr,
-      isSelected: addr.id === id
-    })));
+    setAddresses(addresses.map(addr => {
+      return {
+        ...addr,
+        selected: addr._id === id
+      };
+    }));
     setShowOptionsModal(null);
     toast.success('Address selected');
   };
@@ -69,7 +57,7 @@ const SavedAddresses: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    setAddresses(addresses.filter(addr => addr.id !== id));
+    setAddresses(addresses.filter(addr => addr._id !== id));
     setShowDeleteModal(false);
     setShowOptionsModal(null);
     toast.success('Address deleted');
@@ -78,7 +66,7 @@ const SavedAddresses: React.FC = () => {
   const handleSaveEdit = () => {
     if (editingAddress) {
       setAddresses(addresses.map(addr =>
-        addr.id === editingAddress.id ? editingAddress : addr
+        addr._id === editingAddress._id ? editingAddress : addr
       ));
       setShowEditModal(false);
       setEditingAddress(null);
@@ -104,22 +92,14 @@ const SavedAddresses: React.FC = () => {
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between">
         <div className="flex items-center">
-          <button 
-            onClick={() => navigate(-1)}
-            className="mr-2"
-          >
-            <ChevronLeft size={20} className="text-gray-600" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-900">
-            Saved Addresses
-          </h1>
+         
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="flex items-center gap-1 text-[#00B37A]"
         >
           <Plus size={20} />
-          <span className="text-sm font-medium">New</span>
+          <span className="text-sm font-medium">New Address</span>
         </button>
       </div>
 
@@ -127,7 +107,7 @@ const SavedAddresses: React.FC = () => {
       <div className="p-4 space-y-3">
         {addresses.map((address) => (
           <div 
-            key={address.id}
+            key={address._id}
             className="bg-white rounded-xl p-4 relative"
           >
             <div className="flex items-start justify-between">
@@ -140,9 +120,9 @@ const SavedAddresses: React.FC = () => {
                     {address.label}
                   </h3>
                   <p className="text-[13px] text-gray-500 mt-1">
-                    {address.address}
+                    {address.deliveryAddress}
                   </p>
-                  {address.isSelected && (
+                  {address.selected && (
                     <span className="inline-block mt-2 text-xs text-[#00B37A] font-medium">
                       SELECTED
                     </span>
@@ -158,12 +138,12 @@ const SavedAddresses: React.FC = () => {
             </div>
 
             {/* Options Modal */}
-            {showOptionsModal === address.id && (
+            {showOptionsModal === address._id && (
               <div ref={optionsRef} className="absolute right-4 top-12 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSelect(address.id);
+                    handleSelect(address._id);
                   }}
                   className="w-full px-4 py-2.5 text-left text-[13px] hover:bg-gray-50"
                 >
@@ -188,6 +168,23 @@ const SavedAddresses: React.FC = () => {
             )}
           </div>
         ))}
+        
+        {(!addresses || addresses.length === 0) && (
+          <div className="text-center item-center flex flex-col items-center py-8">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin size={24} className="text-gray-400" />
+            </div>
+             <button
+          onClick={() => setShowAddModal(true)}
+          className="flex text-white p-2 rounded-lg mb-3 w-fit items-center gap-1 bg-[#00B37A]"
+        >
+          <Plus size={20} />
+          <span className="text-sm font-medium">New Address</span>
+        </button>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No saved addresses</h3>
+            <p className="text-sm text-gray-500">Add your first address to get started</p>
+          </div>
+        )}
       </div>
 
       {/* Add Address Modal */}

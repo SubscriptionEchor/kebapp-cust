@@ -23,6 +23,73 @@ export const LOGIN_VIA_TELEGRAM = gql`
   }
 `;
 
+export const GET_ORDER = gql`
+  query GetOrder($orderId: String!) {
+    order(id: $orderId) {
+      _id
+      orderId
+      restaurant {
+        _id
+        name
+        image
+        slug
+        address
+        distanceInMeters
+        location {
+          coordinates
+        }
+      }
+      deliveryAddress {
+        deliveryAddress
+      }
+      items {
+        _id
+        title
+        food
+        quantity
+        variation {
+          title
+          price
+          discountedPrice
+        }
+        addons {
+          _id
+          options {
+            _id
+            price
+          }
+          title
+          minQty
+          maxQty
+        }
+        specialInstructions
+      }
+      user {
+        _id
+        name
+        phone
+      }
+      review {
+        _id
+        rating
+      }
+      paymentMethod
+      paidAmount
+      orderAmount
+      orderStatus
+      orderDate
+      expectedTime
+      isPickedUp
+      deliveryCharges
+      tipping
+      taxationAmount
+      createdAt
+      completionTime
+      preparationTime
+    }
+  }
+`;
+
 export const CUSTOMER_BOOTSTRAP = gql`
   query CustomerBootstrap {
     customerBootstrap {
@@ -393,6 +460,80 @@ export const TOGGLE_FAVORITE = gql`
   }
 `;
 
+export const SET_RESTAURANT_NOTIFICATION = gql`
+  mutation SetUserRestaurantNotification($input: SetUserRestaurantNotificationInput!) {
+    setUserRestaurantNotification(input: $input)
+  }
+`;
+
+export const GET_ORDERS = gql`
+  query Orders {
+    orders {
+      _id
+      orderId
+      restaurant {
+        _id
+        name
+        image
+        slug
+        address
+        distanceInMeters
+        location {
+          coordinates
+        }
+      }
+      deliveryAddress {
+        deliveryAddress
+      }
+      items {
+        _id
+        title
+        food
+        quantity
+        addons {
+          _id
+          options {
+            _id
+            price
+          }
+          title
+          minQty
+          maxQty
+        }
+        specialInstructions
+      }
+      user {
+        _id
+        name
+        phone
+      }
+      review {
+        _id
+        rating
+      }
+      paymentMethod
+      paidAmount
+      orderAmount
+      orderStatus
+      deliveryCharges
+      tipping
+      taxationAmount
+      orderDate
+      expectedTime
+      isPickedUp
+      createdAt
+      completionTime
+      cancelledAt
+      assignedAt
+      deliveredAt
+      acceptedAt
+      pickedAt
+      preparedAt
+      preparationTime
+    }
+  }
+`;
+
 export const PROFILE = gql`
   query {
     profile {
@@ -401,6 +542,7 @@ export const PROFILE = gql`
       phone
       phoneIsVerified
       email
+      notificationEnabled
       emailIsVerified
       notificationToken
       notificationEnabled
@@ -477,6 +619,7 @@ export const PLACE_ORDER = gql`
     $orderDate: String!,
     $isPickedUp: Boolean!,
     $deliveryCharges: Float!
+    $specialInstructions:String!
   ) {
     placeOrder(
       restaurant: $restaurant
@@ -488,71 +631,37 @@ export const PLACE_ORDER = gql`
       address: $address
       orderDate: $orderDate
       isPickedUp: $isPickedUp
-      deliveryCharges: $deliveryCharges
+      deliveryCharges: $deliveryCharges,
+      instructions:$specialInstructions
     ) {
       _id
-      orderId
-      restaurant {
-        _id
-        name
-        image
-        slug
-        address
-        location {
-          coordinates
-        }
-      }
-      deliveryAddress {
-        location {
-          coordinates
-        }
-        deliveryAddress
-      }
-      items {
-        _id
-        title
-        food
-        description
-        quantity
-        variation {
-          title
-          price
-          discountedPrice
-        }
-        addons {
-          _id
-          options {
-            _id
-            price
-          }
-          title
-          description
-          minQty
-          maxQty
-        }
-        specialInstructions
-      }
-      user {
-        _id
-        name
-        phone
-      }
-      review {
-        _id
-      }
-      paymentMethod
-      paidAmount
-      orderAmount
-      orderStatus
-      orderDate
-      expectedTime
-      isPickedUp
-      deliveryCharges
-      tipping
-      taxationAmount
-      createdAt
-      completionTime
-      preparationTime
     }
+  }
+`;
+
+export const UPDATE_USER = gql`
+  mutation UpdateUser($name: String!) {
+    updateUser(updateUserInput: { name: $name }) {
+      _id
+      name
+    }
+  }
+`;
+
+export const TOGGLE_USER_NOTIFICATIONS = gql`
+  mutation ToggleUserNotifications {
+    toggleUserNotifications
+  }
+`;
+
+export const GET_RESTAURANT_NOTIFICATION_STATUS = gql`
+  query GetRestaurantNotificationStatus($restaurantId: String!) {
+    getUserRestaurantSubscriptionStatus(restaurantId: $restaurantId)
+  }
+`;
+
+export const recordConsent = gql`
+  mutation RecordUserConsent($docVersionId: String!) {
+    recordUserConsent(docVersionId: $docVersionId)
   }
 `;

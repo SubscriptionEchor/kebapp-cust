@@ -7,37 +7,42 @@ const TelegramBackButton: React.FC = () => {
   const { webApp } = useTelegram();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const isEntryPage = ['/', '/splash', '/home'].includes(location.pathname);
+  
+  // Updated logic to check if we're on an entry page
+  const isEntryPage = () => {
+    const entryPaths = ['/', '/splash', '/home'];
+    // Check if current path exactly matches any entry path
+    return entryPaths.some(path => path === location.pathname);
+  };
 
   useEffect(() => {
-    console.log(webApp, "webapp")
+    console.log(webApp, "webapp");
     if (!webApp) return;
-
-    if (isEntryPage) {
-      // Show Telegram's native close button
+    
+    const onEntryPage = isEntryPage();
+    
+    if (onEntryPage) {
+      // Show Telegram's native close button on entry pages
       webApp.BackButton.hide();
+      console.log("Hiding back button on entry page:", location.pathname);
     } else {
-      // Show custom back button
+      // Show back button on all other pages, including dynamic routes
       webApp.BackButton.show();
       webApp.BackButton.onClick(() => {
-        navigate(-1)
+        navigate(-1);
       });
+      console.log("Showing back button on non-entry page:", location.pathname);
     }
-  }, [webApp, location.pathname, isEntryPage]);
+    
+    // Clean up event listener when component unmounts
+    return () => {
+      if (webApp) {
+        webApp.BackButton.offClick();
+      }
+    };
+  }, [webApp, location.pathname, navigate]);
 
-  if (isEntryPage) {
-    return null;
-  }
-
-  return (
-    <button
-      onClick={() => navigate(-1)}
-      className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-    >
-      <ChevronLeft size={20} className="text-gray-600" />
-    </button>
-  );
+  return null;
 };
 
 export default TelegramBackButton;

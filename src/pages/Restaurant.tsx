@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-import { ChevronLeft, Star, Heart, Clock, MapPin, Users, MessageCircle } from 'lucide-react';
+import { ChevronLeft, Star, Heart, Clock, MapPin, Users, MessageCircle, QrCode } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useFavorite } from '../hooks/useFavorite';
@@ -32,6 +32,7 @@ const Restaurant = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const { isLiked, likeCount, isLoading, handleLike } = useFavorite({
     id: id || '',
@@ -171,13 +172,20 @@ console.log(data,"data")
           <motion.button 
             onClick={handleLike}
             className="p-2 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
+            style={{ color: !isLiked ? navBarTextColor : undefined }}
             disabled={isLoading}
           >
             <Heart 
               size={24} 
               className={`transition-colors ${isLiked ? 'text-red-500 fill-red-500' : ''}`}
-              style={{ color: !isLiked ? navBarTextColor : undefined }}
             />
+          </motion.button>
+          <motion.button
+            onClick={() => setShowQrModal(true)}
+            className="p-2 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
+            style={{ color: navBarTextColor }}
+          >
+            <QrCode size={24} />
           </motion.button>
         </motion.div>
 
@@ -278,6 +286,41 @@ console.log(data,"data")
           </div>
         </div>
       </motion.div>
+
+      {/* QR Code Modal */}
+      {showQrModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Scan QR Code</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Scan this QR code to share the restaurant
+              </p>
+            </div>
+            
+            <div className="p-8 flex flex-col items-center">
+              <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${window.location.href}`}
+                  alt="Restaurant QR Code"
+                  className="w-40 h-40"
+                />
+              </div>
+              
+              <p className="text-sm text-gray-600 text-center mb-4">
+                Share this QR code to let others discover {restaurant.name}
+              </p>
+              
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="w-full py-3 bg-secondary text-black rounded-lg font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

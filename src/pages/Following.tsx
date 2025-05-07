@@ -28,7 +28,8 @@ const Following: React.FC = () => {
     refetch();
   };
 
-  const formatDistance = (meters: number): string => {
+  const formatDistance = (meters: number | null): string => {
+    if (meters === null) return t('common.unknown');
     return meters < 1000 
       ? `${meters.toFixed(0)}m`
       : `${(meters / 1000).toFixed(1)}km`;

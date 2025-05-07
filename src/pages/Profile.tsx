@@ -1,18 +1,21 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, MapPin, Bell, ChevronRight, Globe2 } from 'lucide-react';
+import { User, MapPin, ChevronRight, Globe2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../context/UserContext'; 
+import { useMutation } from '@apollo/client';
+import { TOGGLE_USER_NOTIFICATIONS } from '../graphql/queries';
 import { useLanguage } from '../hooks/useLanguage';
 import CustomDropdown from '../components/CustomDropdown';
 import Layout from '../components/Layout';
+import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile } = useUser();
+  const { profile, refetchProfile } = useUser();
   const { currentLanguage, changeLanguage } = useLanguage();
-  const [notifications, setNotifications] = React.useState(true);
+  const [toggleNotifications, { loading: isTogglingNotifications }] = useMutation(TOGGLE_USER_NOTIFICATIONS);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
   const languages = [
@@ -20,6 +23,17 @@ const Profile: React.FC = () => {
     { code: 'de', name: t('language.german') },
     { code: 'tr', name: t('language.turkish') }
   ];
+  
+  const handleToggleNotifications = async () => {
+    try {
+      await toggleNotifications();
+      await refetchProfile();
+      toast.success('Notification settings updated');
+    } catch (error) {
+      toast.error('Failed to update notification settings');
+      console.error('Toggle notifications error:', error);
+    }
+  };
 
   return (
      <Layout>
@@ -75,11 +89,18 @@ const Profile: React.FC = () => {
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={notifications}
-                onChange={() => setNotifications(!notifications)}
+                checked={profile?.notificationEnabled || false}
+                onChange={handleToggleNotifications}
+                disabled={isTogglingNotifications}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+              <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary relative`}>
+                {isTogglingNotifications && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+              </div>
             </label>
           </div>
         </div>

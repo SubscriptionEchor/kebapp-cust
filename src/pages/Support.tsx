@@ -9,19 +9,6 @@ const Support: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center">
-        <button 
-          onClick={() => navigate(-1)}
-          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronLeft size={20} className="text-gray-600" />
-        </button>
-        <h1 className="text-[15px] font-semibold text-gray-900 ml-2">
-          Support Center
-        </h1>
-      </div>
-
       {/* Content */}
       <div className="p-4 flex  justify-center ">
         <div className="flex flex-col items-center text-center bg-white p-10 rounded-xl shadow-lg">

@@ -38,7 +38,6 @@ const MapController: React.FC<{
     userMarker?: L.Marker;
     restaurantMarker?: L.Marker;
   }>({});
-
   const { data: clustersData, refetch: refetchClusters, loading: clustersLoading } = useQuery(GET_RESTAURANT_CLUSTERS, {
     variables: {
       input: {
@@ -140,6 +139,23 @@ const MapController: React.FC<{
     onMapMove(center, effectiveRadius);
   }, [map, userLocation, radius]);
 
+  useEffect(() => {
+    const shouldUpdateRadius = RADIUS_THRESHOLDS.some((threshold, index) => {
+      const prevThreshold = index > 0 ? RADIUS_THRESHOLDS[index - 1] : 3;
+      return (currentRadius >= prevThreshold && currentRadius < threshold) !== 
+             (radius >= prevThreshold && radius < threshold);
+    });
+
+    if (shouldUpdateRadius) {
+      setCurrentRadius(radius);
+      clusterMarkers.forEach(marker => marker.remove());
+      setClusterMarkers([]);
+      restaurantMarkers.forEach(marker => marker.remove());
+      setRestaurantMarkers([]);
+      debouncedFetch(currentCenter!, radius);
+    }
+  }, [radius, currentCenter]);
+
   // Handle route display
   useEffect(() => {
     if (showRoute && userLocation && restaurantLocation) {
@@ -201,23 +217,7 @@ const MapController: React.FC<{
     }
   }, [showRoute, userLocation, restaurantLocation, map]);
 
-  useEffect(() => {
-    const shouldUpdateRadius = RADIUS_THRESHOLDS.some((threshold, index) => {
-      const prevThreshold = index > 0 ? RADIUS_THRESHOLDS[index - 1] : 3;
-      return (currentRadius >= prevThreshold && currentRadius < threshold) !== 
-             (radius >= prevThreshold && radius < threshold);
-    });
-
-    if (shouldUpdateRadius) {
-      setCurrentRadius(radius);
-      clusterMarkers.forEach(marker => marker.remove());
-      setClusterMarkers([]);
-      restaurantMarkers.forEach(marker => marker.remove());
-      setRestaurantMarkers([]);
-      debouncedFetch(currentCenter!, radius);
-    }
-  }, [radius, currentCenter]);
-
+  // Moved handleMapUpdate outside of useEffect
   const handleMapUpdate = useCallback(() => {
     const center = map.getCenter();
     const effectiveRadius = calculateEffectiveRadius();
@@ -239,7 +239,7 @@ const MapController: React.FC<{
     restaurantMarkers.forEach(marker => marker.remove());
     setRestaurantMarkers([]);
     debouncedFetch(center, effectiveRadius);
-  }, [map, currentRadius, clusterMarkers, restaurantMarkers, debouncedFetch]);
+  }, [map, currentRadius, clusterMarkers, restaurantMarkers, debouncedFetch, onMapMove]);
 
   useMapEvents({
     moveend: handleMapUpdate,
@@ -379,7 +379,7 @@ interface OpenStreetMapProps {
   userLocation: {
     lat: number;
     lng: number;
-  } | null;
+  };
   restaurantLocation?: {
     lat: number;
     lng: number;
