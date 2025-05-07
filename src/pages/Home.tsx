@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../context/TelegramContext';
 import { useBootstrap } from '../context/BootstrapContext';
 import { useUser } from '../context/UserContext';
@@ -17,6 +18,7 @@ import { useQuery } from '@apollo/client';
 import { COMBINED_RESTAURANTS_QUERY } from '../graphql/queries';
 import { useTranslation } from 'react-i18next';
 import CartSummary from '../components/Restaurant/CartSummary';
+import { useLocation } from '../context/LocationContext';
 
 const HOME_API_PARAMETERS = {
   DISTANCE: 50,
@@ -25,6 +27,8 @@ const HOME_API_PARAMETERS = {
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { temporaryLocation } = useLocation();
   const { colorScheme } = useTelegram();
   const { bootstrapData, loading: bootstrapLoading } = useBootstrap();
   const { profile, loading: profileLoading } = useUser();
@@ -37,13 +41,14 @@ const Home: React.FC = () => {
   const [allRestaurants, setAllRestaurants] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>(null);
   const isDarkMode = colorScheme === 'dark';
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const selectedLocation = {
-    latitude: 52.516267,
+  console.log(temporaryLocation)
+  const selectedLocation = temporaryLocation || {
+    latitude: 52.516267, // Default fallback coordinates
     longitude: 13.322455
   };
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const processRestaurants = (restaurants: any[], campaigns: any[]) => {
     return restaurants.map(restaurant => {

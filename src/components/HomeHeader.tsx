@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../context/TelegramContext';
 import { useBootstrap } from '../context/BootstrapContext';
-import { Search, MapPin, UserCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLocation } from '../context/LocationContext';
+import { Search, MapPin, UserCircle2, ChevronLeft, ChevronRight,ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import TelegramBackButton from './TelegramBackButton';
 
@@ -13,6 +14,7 @@ interface HomeHeaderProps {
 const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
   const navigate = useNavigate();
   const { colorScheme } = useTelegram();
+  const { temporaryLocation } = useLocation();
   const { bootstrapData } = useBootstrap();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
@@ -57,12 +59,15 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
           <div className="flex items-center flex-1">
             <MapPin size={20} className="text-white" />
             <div className="flex flex-col flex-1 mx-2">
-              <span className="font-sans font-semibold truncate text-white">Abacus IT Park</span>
-              <span className="text-xs text-gray-300 truncate font-sans">
-                Kaiser-Friedrich-Straße 29, 10585 Berlin, Germany
+              <span className="flex items-center font-sans font-semibold truncate text-white">
+                {temporaryLocation?.area || 'Select Location'}
+                <ChevronDown size={20} className="text-white" />
               </span>
+              <span className="text-xs   text-gray-300 truncate font-sans">
+                {temporaryLocation?.address?.slice(0,45)+"..." || 'Select Location'}
+              </span> 
             </div>
-            <ChevronRight size={20} className="text-white" />
+           
           </div>
         </div>
         <UserCircle2 size={28} className="text-white" />

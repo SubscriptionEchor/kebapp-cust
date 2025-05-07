@@ -5,6 +5,7 @@ import { TelegramProvider } from './context/TelegramContext';
 import { BootstrapProvider } from './context/BootstrapContext';
 import { UserProvider } from './context/UserContext';
 import { AuthProvider } from './context/AuthContext';
+import { LocationProvider } from './context/LocationContext';
 
 import Splash from './pages/Splash';
 import Onboarding from './pages/Onboarding';
@@ -29,6 +30,7 @@ function App() {
       <TelegramProvider>
         <AuthProvider>
           <BootstrapProvider>
+            <LocationProvider>
               <UserProvider>
                 <Routes>
                   {/* Default route redirects to splash */}
@@ -53,6 +55,7 @@ function App() {
                   <Route path="/review" element={<Review />} />
                 </Routes>
               </UserProvider>
+            </LocationProvider>
           </BootstrapProvider>
           <Toaster position="top-center" />
         </AuthProvider>
