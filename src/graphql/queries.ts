@@ -742,3 +742,25 @@ export const DELETE_ADDRESS = gql`mutation DeleteAddress($deleteAddressId:ID!){
     }
   }
 }`
+
+
+export const getCampaignsByRestaurant = `query GetCampaignsByRestaurant($restaurantId: ID!) {
+  getCampaignsByRestaurant(restaurantId: $restaurantId) {
+    _id
+    restaurant
+    name
+    description
+    couponCode
+    campaignType
+    promotion
+    minimumOrderValue
+    percentageDiscount
+    maxDiscount
+    flatDiscount
+    startDate
+    endDate
+    startTime
+    endTime
+    isActive
+  }
+}`

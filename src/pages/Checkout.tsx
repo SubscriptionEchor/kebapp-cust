@@ -11,6 +11,9 @@ import VerificationModal from '../components/Verification/VerificationModal';
 import { useCart } from '../context/CartContext';
 import VariationBottomSheet from '../components/Restaurant/VariationBottomSheet';
 import { usePlaceOrder } from '../hooks/usePlaceOrder';
+import { UseLocationDetails } from '../context/LocationContext';
+import { RestaurantDetailMap } from '../components/Map/OpenStreetMap';
+import { onClickViewDirections } from '../utils/directions';
 
 const Checkout: React.FC = () => {
   const { t } = useTranslation();
@@ -41,6 +44,7 @@ const Checkout: React.FC = () => {
   const location = useLocation();
   const state = location.state as { restaurantId?: string } || {};
   const restaurantId = state.restaurantId;
+  const {temporaryLocation}=UseLocationDetails()
 
   // Fetch restaurant data
   const { data: restaurantData, loading: restaurantLoading } = useQuery(SINGLE_RESTAURANT_QUERY, {
@@ -330,7 +334,21 @@ const Checkout: React.FC = () => {
           </div>
 
           {/* Map Placeholder */}
-          <div className="h-[150px] bg-[#F3F4F6] rounded-lg mb-4" />
+          {/* <div className="h-[150px] bg-[#F3F4F6] rounded-lg mb-4" /> */}
+
+         {temporaryLocation?.latitude && restaurantData?.restaurant?.location?.coordinates && <RestaurantDetailMap
+            userLocation={{
+              lat: Number(temporaryLocation?.latitude),
+              lng: Number(temporaryLocation?.longitude)
+            }}
+
+            restaurantLocation={{
+              lat: Number(restaurantData?.restaurant?.location?.coordinates[1]),
+              lng: Number(restaurantData?.restaurant?.location?.coordinates[0])
+            }}
+            height={"150px"}
+
+          />}
 
           {/* Restaurant Details */}
           <div className="ps-10 pb-5 border-b">
@@ -344,6 +362,7 @@ const Checkout: React.FC = () => {
               </div>
             </div>
             <button
+              onClick={()=>onClickViewDirections(temporaryLocation,restaurantData?.restaurant?.location)}
               className="mx-auto ms-10 px-4 inline-flex items-center justify-center gap-2 py-2 border border-[#CCAD11] text-[#CCAD11] rounded-lg text-[13px] font-medium mt-2"
             >
               <Navigation size={16} />
@@ -709,15 +728,12 @@ const Checkout: React.FC = () => {
             </div>
           )}
 
-          <div className="flex items-center justify-between text-[13px]">
-            <span className="text-gray-600">{t('checkout.platformFees')}</span>
-            <span className="font-medium">€0.99</span>
-          </div>
+         
 
           <div className="pt-3 mt-3 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <span className="font-medium">{t('checkout.toPay')}</span>
-              <span className="text-lg font-semibold">€{(calculateTotal() + 0.99).toFixed(2)}</span>
+              <span className="text-lg font-semibold">€{(calculateTotal() ).toFixed(2)}</span>
             </div>
           </div>
         </div>

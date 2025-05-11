@@ -5,6 +5,9 @@ import { useMutation, useQuery } from '@apollo/client';
 import { useFavorite } from '../../hooks/useFavorite';
 import { SET_RESTAURANT_NOTIFICATION, GET_RESTAURANT_NOTIFICATION_STATUS } from '../../graphql/queries';
 import toast from 'react-hot-toast';
+import { UseLocationDetails } from '../../context/LocationContext';
+import { onClickViewDirections } from '../../utils/directions';
+
 
 interface RestaurantHeaderProps {
   id: string;
@@ -44,7 +47,8 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   address,
   initialLikeCount,
   setIsMapView,
-  isMapView
+  isMapView,
+  location
 }) => {
   const navigate = useNavigate();
   const [showUnfollowModal, setShowUnfollowModal] = React.useState(false);
@@ -59,6 +63,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   });
 
   const [setRestaurantNotification] = useMutation(SET_RESTAURANT_NOTIFICATION);
+  const { temporaryLocation } = UseLocationDetails();
 
   // Query to get notification status
   const { data: notificationData } = useQuery(GET_RESTAURANT_NOTIFICATION_STATUS, {
@@ -142,6 +147,22 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
       toast.error('Failed to unfollow restaurant');
     }
   };
+console.log(location)
+  // const onClickViewDirections = () => {
+  //   let cords = {
+  //     user_lat: Number(temporaryLocation?.latitude),
+  //     user_lng: Number(temporaryLocation?.longitude),
+  //     rest_lat: Number(location?.coordinates[1]),
+  //     rest_lng: Number(location?.coordinates[0])
+  //   }
+  //   let url = `https://www.google.com/maps/dir/?api=1&origin=${cords?.user_lat},${cords?.user_lng}&destination=${cords?.rest_lat},${cords?.rest_lng}`
+  //   if (window.Telegram && window.Telegram.WebApp) {
+  //     const webApp = window.Telegram.WebApp;
+  //     webApp.openLink(url, { try_instant_view: false });
+  //   } else {
+  //     window.open(url, '_blank');
+  //   }
+  // }
 
   return (
     <>
@@ -181,11 +202,11 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
               <QrCode size={20} />
             </button>
             <button
-            onClick={() => setShowDetailsSheet(true)}
-            className="py-2.5 px-4 rounded-lg border border-gray-200 text-gray-900 hover:bg-gray-50 transition-colors"
-          >
-            <Info size={16} />
-          </button>
+              onClick={() => setShowDetailsSheet(true)}
+              className="py-2.5 px-4 rounded-lg border border-gray-200 text-gray-900 hover:bg-gray-50 transition-colors"
+            >
+              <Info size={16} />
+            </button>
           </div>
         </div>
         <div className="flex items-center gap-1 mb-2">
@@ -219,7 +240,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           </button>
 
           <button
-            onClick={() => navigate(`/restaurant/${id}/directions`)}
+            onClick={() => onClickViewDirections(temporaryLocation,location)}
             className="py-2.5 px-4 rounded-lg bg-secondary text-black hover:bg-opacity-90 transition-colors"
           >
             <Navigation size={16} />

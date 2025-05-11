@@ -176,6 +176,7 @@ const RestaurantDetails: React.FC = () => {
         initialLikeCount={data.restaurant.favoriteCount || 0}
         setIsMapView={setIsMapView}
         isMapView={isMapview}
+        location={data?.restaurant?.location}
       />
       {!isMapview ?
         <>
