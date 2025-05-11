@@ -168,7 +168,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
 
           <button
             onClick={() => setIsMapView(prev => !prev)}
-            className="flex-1 py-2.5 px-4 rounded-lg border border-gray-200 text-gray-900 text-sm font-medium hover:bg-gray-200 transition-colors"
+            className="flex-1 py-2.5 px-4 rounded-lg border border-gray-200 text-gray-900 text-sm font-medium transition-colors"
           >
             {!isMapView ? "View Map" : "View Menu"}
           </button>

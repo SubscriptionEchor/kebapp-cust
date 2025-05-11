@@ -23,9 +23,9 @@ const RestaurantDetails: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [currentPromoIndex, setCurrentPromoIndex] = useState(0);
   const [promotions, setPromotions] = useState([])
-  const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isMapview, setIsMapView] = useState(false)
   const { temporaryLocation } = UseLocationDetails()
+  const [dietary, setDietary] = useState('')
   console.log(temporaryLocation)
 
   // Auto-rotate promotions
@@ -112,16 +112,14 @@ const RestaurantDetails: React.FC = () => {
         item.internalName.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Veg/Non-veg filter
-      const isVeg = item.dietaryType?.includes("VEG");
-      const matchesDiet = (isVegOnly && isVeg) ||
-        (isNonVegOnly && !isVeg) ||
-        (!isVegOnly && !isNonVegOnly);
+      const MatchesDietray = dietary ? item.dietaryType?.includes(dietary) : true;
+
 
       // Tags filter - show if any selected tag matches
       const matchesTags = selectedTags.length === 0 ||
         selectedTags.some(tag => item.tags?.includes(tag));
 
-      return matchesSearch && matchesDiet && matchesTags;
+      return matchesSearch && MatchesDietray && matchesTags;
     });
   };
 
@@ -137,29 +135,29 @@ const RestaurantDetails: React.FC = () => {
     );
   }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
-  };
+  // const handleTouchStart = (e: React.TouchEvent) => {
+  //   setTouchStart(e.touches[0].clientX);
+  // };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart) return;
+  // const handleTouchMove = (e: React.TouchEvent) => {
+  //   if (!touchStart) return;
 
-    const currentTouch = e.touches[0].clientX;
-    const diff = touchStart - currentTouch;
+  //   const currentTouch = e.touches[0].clientX;
+  //   const diff = touchStart - currentTouch;
 
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        setCurrentPromoIndex(prev => (prev + 1) % promotions.length);
-      } else {
-        setCurrentPromoIndex(prev => (prev - 1 + promotions.length) % promotions.length);
-      }
-      setTouchStart(null);
-    }
-  };
+  //   if (Math.abs(diff) > 50) {
+  //     if (diff > 0) {
+  //       setCurrentPromoIndex(prev => (prev + 1) % promotions.length);
+  //     } else {
+  //       setCurrentPromoIndex(prev => (prev - 1 + promotions.length) % promotions.length);
+  //     }
+  //     setTouchStart(null);
+  //   }
+  // };
 
-  const handleTouchEnd = () => {
-    setTouchStart(null);
-  };
+  // const handleTouchEnd = () => {
+  //   setTouchStart(null);
+  // };
   console.log(promotions)
   return (
     <div className="min-h-screen bg-white">
@@ -180,16 +178,15 @@ const RestaurantDetails: React.FC = () => {
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
-            isVegOnly={isVegOnly}
-            onVegToggle={() => {
-              setIsVegOnly(!isVegOnly);
-              if (!isVegOnly) setIsNonVegOnly(false);
+            dietary={dietary}
+            onToggle={(value) => {
+              if (value == dietary) {
+                setDietary('')
+                return
+              }
+              setDietary(value)
             }}
-            isNonVegOnly={isNonVegOnly}
-            onNonVegToggle={() => {
-              setIsNonVegOnly(!isNonVegOnly);
-              if (!isNonVegOnly) setIsVegOnly(false);
-            }}
+
             selectedTags={selectedTags}
             onTagSelect={(tag) => {
               setSelectedTags(prev =>
@@ -354,6 +351,7 @@ const RestaurantDetails: React.FC = () => {
               lat: Number(data?.restaurant?.location?.coordinates[1]),
               lng: Number(data?.restaurant?.location?.coordinates[0])
             }}
+            height={"72vh"}
 
           />}
         </>

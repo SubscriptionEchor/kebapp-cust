@@ -21,12 +21,12 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
   const [showVariations, setShowVariations] = React.useState(false);
   const [isDecrementing, setIsDecrementing] = React.useState(false);
 
-  const cartItems = getCartItems(item._id,item?.restaurantId);;
+  const cartItems = getCartItems(item._id, item?.restaurantId);;
   const existingCartItem = cartItems[0];
-  
+
   const variationId = existingCartItem?.variationId || `${item._id}-0`;
-  const itemCount = getItemCount(item._id, variationId,item?.restaurantId);
-    const isVeg=item?.dietaryType?.includes("VEG")
+  const itemCount = getItemCount(item._id, variationId, item?.restaurantId);
+  const isVeg = item?.dietaryType?.includes("VEG")
 
   const handleAddClick = () => {
     // Only show bottom sheet if there are multiple variations
@@ -57,8 +57,8 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    const items =  getCartItems(item._id,item?.restaurantId);;
+
+    const items = getCartItems(item._id, item?.restaurantId);;
     if (items.length > 1) {
       setIsDecrementing(true);
       setShowVariations(true);
@@ -82,7 +82,7 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
           <span className="text-[13px] font-medium text-gray-900">
             ₹{item.variationList[0]?.price || 0}
           </span>
-           <span className="text-[10px] font-medium ms-2 line-through text-gray-400 strike">
+          <span className="text-[10px] font-medium ms-2 line-through text-gray-400 strike">
             ₹{item.variationList[0]?.price || 0}
           </span>
         </div>
@@ -121,30 +121,32 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
 
       {/* Right Content */}
       <div className="relative h-[140px] ">
-        <div className="relative w-[160px]">
+        <div className="relative justify-center items-center w-[160px]">
           <img
             src={item.imageData?.images[0]?.url || fallbackImage}
             alt={item.name}
             className="w-[160px] h-[140px] object-cover rounded-lg relative"
           />
+          {item.outOfStock && (
+            <div className="absolute inset-0 bg-white/75 backdrop-blur-[2px] flex items-center justify-center">
+              <span className="text-gray-900 font-medium font-bold text-md">
+                Out of Stock
+              </span>
+            </div>
+          )}
         </div>
-
         <button
           onClick={handleAddClick}
           disabled={item.outOfStock}
-          className={`absolute left-1/2 -bottom-3 -translate-x-1/2 ${
-            itemCount > 0 ? 'flex items-center gap-3 px-2' : 'px-6'
-          } py-1.5 rounded-lg text-[14px] font-medium ${
-            item.outOfStock
+          className={`absolute left-1/2 -bottom-3 -translate-x-1/2 ${itemCount > 0 ? 'flex items-center gap-3 px-2' : 'px-6'
+            } py-1.5 rounded-lg text-[14px] font-medium ${item.outOfStock
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-white text-green-600 shadow-md '
-          } transition-all`}
+            } transition-all`}
         >
-          {item.outOfStock ? (
-            'Out of stock'
-          ) : itemCount > 0 ? (
+          {itemCount > 0 ? (
             <div className="flex items-center gap-2">
-              <div 
+              <div
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemove(e);
@@ -172,46 +174,46 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
         {item.variationList.length > 0 && (
           <div className="text-center mt-4">
             <span className="text-[11px] text-gray-500 px-2 py-0.5">
-              {item.variationList.length > 1 || item.variationList[0]?.optionSetList?.length > 0 
-                ? 'Customizable' 
+              {item.variationList.length > 1 || item.variationList[0]?.optionSetList?.length > 0
+                ? 'Customizable'
                 : ''}
             </span>
           </div>
         )}
       </div>
-      
+
       <DishInfoModal
         isOpen={showDishInfo}
         onClose={() => setShowDishInfo(false)}
         item={item}
         onAddToCart={handleAddClick}
       />
-      
+
       <VariationBottomSheet
         isVeg={isVeg}
-         isOpen={showVariations}
-      onClose={() => setShowVariations(false)}
-      itemName={item.name}
-      existingItem={existingCartItem}
+        isOpen={showVariations}
+        onClose={() => setShowVariations(false)}
+        itemName={item.name}
+        existingItem={existingCartItem}
         restaurantId={item?.restaurantId}
-      foodId={item._id}
-      variations={item.variationList.map((v, i) => ({
-        _id: `${item._id}-${i}`,
-        title: `${v.title}`,
-        price: v.price,
-        hasAddons: v.optionSetList?.length > 0 || false,
-        optionSetList: v.optionSetList?.map(item=>optionSetList?.find(osl=>osl?._id==item))
-      }))}
-      addons={item.variationList}
-      onAddToCart={(cartItem: CartItem) => {
-        addToCart({
-          ...cartItem,
-          restaurantId: item.restaurantId || '',
-          restaurantName: item.restaurantName || '',
-          categoryId: item.categoryId || ''
-        });
-      }}
-      isDecrementing={isDecrementing}
+        foodId={item._id}
+        variations={item.variationList.map((v, i) => ({
+          _id: `${item._id}-${i}`,
+          title: `${v.title}`,
+          price: v.price,
+          hasAddons: v.optionSetList?.length > 0 || false,
+          optionSetList: v.optionSetList?.map(item => optionSetList?.find(osl => osl?._id == item))
+        }))}
+        addons={item.variationList}
+        onAddToCart={(cartItem: CartItem) => {
+          addToCart({
+            ...cartItem,
+            restaurantId: item.restaurantId || '',
+            restaurantName: item.restaurantName || '',
+            categoryId: item.categoryId || ''
+          });
+        }}
+        isDecrementing={isDecrementing}
       />
     </div>
   );
