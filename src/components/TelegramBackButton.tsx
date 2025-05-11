@@ -7,7 +7,7 @@ const TelegramBackButton: React.FC = () => {
   const { webApp } = useTelegram();
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Updated logic to check if we're on an entry page
   const isEntryPage = () => {
     const entryPaths = ['/', '/splash', '/home'];
@@ -18,9 +18,9 @@ const TelegramBackButton: React.FC = () => {
   useEffect(() => {
     console.log(webApp, "webapp");
     if (!webApp) return;
-    
+
     const onEntryPage = isEntryPage();
-    
+
     if (onEntryPage) {
       // Show Telegram's native close button on entry pages
       webApp.BackButton.hide();
@@ -33,7 +33,7 @@ const TelegramBackButton: React.FC = () => {
       });
       console.log("Showing back button on non-entry page:", location.pathname);
     }
-    
+
     // Clean up event listener when component unmounts
     return () => {
       if (webApp) {

@@ -163,7 +163,14 @@
             "doyouwanattodelete": "Do you want to delete ",
             "deletedsuccessfully": "Deleted Successfully",
             "saveAs": "Save As",
-            "continue": "Continue"
+            "continue": "Continue",
+            "coordinatesunavailable": "Location coordinates are not available",
+            "addressinputrequired": "Address input is empty",
+            "addressinputinvalid": "Address label is not selected",
+            "customlabelinputrequired": "Custom label is required",
+            "errorsavingAddress": "Error while saving address",
+            "addresssaved": "Address saved successfully",
+            "editaddress": "Edit Address"
         },
         "restaurant": {
             "ratings": "rating(s)",
@@ -429,6 +436,11 @@
             "english": "English",
             "german": "German",
             "turkish": "Turkish"
+        },
+        "address": {
+            "searchPlaceholder": "Search for area, street name...",
+            "currentLocation": "Your current location",
+            "addAddress": "Add Address"
         }
     }
 }

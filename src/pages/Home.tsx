@@ -10,7 +10,7 @@ import VerticalCard from '../components/RestaurantCard/VerticalCard';
 import Banner from '../components/Banner';
 import Filters from '../components/Filters';
 import FilterBottomSheet from '../components/Filters/FilterBottomSheet';
-import OpenStreetMap from '../components/Map/OpenStreetMap';
+// import OpenStreetMap, { HomePageMap } from '../components/Map/OpenStreetMap';
 import ConsentPopup from '../components/ConsentPopup';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { Map, Home as HomeIcon, SlidersHorizontal } from 'lucide-react';
@@ -18,7 +18,8 @@ import { useQuery } from '@apollo/client';
 import { COMBINED_RESTAURANTS_QUERY } from '../graphql/queries';
 import { useTranslation } from 'react-i18next';
 import CartSummary from '../components/Restaurant/CartSummary';
-import { useLocation } from '../context/LocationContext';
+import { UseLocationDetails } from '../context/LocationContext';
+import { HomeMap } from '../components/Map/OpenStreetMap';
 
 const HOME_API_PARAMETERS = {
   DISTANCE: 50,
@@ -27,9 +28,7 @@ const HOME_API_PARAMETERS = {
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { temporaryLocation } = useLocation();
-  const { colorScheme } = useTelegram();
+  const navigate = useNavigate(); const { temporaryLocation } = UseLocationDetails();
   const { bootstrapData, loading: bootstrapLoading } = useBootstrap();
   const { profile, loading: profileLoading } = useUser();
   const [showConsentPopup, setShowConsentPopup] = useState(false);
@@ -40,9 +39,9 @@ const Home: React.FC = () => {
   const [sections, setSections] = useState<any[]>([]);
   const [allRestaurants, setAllRestaurants] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>(null);
-  const isDarkMode = colorScheme === 'dark';
 
-  console.log(temporaryLocation)
+
+  console.log(temporaryLocation, profile)
   const selectedLocation = temporaryLocation || {
     latitude: 52.516267, // Default fallback coordinates
     longitude: 13.322455
@@ -101,7 +100,7 @@ const Home: React.FC = () => {
             .map((id: string) => processedRestaurants.find(r => r._id === id))
             .filter(Boolean)
         })).filter(section => section.restaurants.length > 0);
-        
+
         setSections(sectionData);
         setAllRestaurants(processedRestaurants);
         setPagination(data.allRestaurants.pagination);
@@ -195,13 +194,20 @@ const Home: React.FC = () => {
   if (showMap) {
     return (
       <div className="fixed inset-0 bg-white">
-        <OpenStreetMap
+        {/* <OpenStreetMap
           height="100vh"
           userLocation={{
             lat: selectedLocation.latitude,
             lng: selectedLocation.longitude
           }}
           radius={selectedRadius}
+        /> */}
+
+        <HomeMap
+          userLocation={{
+            lat: selectedLocation.latitude,
+            lng: selectedLocation.longitude
+          }}
         />
         <button
           onClick={() => setShowFilters(true)}
@@ -293,7 +299,7 @@ const Home: React.FC = () => {
                   <h2 className="text-[16px] font-bold text-[#02060C] mb-2">
                     {t('home.restaurantsNearYou')} ({allRestaurants.length})
                   </h2>
-                  
+
                   <div className="">
                     {allRestaurants.map(restaurant => (
                       <VerticalCard
@@ -328,7 +334,7 @@ const Home: React.FC = () => {
         )}
 
         <button
-          style={{bottom:170,zIndex:60}}
+          style={{ bottom: 170, zIndex: 60 }}
           onClick={() => setShowMap(true)}
           className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all duration-200"
         >

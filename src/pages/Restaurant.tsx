@@ -19,6 +19,11 @@ const Restaurant = () => {
   const headerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll({ container: containerRef });
   const [isScrollingUp, setIsScrollingUp] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [showQrModal, setShowQrModal] = useState(false);
+
   const prevScrollY = useRef(0);
 
   const { loading, error, data } = useQuery(SINGLE_RESTAURANT_QUERY, {
@@ -29,10 +34,7 @@ const Restaurant = () => {
     skip: !id
   });
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [showQrModal, setShowQrModal] = useState(false);
+
 
   const { isLiked, likeCount, isLoading, handleLike } = useFavorite({
     id: id || '',
@@ -116,7 +118,7 @@ const Restaurant = () => {
 
   const restaurant = data?.restaurant;
   const menu = data?.menu;
-console.log(data,"data")
+  console.log(data, "data")
   if (!restaurant) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center">
@@ -135,10 +137,11 @@ console.log(data,"data")
 
   const categories = menu?.categoryData?.filter(cat => cat.active) || [];
 
+
   return (
     <div className="fixed inset-0 bg-white">
       {/* Header */}
-      <motion.div 
+      <motion.div
         ref={headerRef}
         className="fixed top-0 left-0 right-0 z-20"
         style={{ height: headerHeight }}
@@ -151,32 +154,32 @@ console.log(data,"data")
             className="absolute inset-0 w-full h-full object-cover"
             style={{ opacity: imageOpacity }}
           />
-          <motion.div 
+          <motion.div
             className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70"
             style={{ opacity: imageOpacity }}
           />
         </div>
 
         {/* Navigation Bar */}
-        <motion.div 
+        <motion.div
           className="relative z-10 px-4 py-3 flex items-center justify-between"
           style={{ backgroundColor: navBarBg }}
         >
-          <motion.button 
+          <motion.button
             onClick={() => navigate(-1)}
             className="p-2 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
             style={{ color: navBarTextColor }}
           >
             <ChevronLeft size={24} />
           </motion.button>
-          <motion.button 
+          <motion.button
             onClick={handleLike}
             className="p-2 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
             style={{ color: !isLiked ? navBarTextColor : undefined }}
             disabled={isLoading}
           >
-            <Heart 
-              size={24} 
+            <Heart
+              size={24}
               className={`transition-colors ${isLiked ? 'text-red-500 fill-red-500' : ''}`}
             />
           </motion.button>
@@ -190,7 +193,7 @@ console.log(data,"data")
         </motion.div>
 
         {/* Restaurant Info */}
-        <motion.div 
+        <motion.div
           className="absolute bottom-0 left-0 right-0 p-4 text-white"
           style={{ opacity: headerInfoOpacity }}
         >
@@ -217,10 +220,10 @@ console.log(data,"data")
       </motion.div>
 
       {/* Scrollable Content */}
-      <motion.div 
+      <motion.div
         ref={containerRef}
         className="absolute inset-0 overflow-auto bg-gray-50"
-        style={{ 
+        style={{
           paddingTop: HEADER_HEIGHT,
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -235,11 +238,10 @@ console.log(data,"data")
               <button
                 key={category._id}
                 onClick={() => setSelectedCategory(category._id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === category._id
-                    ? 'bg-secondary text-black'
-                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === category._id
+                  ? 'bg-secondary text-black'
+                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  }`}
               >
                 {category.name}
               </button>
@@ -256,7 +258,7 @@ console.log(data,"data")
                 className="flex gap-4 p-4 bg-white rounded-xl shadow-sm"
               >
                 <div className="w-24 h-24 rounded-lg overflow-hidden">
-                  <img 
+                  <img
                     src={item.imageData?.images?.[0]?.url || restaurant.image}
                     alt={item.name}
                     className="w-full h-full object-cover"
@@ -269,12 +271,11 @@ console.log(data,"data")
                     <span className="font-medium">
                       ₹{item.variationList?.[0]?.price || 0}
                     </span>
-                    <button 
-                      className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                        item.outOfStock
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-secondary text-black hover:bg-opacity-90'
-                      }`}
+                    <button
+                      className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${item.outOfStock
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-secondary text-black hover:bg-opacity-90'
+                        }`}
                       disabled={item.outOfStock}
                     >
                       {item.outOfStock ? 'Out of Stock' : 'Add'}
@@ -297,7 +298,7 @@ console.log(data,"data")
                 Scan this QR code to share the restaurant
               </p>
             </div>
-            
+
             <div className="p-8 flex flex-col items-center">
               <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
                 <img
@@ -306,11 +307,11 @@ console.log(data,"data")
                   className="w-40 h-40"
                 />
               </div>
-              
+
               <p className="text-sm text-gray-600 text-center mb-4">
                 Share this QR code to let others discover {restaurant.name}
               </p>
-              
+
               <button
                 onClick={() => setShowQrModal(false)}
                 className="w-full py-3 bg-secondary text-black rounded-lg font-medium"

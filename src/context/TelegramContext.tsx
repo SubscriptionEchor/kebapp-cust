@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  getTelegramWebApp, 
-  getUser, 
-  getInitData, 
-  getInitDataUnsafe, 
+import {
+  getTelegramWebApp,
+  getUser,
+  getInitData,
+  getInitDataUnsafe,
   notifyReadyState,
   getColorScheme,
   getThemeParams
@@ -52,6 +52,7 @@ export const TelegramProvider: React.FC<TelegramProviderProps> = ({ children }) 
     const initializeTelegram = async () => {
       try {
         const webAppInstance = getTelegramWebApp();
+        console.log(window.Telegram?.WebApp?.LocationManager)
         if (!webAppInstance) {
           console.warn('Telegram WebApp is not available. Running in development mode.');
           setIsLoading(false);
@@ -64,7 +65,7 @@ export const TelegramProvider: React.FC<TelegramProviderProps> = ({ children }) 
         setInitDataUnsafe(getInitDataUnsafe());
         setColorScheme(getColorScheme());
         setThemeParams(getThemeParams());
-        
+
         notifyReadyState();
         setIsReady(true);
         setIsLoading(false);

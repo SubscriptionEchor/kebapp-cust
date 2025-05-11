@@ -23,6 +23,7 @@ import Coupons from './pages/Coupons';
 import Search from './pages/Search';
 import Support from './pages/Support';
 import LocationSearch from './pages/LocationSearch';
+import SaveAddress from './pages/SaveAddress';
 
 function App() {
   return (
@@ -40,7 +41,7 @@ function App() {
                   <Route path="/home" element={<Home />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/following" element={<Following />} />
-                 <Route path="/orders" element={<Orders />} />
+                  <Route path="/orders" element={<Orders />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/profile/addresses" element={<SavedAddresses />} />
                   <Route path="/profile/details" element={<UserDetails />} />
@@ -53,6 +54,7 @@ function App() {
                   <Route path="/search" element={<Search />} />
                   <Route path="/location/search" element={<LocationSearch />} />
                   <Route path="/review" element={<Review />} />
+                  <Route path="/saveAddress" element={<SaveAddress />} />
                 </Routes>
               </UserProvider>
             </LocationProvider>

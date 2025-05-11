@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search as SearchIcon, Star, MapPin, ArrowDownAZ } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import Layout from '../components/Layout';
 
 const mockRestaurants = [
   {
@@ -64,7 +65,7 @@ const Search: React.FC = () => {
     setShowResults(true);
     let filtered = mockRestaurants.filter(restaurant =>
       restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      restaurant.cuisines.some(cuisine => 
+      restaurant.cuisines.some(cuisine =>
         cuisine.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
@@ -76,7 +77,7 @@ const Search: React.FC = () => {
     if (sortBy === 'rating') {
       filtered.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === 'distance') {
-      filtered.sort((a, b) => 
+      filtered.sort((a, b) =>
         parseFloat(a.distance.replace(' km', '')) - parseFloat(b.distance.replace(' km', ''))
       );
     }
@@ -85,10 +86,11 @@ const Search: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Layout
+      showNavigation={false}
+    >
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-        <TelegramBackButton />
         <form onSubmit={handleSearch} className="flex-1 relative">
           <input
             type="text"
@@ -104,8 +106,8 @@ const Search: React.FC = () => {
           >
             <SearchIcon size={16} />
           </button>
-          <SearchIcon 
-            size={20} 
+          <SearchIcon
+            size={20}
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
           />
         </form>
@@ -117,22 +119,20 @@ const Search: React.FC = () => {
           <div className="px-4 py-3 flex gap-3 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setShowSortSheet(true)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                sortBy ? 'bg-secondary text-black' : 'bg-gray-100 text-gray-900'
-              }`}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${sortBy ? 'bg-secondary text-black' : 'bg-gray-100 text-gray-900'
+                }`}
             >
               {t('searchPage.sort')}
               {sortBy && <span className="ml-1 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">1</span>}
             </button>
-            
+
             <button
               onClick={() => {
                 setShowRating4Plus(!showRating4Plus);
-                handleSearch({ preventDefault: () => {} } as React.FormEvent);
+                handleSearch({ preventDefault: () => { } } as React.FormEvent);
               }}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                showRating4Plus ? 'bg-secondary text-black' : 'bg-gray-100 text-gray-900'
-              }`}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${showRating4Plus ? 'bg-secondary text-black' : 'bg-gray-100 text-gray-900'
+                }`}
             >
               {t('searchPage.ratings')} 4.0+
               <Star size={14} className={showRating4Plus ? 'fill-black' : ''} />
@@ -144,7 +144,7 @@ const Search: React.FC = () => {
       {/* Sort Bottom Sheet */}
       {showSortSheet && (
         <>
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
             onClick={() => setShowSortSheet(false)}
           />
@@ -152,25 +152,24 @@ const Search: React.FC = () => {
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[15px] font-semibold text-gray-900">Sort</h3>
-                <button 
+                <button
                   onClick={() => setShowSortSheet(false)}
                   className="text-gray-400"
                 >
                   <ChevronLeft size={20} />
                 </button>
               </div>
-              
+
               <div className="space-y-3">
                 <button
                   onClick={() => {
                     setTempSortBy('rating');
                     setHasChanges(true);
                   }}
-                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${
-                    tempSortBy === 'rating' 
-                      ? 'bg-secondary/10 border border-secondary' 
-                      : 'border border-gray-200'
-                  }`}
+                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${tempSortBy === 'rating'
+                    ? 'bg-secondary/10 border border-secondary'
+                    : 'border border-gray-200'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Star size={18} className="text-gray-600" />
@@ -178,11 +177,10 @@ const Search: React.FC = () => {
                       {t('mapfilters.ratingsort')}
                     </span>
                   </div>
-                  <div className={`w-4 h-4 rounded-full border transition-colors ${
-                    tempSortBy === 'rating'
-                      ? 'border-secondary bg-secondary'
-                      : 'border-gray-300'
-                  }`}>
+                  <div className={`w-4 h-4 rounded-full border transition-colors ${tempSortBy === 'rating'
+                    ? 'border-secondary bg-secondary'
+                    : 'border-gray-300'
+                    }`}>
                     {tempSortBy === 'rating' && (
                       <div className="w-full h-full flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-white rounded-full" />
@@ -196,11 +194,10 @@ const Search: React.FC = () => {
                     setTempSortBy('distance');
                     setHasChanges(true);
                   }}
-                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${
-                    tempSortBy === 'distance' 
-                      ? 'bg-secondary/10 border border-secondary' 
-                      : 'border border-gray-200'
-                  }`}
+                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${tempSortBy === 'distance'
+                    ? 'bg-secondary/10 border border-secondary'
+                    : 'border border-gray-200'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <ArrowDownAZ size={18} className="text-gray-600" />
@@ -208,11 +205,10 @@ const Search: React.FC = () => {
                       {t('mapfilters.distancesort')}
                     </span>
                   </div>
-                  <div className={`w-4 h-4 rounded-full border transition-colors ${
-                    tempSortBy === 'distance'
-                      ? 'border-secondary bg-secondary'
-                      : 'border-gray-300'
-                  }`}>
+                  <div className={`w-4 h-4 rounded-full border transition-colors ${tempSortBy === 'distance'
+                    ? 'border-secondary bg-secondary'
+                    : 'border-gray-300'
+                    }`}>
                     {tempSortBy === 'distance' && (
                       <div className="w-full h-full flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-white rounded-full" />
@@ -236,9 +232,9 @@ const Search: React.FC = () => {
                 <button
                   onClick={() => {
                     if (hasChanges) {
-                    setSortBy(tempSortBy);
-                    setShowSortSheet(false);
-                    handleSearch({ preventDefault: () => {} } as React.FormEvent);
+                      setSortBy(tempSortBy);
+                      setShowSortSheet(false);
+                      handleSearch({ preventDefault: () => { } } as React.FormEvent);
                     }
                   }}
                   disabled={!hasChanges}
@@ -275,7 +271,7 @@ const Search: React.FC = () => {
           </p>
         </div>
       )}
-      
+
       {/* Search Results */}
       {showResults && filteredRestaurants.length > 0 && (
         <div className="p-4">
@@ -320,7 +316,7 @@ const Search: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 };
 

@@ -10,14 +10,20 @@ interface AuthContextType {
   error: string | null;
   initializeAuth: () => Promise<void>;
   loginData: any;
+  locationCheckComplete: boolean; // New state
+  setLocationCheckComplete: (value: boolean) => void; // New setter
+  isNewUser: boolean | null; // Track if the user is new
 }
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   error: null,
-  initializeAuth: async () => {},
-  loginData: null
+  initializeAuth: async () => { },
+  loginData: null,
+  locationCheckComplete: false, // Default value
+  setLocationCheckComplete: () => { }, // Default no-op
+  isNewUser: null, // Default value
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -34,13 +40,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loginData, setLoginData] = useState<any>(null);
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null); // Track if the user is new
+  const [locationCheckComplete, setLocationCheckComplete] = useState(false);
   const initializingRef = useRef(false);
   const loginAttemptRef = useRef(false);
 
   const [loginViaTelegram] = useMutation(LOGIN_VIA_TELEGRAM);
 
   const initializeAuth = async () => {
-    // Prevent multiple simultaneous initialization attempts
     if (initializingRef.current) return;
     initializingRef.current = true;
 
@@ -49,14 +56,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null);
 
       const token = localStorage.getItem('token');
-console.log(initData)
       if (token) {
+        // Token is already present, skip login
         setIsAuthenticated(true);
-        // If we're on the splash page, navigate to home
-        if (location.pathname === '/splash') {
-          navigate('/home', { replace: true });
-        }
+        const isNewUserStored = localStorage.getItem('isNewUser') === 'true';
+        setIsNewUser(isNewUserStored);
       } else if (initData) {
+        // Token is not present, proceed with login
         await handleLogin();
       } else {
         setError('No initialization data available');
@@ -73,14 +79,12 @@ console.log(initData)
   };
 
   const handleLogin = async () => {
-    // Prevent multiple login attempts
     if (loginAttemptRef.current) return;
     loginAttemptRef.current = true;
 
     try {
-      // Step 1: Login via Telegram
       const { data } = await loginViaTelegram({
-        variables: { initData }
+        variables: { initData },
       });
 
       if (!data?.loginViaTelegram?.token) {
@@ -88,14 +92,12 @@ console.log(initData)
       }
 
       const { token, isNewUser, ...profileData } = data.loginViaTelegram;
-      
-      // Store token and update authentication state
-      localStorage.setItem('token', token);
-      setIsAuthenticated(true);
-      setLoginData(profileData);
 
-      // Navigate to appropriate page
-      navigate(!isNewUser ? '/onboarding' : '/home', { replace: true });
+      localStorage.setItem('token', token);
+      localStorage.setItem('isNewUser', isNewUser.toString());
+      setIsAuthenticated(true);
+      setIsNewUser(isNewUser);
+      setLoginData(profileData);
     } catch (err) {
       console.error('Login error:', err);
       setError('Authentication failed');
@@ -106,19 +108,16 @@ console.log(initData)
     }
   };
 
-  // Initialize auth on mount and token changes
   useEffect(() => {
-    if(!initData){
-      return
-    }
+    if (!initData) return;
+
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
       setIsLoading(false);
-      let redirectLocations=['/','/splash']
-      let redirectLocation=redirectLocations.includes(location.pathname)?'/home':location.pathname
-       navigate(redirectLocation, { replace: true });
-    } else if ((location.pathname=='/'||location.pathname === '/splash') && !initializingRef.current) {
+      const isNewUserStored = localStorage.getItem('isNewUser') === 'true';
+      setIsNewUser(isNewUserStored);
+    } else if ((location.pathname === '/' || location.pathname === '/splash') && !initializingRef.current) {
       initializeAuth();
     } else {
       setIsLoading(false);
@@ -127,22 +126,35 @@ console.log(initData)
 
   // Handle route protection
   useEffect(() => {
-    const protectedRoutes = ['/home', '/profile', '/following'];
+    const protectedRoutes = ['/home', '/profile', '/following', '/onboarding', '/splash'];
     if (protectedRoutes.includes(location.pathname)) {
+
       if (!isAuthenticated && !isLoading) {
         navigate('/splash', { replace: true });
+        return
+      }
+      let isNewUserStored = localStorage.getItem('isNewUser') === 'true';
+
+      if (isAuthenticated && location.pathname === '/onboarding' && !isNewUserStored) {
+        navigate('/home', { replace: true });
+        return;
       }
     }
   }, [location.pathname, isAuthenticated, isLoading]);
 
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      isLoading,
-      error,
-      initializeAuth,
-      loginData
-    }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        isLoading,
+        error,
+        initializeAuth,
+        loginData,
+        isNewUser,
+        locationCheckComplete,
+        setLocationCheckComplete,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
