@@ -7,8 +7,8 @@ import LoadingAnimation from '../components/LoadingAnimation';
 import Logo from '../components/Logo';
 import { getLocationFromCoordinates } from '../utils/locationUtils';
 import { UseLocationDetails } from '../context/LocationContext';
-import KebappNameLogo from "../assets/svg/kebappNameLogo.svg";
-import KebappLogo from "../assets/svg/kebappLogo.svg";
+import KebappNameLogo from "../assets/svg/KebappNameLogo.svg";
+import KebappLogo from "../assets/svg/KebappLogo.svg";
 import { useTranslation } from 'react-i18next'; // Import useTranslation
 import Spinner from '../components/Spinner/Spinner';
 import OnboardingZero from "../assets/jpeg/OnboardingZero.png";
@@ -179,7 +179,7 @@ const Splash: React.FC = () => {
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={handleSetDefaultLocation}
-                  className="px-4 py-2 bg-secondary text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-secondary text-white rounded-lg font-medium transition-colors"
                 >
                   {t('common.ok')}
                 </button>

@@ -167,6 +167,10 @@ const RestaurantDetails: React.FC = () => {
         name={data.restaurant.name}
         rating={data.restaurant.reviewAverage || 0}
         reviews={data.restaurant.reviewCount || 0}
+        owner={data.restaurant.owner}
+        username={data.restaurant.username}
+        phone={data.restaurant.phone}
+        openingTimes={data.restaurant.openingTimes}
         distance={data.restaurant.distanceInMeters}
         address={data.restaurant.address}
         initialLikeCount={data.restaurant.favoriteCount || 0}

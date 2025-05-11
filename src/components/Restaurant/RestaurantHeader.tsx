@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Heart, Navigation, Users, Loader2, QrCode, Bell, BellOff } from 'lucide-react';
+import { Star, Heart, Navigation, Users, Loader2, QrCode, Bell, BellOff, Info } from 'lucide-react';
 import { useMutation, useQuery } from '@apollo/client';
 import { useFavorite } from '../../hooks/useFavorite';
 import { SET_RESTAURANT_NOTIFICATION, GET_RESTAURANT_NOTIFICATION_STATUS } from '../../graphql/queries';
@@ -13,6 +13,19 @@ interface RestaurantHeaderProps {
   reviews: number;
   distance: number;
   address: string;
+  owner?: {
+    email: string;
+  };
+  username?: string;
+  phone?: string;
+  openingTimes?: {
+    day: string;
+    times: {
+      startTime: [number, number];
+      endTime: [number, number];
+    }[];
+    isOpen: boolean;
+  }[];
   initialLikeCount: number;
   setIsMapView: (prev: boolean) => void,
   isMapView: boolean
@@ -23,6 +36,10 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   name,
   rating,
   reviews,
+  owner,
+  username,
+  phone,
+  openingTimes,
   distance,
   address,
   initialLikeCount,
@@ -33,6 +50,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   const [showUnfollowModal, setShowUnfollowModal] = React.useState(false);
   const [showQrModal, setShowQrModal] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState<boolean>(false);
+  const [showDetailsSheet, setShowDetailsSheet] = React.useState(false);
   const [isTogglingNotification, setIsTogglingNotification] = React.useState(false);
 
   const { isLiked, likeCount, isLoading, handleLike } = useFavorite({
@@ -87,7 +105,6 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
     } else {
       try {
         await handleLike();
-        // Enable notifications after successful follow
         await setRestaurantNotification({
           variables: {
             input: {
@@ -96,11 +113,33 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
             }
           }
         });
-        setNotificationsEnabled(!notificationsEnabled);
+        setNotificationsEnabled(true);
+        toast.success('Following restaurant with notifications enabled');
       } catch (error) {
         console.error('Error following restaurant:', error);
         toast.error('Failed to follow restaurant');
       }
+    }
+  };
+
+  const handleUnfollow = async () => {
+    try {
+      await handleLike();
+      // Disable notifications when unfollowing
+      await setRestaurantNotification({
+        variables: {
+          input: {
+            restaurantId: id,
+            enabled: false
+          }
+        }
+      });
+      setNotificationsEnabled(false);
+      setShowUnfollowModal(false);
+      toast.success('Unfollowed restaurant');
+    } catch (error) {
+      console.error('Error unfollowing restaurant:', error);
+      toast.error('Failed to unfollow restaurant');
     }
   };
 
@@ -141,6 +180,12 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
             >
               <QrCode size={20} />
             </button>
+            <button
+            onClick={() => setShowDetailsSheet(true)}
+            className="py-2.5 px-4 rounded-lg border border-gray-200 text-gray-900 hover:bg-gray-50 transition-colors"
+          >
+            <Info size={16} />
+          </button>
           </div>
         </div>
         <div className="flex items-center gap-1 mb-2">
@@ -179,6 +224,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           >
             <Navigation size={16} />
           </button>
+          
         </div>
       </div>
 
@@ -186,7 +232,8 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
       {showUnfollowModal && (
 
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          style={{zIndex:1000000}}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
           onClick={() => setShowUnfollowModal(false)}
         >
           <div className="bg-white rounded-xl w-full max-w-sm overflow-hidden p-8">
@@ -206,7 +253,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
               </button>
               <button
                 onClick={() => {
-                  handleLike();
+                  handleUnfollow();
                 }}
                 disabled={isLoading}
                 className="flex-1 py-2.5 px-4 rounded-lg bg-secondary text-white text-sm font-medium flex items-center justify-center gap-2"
@@ -252,6 +299,113 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Restaurant Details Sheet */}
+      {showDetailsSheet && (
+        <>
+          <div 
+            style={{zIndex:100000}}
+            className="fixed inset-0 bg-black/50  animate-fade-in"
+            onClick={() => setShowDetailsSheet(false)}
+          />
+          <div  style={{zIndex:100000}} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl animate-slide-up max-h-[90vh] overflow-auto">
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">Restaurant Details</h3>
+              
+              {/* Basic Info */}
+              <div className="space-y-4 mb-8">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Address</h4>
+                  <p className="text-[15px] text-gray-900">{address}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Distance</h4>
+                  <p className="text-[15px] text-gray-900">{(distance / 1000).toFixed(1)} km</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Rating</h4>
+                  <div className="flex items-center gap-2">
+                    <Star size={18} className="text-yellow-400 fill-yellow-400" />
+                    <span className="text-[15px] text-gray-900">{rating.toFixed(1)}</span>
+                    <span className="text-[15px] text-gray-500">({reviews} reviews)</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Following</h4>
+                  <p className="text-[15px] text-gray-900">{initialLikeCount} followers</p>
+                </div>
+                {(owner?.email || username) && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Owner Details</h4>
+                    {owner?.email && (
+                      <p className="text-[15px] text-gray-900 mb-1">
+                        Email: {owner.email}
+                      </p>
+                    )}
+                    {username && (
+                      <p className="text-[15px] text-gray-900">
+                        Username: {username}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {/* Contact Info */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Contact</h4>
+                  {phone ? (
+                    <a href={`tel:${phone}`} className="text-[15px] text-secondary hover:underline">
+                      {phone}
+                    </a>
+                  ) : (
+                    <p className="text-[15px] text-gray-500">No phone number available</p>
+                  )}
+                </div>
+
+                {/* Opening Hours */}
+                {openingTimes?.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Opening Hours</h4>
+                    <div className="space-y-2">
+                      {openingTimes.map((schedule, index) => (
+                        <div key={index} className="flex justify-between items-center">
+                          <span className="text-[15px] text-gray-900">{schedule.day}</span>
+                          <div>
+                            {schedule.isOpen ? (
+                              schedule.times.map((time, timeIndex) => (
+                                <span key={timeIndex} className="text-[15px] text-gray-900">
+                                  {String(time.startTime[0]).padStart(2, '0')}:
+                                  {String(time.startTime[1]).padStart(2, '0')} - 
+                                  {String(time.endTime[0]).padStart(2, '0')}:
+                                  {String(time.endTime[1]).padStart(2, '0')}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[15px] text-red-500">Closed</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Owner Details */}
+                
+              </div>
+              
+              <button
+                onClick={() => setShowDetailsSheet(false)}
+                className="w-full py-3 bg-secondary text-black rounded-lg font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </>
   );

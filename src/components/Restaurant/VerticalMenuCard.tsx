@@ -28,6 +28,9 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
   const itemCount = getItemCount(item._id, variationId, item?.restaurantId);
   const isVeg = item?.dietaryType?.includes("VEG")
 
+      const price = item.variationList?.[0]?.price || item.price || 0;
+  const originalPrice = price + item.variationList?.[0]?.discountedPrice || 0;
+
   const handleAddClick = () => {
     // Only show bottom sheet if there are multiple variations
     if (item.variationList?.length > 1) {
@@ -82,14 +85,14 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
           <span className="text-[13px] font-medium text-gray-900">
             ₹{item.variationList[0]?.price || 0}
           </span>
-          <span className="text-[10px] font-medium ms-2 line-through text-gray-400 strike">
-            ₹{item.variationList[0]?.price || 0}
-          </span>
+          { originalPrice>price&& <span className="text-[10px] font-medium ms-2 line-through text-gray-400 strike">
+            ₹{originalPrice}
+          </span>}
         </div>
 
         <div className="mb-3">
           <p className={`text-[13px] text-gray-500 ${showFullDescription ? '' : 'line-clamp-2'}`}>
-            {item.internalName}
+            {item.description}
           </p>
           {item.internalName.length > 50 && (
             <button

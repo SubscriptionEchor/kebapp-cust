@@ -290,6 +290,10 @@ export const SINGLE_RESTAURANT_QUERY = gql`
       name
       image
       slug
+      owner {
+      email
+    }
+      phone
       address
       distanceInMeters
       onboarded
@@ -379,6 +383,7 @@ export const SINGLE_RESTAURANT_QUERY = gql`
           updatedAt
           __typename
         }
+        description
         internalName
         dietaryType
         imageData {

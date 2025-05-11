@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Heart, Loader2, Users, MapPin, MessageCircleCode, Sparkles, BadgePercent } from 'lucide-react';
 import { useFavorite } from '../../hooks/useFavorite';
+import { useRestaurantNotifications } from '../../hooks/useRestaurantNotifications';
 import { useBootstrap } from '../../context/BootstrapContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,8 +43,20 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
     onUnfavorite,
     showUnfavorite
   });
+  const { handleFollowWithNotifications, handleUnfollowWithNotifications } = useRestaurantNotifications();
   const navigate=useNavigate()
   const placeholderImage = "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg";
+
+  const handleFollowClick = async () => {
+    if (isLiked) {
+      await handleLike();
+      await handleUnfollowWithNotifications(id);
+    } else {
+      await handleLike();
+      await handleFollowWithNotifications(id);
+    }
+  };
+
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) {
       return;
@@ -69,7 +82,7 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
 
         {/* Like Button */}
         <button 
-          onClick={handleLike}
+          onClick={handleFollowClick}
           className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm hover:bg-white transition-all duration-300 animate-slide-in-right"
           style={{ animationDelay: '0.2s' }}
           disabled={isLoading}

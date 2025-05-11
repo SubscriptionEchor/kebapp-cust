@@ -98,7 +98,7 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-white/80 line-clamp-2">
-              {item.internalName}
+              {item.description}
             </p>
             <button
               onClick={(e) => {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Heart, Loader2, Users, MapPin, Clock, Percent, BadgePercent, Sparkles } from 'lucide-react';
 import { useFavorite } from '../../hooks/useFavorite';
+import { useRestaurantNotifications } from '../../hooks/useRestaurantNotifications';
 import { useTranslation } from 'react-i18next';
 import { formatTimeTo12Hour, isCurrentlyOpen } from '../../utils/time';
 import { useNavigate } from 'react-router-dom';
@@ -67,6 +68,17 @@ const VerticalCard: React.FC<RestaurantProps> = ({
     onUnfavorite,
     showUnfavorite,
   });
+  const { handleFollowWithNotifications, handleUnfollowWithNotifications } = useRestaurantNotifications();
+
+  const handleFollowClick = async () => {
+    if (isLiked) {
+      await handleLike();
+      await handleUnfollowWithNotifications(id);
+    } else {
+      await handleLike();
+      await handleFollowWithNotifications(id);
+    }
+  };
 
   const placeholderImage = "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg";
 
@@ -181,9 +193,9 @@ const VerticalCard: React.FC<RestaurantProps> = ({
             onError={() => setImageError(true)}
           />
           <button
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation();
-              handleLike();
+              await handleFollowClick();
             }}
             disabled={isLoading}
             className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-sm"
