@@ -1,53 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search as SearchIcon, Star, MapPin, ArrowDownAZ } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { ChevronLeft,X, Search as SearchIcon, Star, MapPin, ArrowDownAZ } from 'lucide-react';
+import { useTranslation } from 'react-i18next'; 
+import VerticalCard from '../components/RestaurantCard/VerticalCard';
+import { useQuery } from '@apollo/client';
+import { UseLocationDetails } from '../context/LocationContext';
 import Layout from '../components/Layout';
+import { gql } from '@apollo/client';
 
-const mockRestaurants = [
-  {
-    id: '1',
-    name: 'Berlin Kebab House',
-    image: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg',
-    rating: 4.5,
-    reviews: 128,
-    distance: '1.2 km',
-    cuisines: ['Turkish', 'Middle Eastern'],
-    address: 'Friedrichstraße 123, Berlin'
-  },
-  {
-    id: '2',
-    name: 'Sultan\'s Delight',
-    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg',
-    rating: 4.2,
-    reviews: 89,
-    distance: '2.1 km',
-    cuisines: ['Turkish', 'Mediterranean'],
-    address: 'Unter den Linden 45, Berlin'
-  },
-  {
-    id: '3',
-    name: 'Kebab Express',
-    image: 'https://images.pexels.com/photos/1653877/pexels-photo-1653877.jpeg',
-    rating: 4.8,
-    reviews: 156,
-    distance: '0.8 km',
-    cuisines: ['Turkish', 'Fast Food'],
-    address: 'Alexanderplatz 78, Berlin'
+const SEARCH_RESTAURANTS = gql`
+  query Restaurants(
+    $searchTerm: String,
+    $latitude: Float,
+    $longitude: Float,
+    $limit: Int,
+    $distance: Float,
+    $sortBy: String,
+    $sortOrder: String,
+    $rating: Float,
+    $cuisines: [String],
+    $location: [Float!]!
+  ) {
+    nearByRestaurantsNewV2(
+      searchTerm: $searchTerm,
+      distance: $distance,
+      limit: $limit,
+      latitude: $latitude,
+      longitude: $longitude,
+      sortBy: $sortBy,
+      sortOrder: $sortOrder,
+      rating: $rating,
+      cuisines: $cuisines,
+      location: $location
+    ) {
+      restaurants {
+        _id
+        name
+        image
+        slug
+        address
+        cuisines
+        onboarded
+        location {
+          coordinates
+        }
+        favoriteCount
+        rating
+        reviewAverage
+        distanceInMeters
+        reviewCount
+        isAvailable
+      }
+    }
   }
-];
+`;
+
+type ValidSortBy = 'reviewAverage' | 'distanceInMeters' | null;
 
 const Search: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { temporaryLocation } = UseLocationDetails();
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
-  const [filteredRestaurants, setFilteredRestaurants] = useState(mockRestaurants);
   const [showSortSheet, setShowSortSheet] = useState(false);
-  const [tempSortBy, setTempSortBy] = useState<'rating' | 'distance' | null>(null);
-  const [sortBy, setSortBy] = useState<'rating' | 'distance' | null>(null);
+  const [tempSortBy, setTempSortBy] = useState<ValidSortBy>(null);
+  const [sortBy, setSortBy] = useState<ValidSortBy>(null);
   const [showRating4Plus, setShowRating4Plus] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setDebouncedSearchQuery(searchQuery);
+  //   }, 500);
+
+  //   return () => clearTimeout(timer);
+  // }, [searchQuery]);
+
+  const { loading, error, data } = useQuery(SEARCH_RESTAURANTS, {
+    variables: {
+      searchTerm: debouncedSearchQuery,
+      location: [Number(temporaryLocation?.longitude), Number(temporaryLocation?.latitude)],
+      distance: 50,
+      limit: 20,
+      ...(sortBy && { 
+        sortBy,
+        sortOrder: 'desc'
+      }),
+      rating: showRating4Plus ? 4 : undefined
+    },
+    skip: !temporaryLocation || !showResults
+  });
+
+  const restaurants = data?.nearByRestaurantsNewV2?.restaurants || [];
 
   useEffect(() => {
     if (showSortSheet) {
@@ -63,26 +109,6 @@ const Search: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowResults(true);
-    let filtered = mockRestaurants.filter(restaurant =>
-      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      restaurant.cuisines.some(cuisine =>
-        cuisine.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-
-    if (showRating4Plus) {
-      filtered = filtered.filter(restaurant => restaurant.rating >= 4);
-    }
-
-    if (sortBy === 'rating') {
-      filtered.sort((a, b) => b.rating - a.rating);
-    } else if (sortBy === 'distance') {
-      filtered.sort((a, b) =>
-        parseFloat(a.distance.replace(' km', '')) - parseFloat(b.distance.replace(' km', ''))
-      );
-    }
-
-    setFilteredRestaurants(filtered);
   };
 
   return (
@@ -100,7 +126,16 @@ const Search: React.FC = () => {
             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
             autoFocus
           />
+
+          {searchQuery&&<button
+            onClick={()=>{setSearchQuery('');setShowResults([])}}
+            type="submit"
+            className="absolute right-12 top-1/2 transform -translate-y-1/2 p-1.5 bg-secondary text-black rounded-lg"
+          >
+            <X size={16} />
+          </button>}
           <button
+            onClick={()=>setDebouncedSearchQuery(searchQuery)}
             type="submit"
             className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 bg-secondary text-black rounded-lg"
           >
@@ -114,7 +149,7 @@ const Search: React.FC = () => {
       </div>
 
       {/* Filters */}
-      {showResults && (
+      {/* {showResults && (
         <div className="bg-white border-b border-gray-100">
           <div className="px-4 py-3 flex gap-3 overflow-x-auto no-scrollbar">
             <button
@@ -139,7 +174,7 @@ const Search: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Sort Bottom Sheet */}
       {showSortSheet && (
@@ -163,10 +198,15 @@ const Search: React.FC = () => {
               <div className="space-y-3">
                 <button
                   onClick={() => {
-                    setTempSortBy('rating');
+                    if(tempSortBy=="reviewAverage"){
+                      setTempSortBy('')
+                    }
+                    else{
+                    setTempSortBy('reviewAverage');
+                    }
                     setHasChanges(true);
                   }}
-                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${tempSortBy === 'rating'
+                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${tempSortBy === 'reviewAverage'
                     ? 'bg-secondary/10 border border-secondary'
                     : 'border border-gray-200'
                     }`}
@@ -177,11 +217,11 @@ const Search: React.FC = () => {
                       {t('mapfilters.ratingsort')}
                     </span>
                   </div>
-                  <div className={`w-4 h-4 rounded-full border transition-colors ${tempSortBy === 'rating'
+                  <div className={`w-4 h-4 rounded-full border transition-colors ${tempSortBy === 'reviewAverage'
                     ? 'border-secondary bg-secondary'
                     : 'border-gray-300'
                     }`}>
-                    {tempSortBy === 'rating' && (
+                    {tempSortBy === 'reviewAverage' && (
                       <div className="w-full h-full flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-white rounded-full" />
                       </div>
@@ -191,10 +231,15 @@ const Search: React.FC = () => {
 
                 <button
                   onClick={() => {
-                    setTempSortBy('distance');
+                    if(tempSortBy=="distanceInMeters"){
+                      setTempSortBy("")
+                    }
+                    else{
+                    setTempSortBy('distanceInMeters');
+                    }
                     setHasChanges(true);
                   }}
-                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${tempSortBy === 'distance'
+                  className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${tempSortBy === 'distanceInMeters'
                     ? 'bg-secondary/10 border border-secondary'
                     : 'border border-gray-200'
                     }`}
@@ -205,11 +250,11 @@ const Search: React.FC = () => {
                       {t('mapfilters.distancesort')}
                     </span>
                   </div>
-                  <div className={`w-4 h-4 rounded-full border transition-colors ${tempSortBy === 'distance'
+                  <div className={`w-4 h-4 rounded-full border transition-colors ${tempSortBy === 'distanceInMeters'
                     ? 'border-secondary bg-secondary'
                     : 'border-gray-300'
                     }`}>
-                    {tempSortBy === 'distance' && (
+                    {tempSortBy === 'distanceInMeters' && (
                       <div className="w-full h-full flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-white rounded-full" />
                       </div>
@@ -258,7 +303,7 @@ const Search: React.FC = () => {
       )}
 
       {/* No Results State */}
-      {showResults && filteredRestaurants.length === 0 && (
+      {showResults && restaurants.length === 0 && !loading && (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
             <SearchIcon size={24} className="text-gray-400" />
@@ -273,47 +318,34 @@ const Search: React.FC = () => {
       )}
 
       {/* Search Results */}
-      {showResults && filteredRestaurants.length > 0 && (
+      {showResults && !loading && restaurants.length > 0 && (
         <div className="p-4">
           <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
-            {t('searchPage.searchResults')} ({filteredRestaurants.length})
+            {t('searchPage.searchResults')} ({restaurants.length})
           </h2>
-          <div className="space-y-4">
-            {filteredRestaurants.map(restaurant => (
-              <div
-                key={restaurant.id}
-                onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                className="bg-white rounded-xl p-4 shadow-sm flex gap-4 cursor-pointer"
-              >
-                <img
-                  src={restaurant.image}
-                  alt={restaurant.name}
-                  className="w-24 h-24 object-cover rounded-lg"
-                />
-                <div className="flex-1">
-                  <h3 className="text-[15px] font-semibold text-gray-900 mb-1">
-                    {restaurant.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex items-center">
-                      <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-sm font-medium ml-1">{restaurant.rating}</span>
-                      <span className="text-sm text-gray-500 ml-1">({restaurant.reviews})</span>
-                    </div>
-                    <span className="text-sm text-gray-500">•</span>
-                    <span className="text-sm text-gray-500">{restaurant.distance}</span>
-                  </div>
-                  <p className="text-sm text-gray-500 mb-2">
-                    {restaurant.cuisines.join(' • ')}
-                  </p>
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
-                    <MapPin size={14} />
-                    <span>{restaurant.address}</span>
-                  </div>
-                </div>
-              </div>
+          <div>
+            {restaurants.map(restaurant => (
+              <VerticalCard
+                key={restaurant._id}
+                id={restaurant._id}
+                name={restaurant.name}
+                image={restaurant.image}
+                rating={restaurant.reviewAverage || 0}
+                distance={`${(restaurant.distanceInMeters / 1000).toFixed(1)} km`}
+                description={restaurant.cuisines?.join(', ') || ''}
+                likes={restaurant.favoriteCount || 0}
+                reviews={restaurant.reviewCount || 0}
+                onboarded={restaurant.onboarded}
+              />
             ))}
           </div>
+        </div>
+      )}
+      
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-secondary border-t-transparent"></div>
         </div>
       )}
     </Layout>
