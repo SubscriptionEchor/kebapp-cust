@@ -42,30 +42,30 @@ const allergenIcons: { [key: string]: string } = {
   TREE_NUTS: treeNuts
 };
 
-const DishInfoModal: React.FC<DishInfoModalProps> = ({ 
-  isOpen, 
-  onClose, 
+const DishInfoModal: React.FC<DishInfoModalProps> = ({
+  isOpen,
+  onClose,
   item,
-  onAddToCart 
+  onAddToCart
 }) => {
   const { bootstrapData } = useBootstrap();
-  
+
   if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div 
-        style={{zIndex:150}} 
+      <div
+        style={{ zIndex: 150 }}
         className="fixed inset-0 bg-black bg-opacity-50 animate-fade-in"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div style={{zIndex:150}} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[90vh] overflow-auto animate-slide-up">
+      <div style={{ zIndex: 150 }} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[90vh] overflow-auto animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white px-4 py-3 flex justify-end border-b border-gray-100">
-          <button 
+          <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -98,7 +98,7 @@ const DishInfoModal: React.FC<DishInfoModalProps> = ({
                 return (
                   <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
                     <img src={allergenIcons[allergen]} height={40} width={40} alt={currentAllergen?.description} />
-                    
+
                     {currentAllergen?.description}
                   </li>
                 );

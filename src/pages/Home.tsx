@@ -241,8 +241,8 @@ const Home: React.FC = () => {
           isOpen={showConsentPopup}
           onClose={() => setShowConsentPopup(false)}
           docVersionId={bootstrapData?.activeConsentDocData?.docVersionId}
-          privacyPolicyUrl={bootstrapData?.activeConsentDocData?.privacyPolicyUrl}
-          termsUrl={bootstrapData?.activeConsentDocData?.termsUrl}
+          privacyPolicyUrl={bootstrapData?.activeConsentDocData?.linkedDocuments[0]?.docPublicLink}
+          termsUrl={bootstrapData?.activeConsentDocData?.linkedDocuments[1]?.docPublicLink}
         />
         {(loading || profileLoading) && !allRestaurants.length && (
           <div className="flex justify-center py-8">

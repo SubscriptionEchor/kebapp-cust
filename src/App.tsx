@@ -24,6 +24,10 @@ import Search from './pages/Search';
 import Support from './pages/Support';
 import LocationSearch from './pages/LocationSearch';
 import SaveAddress from './pages/SaveAddress';
+import { AppRoutes } from './routeenums';
+import TermsAndCondition from './pages/termsandcondition';
+
+
 
 function App() {
   return (
@@ -35,26 +39,25 @@ function App() {
               <UserProvider>
                 <Routes>
                   {/* Default route redirects to splash */}
-                  <Route path="/" element={<Navigate to="/splash" replace />} />
-                  <Route path="/splash" element={<Splash />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/following" element={<Following />} />
-                  <Route path="/orders" element={<Orders />} />
-                  {/* <Route path="/orders" element={<Orders />} /> */}
-                  <Route path="/profile/addresses" element={<SavedAddresses />} />
-                  <Route path="/profile/details" element={<UserDetails />} />
-                  <Route path="/profile/addresses" element={<SavedAddresses />} />
-                  <Route path="/profile/support" element={<Support />} />
-                  <Route path="/order" element={<OrderStatus />} />
-                  <Route path="/restaurant" element={<RestaurantDetails />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/coupons" element={<Coupons />} />
-                  <Route path="/search" element={<Search />} />
-                  <Route path="/location/search" element={<LocationSearch />} />
-                  <Route path="/review" element={<Review />} />
-                  <Route path="/saveAddress" element={<SaveAddress />} />
+                  <Route path="/" element={<Navigate to={AppRoutes.SPLASH} replace />} />
+                  <Route path={AppRoutes.SPLASH} element={<Splash />} />
+                  <Route path={AppRoutes.ONBOARDING} element={<Onboarding />} />
+                  <Route path={AppRoutes.HOME} element={<Home />} />
+                  <Route path={AppRoutes.PROFILE} element={<Profile />} />
+                  <Route path={AppRoutes.FOLLOWING} element={<Following />} />
+                  <Route path={AppRoutes.ORDERS} element={<Orders />} />
+                  <Route path={AppRoutes.PROFILE_ADDRESSES} element={<SavedAddresses />} />
+                  <Route path={AppRoutes.PROFILE_DETAILS} element={<UserDetails />} />
+                  <Route path={AppRoutes.PROFILE_SUPPORT} element={<Support />} />
+                  <Route path={AppRoutes.ORDER} element={<OrderStatus />} />
+                  <Route path={AppRoutes.RESTAURANT} element={<RestaurantDetails />} />
+                  <Route path={AppRoutes.CHECKOUT} element={<Checkout />} />
+                  <Route path={AppRoutes.COUPONS} element={<Coupons />} />
+                  <Route path={AppRoutes.SEARCH} element={<Search />} />
+                  <Route path={AppRoutes.LOCATION_SEARCH} element={<LocationSearch />} />
+                  <Route path={AppRoutes.REVIEW} element={<Review />} />
+                  <Route path={AppRoutes.SAVE_ADDRESS} element={<SaveAddress />} />
+                  <Route path={AppRoutes.TERMS} element={<TermsAndCondition />} />
                 </Routes>
               </UserProvider>
             </LocationProvider>
@@ -66,4 +69,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

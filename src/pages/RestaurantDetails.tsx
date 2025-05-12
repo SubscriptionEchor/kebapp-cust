@@ -12,6 +12,7 @@ import CartSummary from '../components/Restaurant/CartSummary';
 import MenuSection from '../components/Restaurant/MenuSection';
 import { RestaurantDetailMap } from '../components/Map/OpenStreetMap';
 import { UseLocationDetails } from '../context/LocationContext';
+import Layout from '../components/Layout';
 
 
 const RestaurantDetails: React.FC = () => {
@@ -127,11 +128,13 @@ const RestaurantDetails: React.FC = () => {
 
   if (error || !data?.restaurant) {
     return (
-      <div className="fixed inset-0 bg-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">Failed to load restaurant details</p>
+      <Layout>
+        <div className="fixed inset-0 bg-white flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-500 mb-4">Failed to load restaurant details</p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -160,8 +163,7 @@ const RestaurantDetails: React.FC = () => {
   // };
   console.log(promotions)
   return (
-    <div className="min-h-screen bg-white">
-
+    <Layout>
       <RestaurantHeader
         id={data.restaurant._id}
         name={data.restaurant.name}
@@ -361,7 +363,7 @@ const RestaurantDetails: React.FC = () => {
           />}
         </>
       }
-    </div>
+    </Layout>
 
   );
 };

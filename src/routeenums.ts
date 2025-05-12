@@ -1,0 +1,21 @@
+// Define an enum for routes
+export enum AppRoutes {
+    SPLASH = '/splash',
+    ONBOARDING = '/onboarding',
+    HOME = '/home',
+    PROFILE = '/profile',
+    FOLLOWING = '/following',
+    ORDERS = '/orders',
+    PROFILE_ADDRESSES = '/profile/addresses',
+    PROFILE_DETAILS = '/profile/details',
+    PROFILE_SUPPORT = '/profile/support',
+    ORDER = '/order',
+    RESTAURANT = '/restaurant',
+    CHECKOUT = '/checkout',
+    COUPONS = '/coupons',
+    SEARCH = '/search',
+    LOCATION_SEARCH = '/location/search',
+    REVIEW = '/review',
+    SAVE_ADDRESS = '/saveAddress',
+    TERMS = '/terms',
+}

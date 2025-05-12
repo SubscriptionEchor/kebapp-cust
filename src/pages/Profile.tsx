@@ -9,6 +9,8 @@ import { useLanguage } from '../hooks/useLanguage';
 import CustomDropdown from '../components/CustomDropdown';
 import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
+import { AppRoutes } from '../routeenums';
+import { useBootstrap } from '../context/BootstrapContext';
 
 
 const Profile: React.FC = () => {
@@ -20,6 +22,7 @@ const Profile: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false)
   const [requestDelete] = useMutation(DELETE_ACCOUNT);
+  const { bootstrapData } = useBootstrap()
 
 
   const languages = [
@@ -160,7 +163,7 @@ const Profile: React.FC = () => {
 
           <div className="bg-white">
             <button
-              onClick={() => navigate('/agreement')}
+              onClick={() => navigate(AppRoutes.TERMS, { state: { url: bootstrapData?.activeConsentDocData?.linkedDocuments[1]?.docPublicLink } })}
               className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
             >
               <span className="text-[15px] text-gray-900">User Agreement</span>
@@ -168,7 +171,7 @@ const Profile: React.FC = () => {
             </button>
 
             <button
-              onClick={() => navigate('/privacy')}
+              onClick={() => navigate(AppRoutes.TERMS, { state: { url: bootstrapData?.activeConsentDocData?.linkedDocuments[0]?.docPublicLink } })}
               className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
             >
               <span className="text-[15px] text-gray-900">Data Protection Policy</span>
@@ -221,7 +224,7 @@ const Profile: React.FC = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </Layout >
   );
 };
 
