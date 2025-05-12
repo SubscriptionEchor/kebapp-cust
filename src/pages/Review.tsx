@@ -8,6 +8,7 @@ import { REVIEW_ORDER } from '../graphql/queries';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import TelegramBackButton from '../components/TelegramBackButton';
 
 const Review: React.FC = ({ restaurant }) => {
   const { t } = useTranslation();
@@ -52,7 +53,8 @@ const Review: React.FC = ({ restaurant }) => {
   };
 
   return (
-    <Layout>
+    <>
+      <TelegramBackButton />
       <div className="min-h-screen bg-white  flex items-center justify-center">
         <div className="flex flex-col items-center w-full max-w-md">
           {!isSubmitted ? (
@@ -159,7 +161,7 @@ const Review: React.FC = ({ restaurant }) => {
           )}
         </div>
       </div >
-    </Layout>
+    </>
   );
 };
 

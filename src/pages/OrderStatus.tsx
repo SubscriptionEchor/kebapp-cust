@@ -13,6 +13,7 @@ import Review from './Review';
 import toast from 'react-hot-toast';
 import { useBootstrap } from '../context/BootstrapContext';
 import Layout from '../components/Layout';
+import TelegramBackButton from '../components/TelegramBackButton';
 
 
 const ORDER_STATUS = {
@@ -121,7 +122,8 @@ const OrderStatus: React.FC = () => {
 
   if (error || !data?.order) {
     return (
-      <Layout>
+      <>
+        <TelegramBackButton />
         <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
             <p className="text-red-500 mb-4">Failed to load order details</p>
@@ -133,7 +135,7 @@ const OrderStatus: React.FC = () => {
             </button>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
@@ -148,7 +150,8 @@ const OrderStatus: React.FC = () => {
   }
 
   return (
-    <Layout>
+    <>
+      <TelegramBackButton />
       <div className="min-h-screen bg-white">
         <div className="p-4 space-y-6">
           <h1 className="text-xl font-semibold text-gray-900">Order #{order?.orderId}</h1>
@@ -449,7 +452,7 @@ const OrderStatus: React.FC = () => {
           )}
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

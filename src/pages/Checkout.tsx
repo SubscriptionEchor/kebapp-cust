@@ -17,6 +17,7 @@ import { onClickViewDirections } from '../utils/directions';
 import { useAuth } from '../context/AuthContext';
 import { useBootstrap } from '../context/BootstrapContext';
 import Layout from '../components/Layout';
+import TelegramBackButton from '../components/TelegramBackButton';
 
 const Checkout: React.FC = () => {
   const { t } = useTranslation();
@@ -284,17 +285,19 @@ const Checkout: React.FC = () => {
 
   if (restaurantLoading) {
     return (
-      <Layout>
+      <>
+        <TelegramBackButton />
         <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-secondary"></div>
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (!restaurantId || !restaurant || restaurantCartItems.length === 0) {
     return (
-      <Layout>
+      <>
+        <TelegramBackButton />
         <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
           <div className="text-center p-6">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -310,11 +313,12 @@ const Checkout: React.FC = () => {
             </button>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
   return (
-    <Layout>
+    <>
+      <TelegramBackButton />
       <div className="min-h-screen bg-[#F8F9FA]" style={{ paddingBottom: 125 }}>
         {/* Location Section */}
         <div className="bg-white shadow-sm">
@@ -826,7 +830,7 @@ const Checkout: React.FC = () => {
           onVerify={handleEmailVerify}
         />
       </div>
-    </Layout>
+    </ >
   );
 };
 

@@ -7,6 +7,7 @@ import { Search, MapPin, UserCircle2, ChevronLeft, ChevronRight, ChevronDown } f
 import { useTranslation } from 'react-i18next';
 import TelegramBackButton from './TelegramBackButton';
 import Profile from "../assets/svg/profile.svg"
+import { AppRoutes } from '../routeenums';
 
 interface HomeHeaderProps {
   onSearch?: (query: string) => void;
@@ -54,7 +55,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
       <TelegramBackButton />
       <div className="px-4 py-3 flex items-center bg-red justify-between">
         <div
-          onClick={() => navigate('/location/search')}
+          onClick={() => navigate(AppRoutes.LOCATION_SEARCH)}
           className="flex items-center  gap-2 flex-1 cursor-pointer"
         >
 
@@ -72,14 +73,14 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ onSearch }) => {
 
           </div>
         </div>
-        <img src={Profile} alt="Profile" className="w-8 h-8 rounded-full border-2 border-white" />
+        <img onClick={() => navigate(AppRoutes.PROFILE)} src={Profile} alt="Profile" className="w-8 h-8 rounded-full border-2 border-white" />
       </div>
 
       {/* Search Bar */}
       <div className="px-4 pb-3">
         <div
           className="relative cursor-pointer"
-          onClick={() => navigate('/search')}
+          onClick={() => navigate(AppRoutes.SEARCH)}
         >
           <input
             type="text"

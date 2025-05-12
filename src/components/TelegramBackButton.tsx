@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { Children, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTelegram } from '../context/TelegramContext';
 
-const TelegramBackButton: React.FC = () => {
+const TelegramBackButton: React.FC = ({ Children }) => {
   const { webApp } = useTelegram();
   const location = useLocation();
   const navigate = useNavigate();
@@ -98,7 +98,11 @@ const TelegramBackButton: React.FC = () => {
     };
   }, [history, webApp]);
 
-  return null;
+  return (
+    <div>
+      {Children}
+    </div>
+  );
 };
 
 export default TelegramBackButton;

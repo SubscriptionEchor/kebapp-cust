@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, MapPin, ChevronRight, Globe2 } from 'lucide-react';
+import { User, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '../context/UserContext';
 import { useMutation } from '@apollo/client';
@@ -12,7 +12,6 @@ import toast from 'react-hot-toast';
 import { AppRoutes } from '../routeenums';
 import { useBootstrap } from '../context/BootstrapContext';
 
-
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -20,27 +19,27 @@ const Profile: React.FC = () => {
   const { currentLanguage, changeLanguage } = useLanguage();
   const [toggleNotifications, { loading: isTogglingNotifications }] = useMutation(TOGGLE_USER_NOTIFICATIONS);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [requestDelete] = useMutation(DELETE_ACCOUNT);
-  const { bootstrapData } = useBootstrap()
-
+  const { bootstrapData } = useBootstrap();
 
   const languages = [
     { code: 'en', name: t('language.english') },
     { code: 'de', name: t('language.german') },
-    { code: 'tr', name: t('language.turkish') }
+    { code: 'tr', name: t('language.turkish') },
   ];
 
   const handleToggleNotifications = async () => {
     try {
       await toggleNotifications();
       await refetchProfile();
-      toast.success('Notification settings updated');
+      toast.success(t('profile.notifications.success'));
     } catch (error) {
-      toast.error('Failed to update notification settings');
+      toast.error(t('profile.notifications.failure'));
       console.error('Toggle notifications error:', error);
     }
   };
+
   const handleDelete = async () => {
     if (isLoading) return;
     setIsLoading(true);
@@ -58,11 +57,10 @@ const Profile: React.FC = () => {
         }, 3000);
       })
       .catch(() => {
-        toast.error(t('common.failureMessage'))
+        toast.error(t('common.failureMessage'));
         setIsLoading(false);
       });
-  }
-
+  };
 
   return (
     <Layout>
@@ -74,14 +72,16 @@ const Profile: React.FC = () => {
           </div>
           <div>
             <h1 className="text-[15px] font-medium text-gray-900">
-              {profile?.name || 'Phanindha Kondru'}
+              {profile?.name || t('profile.defaultName')}
             </h1>
             <p className="text-[13px] text-gray-500">
-              {profile?.email || 'phani@echortech.com'}
+              {profile?.email || t('profile.defaultEmail')}
             </p>
           </div>
         </div>
 
+        {/* Account Settings */}
+        <div className="mt-4"></div>
         {/* Account Settings */}
         <div className="mt-4">
           <h2 className="px-4 text-[13px] font-medium text-gray-500 mb-2">

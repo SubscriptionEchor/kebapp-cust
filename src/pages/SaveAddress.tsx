@@ -11,6 +11,7 @@ import { useMutation } from '@apollo/client';
 import toast from 'react-hot-toast';
 import { useUser } from '../context/UserContext';
 import { getLocationFromCoordinates } from '../utils/locationUtils';
+import TelegramBackButton from '../components/TelegramBackButton';
 
 const SaveAddress: React.FC = () => {
     const { t } = useTranslation();
@@ -163,6 +164,7 @@ const SaveAddress: React.FC = () => {
 
     return (
         <div className="flex flex-col h-screen">
+            <TelegramBackButton />
             {isBottomSheetOpen && (
                 <div style={{ zIndex: 100000 }} className="fixed inset-0 bg-black bg-opacity-50 h-[75vh]">
 

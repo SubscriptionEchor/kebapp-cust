@@ -470,51 +470,7 @@ import MarkerIcon from '../../assets/PNG/marker-icon-2x-red.png';
 import MarkerShadow from '../../assets/PNG/marker-shadow.png';
 import MarketSvg from '../../assets/svg/KebappLogo.svg';
 
-import { createLayerComponent } from '@react-leaflet/core';
 
-// Define a custom Leaflet circle with gradient fill
-L.CustomCircle = L.Circle.extend({
-  initialize: function (latlng, options) {
-    L.Circle.prototype.initialize.call(this, latlng, options);
-    this._customOptions = options.customOptions || {};
-  },
-  _updatePath: function () {
-    this._renderer._updateCircle(this);
-    if (this._customOptions.gradient && this._path) {
-      const svg = this._renderer._container;
-      let defs = svg.querySelector('defs');
-      if (!defs) {
-        defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        svg.appendChild(defs);
-      }
-      const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-      gradient.setAttribute('id', `gradient-${this._leaflet_id}`);
-      const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      stop1.setAttribute('offset', '0%');
-      stop1.setAttribute('stop-color', '#93c5fd');
-      const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      stop2.setAttribute('offset', '100%');
-      stop2.setAttribute('stop-color', '#1e3a8a');
-      gradient.appendChild(stop1);
-      gradient.appendChild(stop2);
-      defs.appendChild(gradient);
-      this._path.setAttribute('fill', `url(#gradient-${this._leaflet_id})`);
-    }
-  },
-});
-
-// Create a React-Leaflet component
-const CustomCircle = createLayerComponent(
-  function createCustomCircle({ center, radius, ...options }, ctx) {
-    const instance = new L.CustomCircle(center, { ...options, radius });
-    return { instance, context: { ...ctx, layerContainer: instance } };
-  },
-  function updateCustomCircle(instance, props, prevProps) {
-    if (props.center !== prevProps.center) instance.setLatLng(props.center);
-    if (props.radius !== prevProps.radius) instance.setRadius(props.radius);
-    if (props.pathOptions !== prevProps.pathOptions) instance.setStyle(props.pathOptions);
-  }
-);
 
 // export default CustomCircle;
 
@@ -1021,7 +977,7 @@ export const HomeMap: React.FC<HomeMapProps> = ({
           }}
         /> */}
 
-        <CustomCircle
+        <Circle
           center={mapCenter}
           radius={currentRadius * 1000}
           pathOptions={{
