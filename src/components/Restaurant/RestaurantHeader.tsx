@@ -147,7 +147,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
       toast.error('Failed to unfollow restaurant');
     }
   };
-console.log(location)
+  console.log(location)
   // const onClickViewDirections = () => {
   //   let cords = {
   //     user_lat: Number(temporaryLocation?.latitude),
@@ -240,12 +240,12 @@ console.log(location)
           </button>
 
           <button
-            onClick={() => onClickViewDirections(temporaryLocation,location)}
+            onClick={() => onClickViewDirections(temporaryLocation, location)}
             className="py-2.5 px-4 rounded-lg bg-secondary text-black hover:bg-opacity-90 transition-colors"
           >
             <Navigation size={16} />
           </button>
-          
+
         </div>
       </div>
 
@@ -253,7 +253,7 @@ console.log(location)
       {showUnfollowModal && (
 
         <div
-          style={{zIndex:1000000}}
+          style={{ zIndex: 1000000 }}
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
           onClick={() => setShowUnfollowModal(false)}
         >
@@ -321,59 +321,26 @@ console.log(location)
           </div>
         </div>
       )}
-      
+
       {/* Restaurant Details Sheet */}
       {showDetailsSheet && (
         <>
-          <div 
-            style={{zIndex:100000}}
+          <div
+            style={{ zIndex: 100000 }}
             className="fixed inset-0 bg-black/50  animate-fade-in"
             onClick={() => setShowDetailsSheet(false)}
           />
-          <div  style={{zIndex:100000}} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl animate-slide-up max-h-[90vh] overflow-auto">
+          <div style={{ zIndex: 100000 }} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl animate-slide-up max-h-[90vh] overflow-auto">
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">Restaurant Details</h3>
-              
+
               {/* Basic Info */}
               <div className="space-y-4 mb-8">
                 <div>
                   <h4 className="text-sm font-medium text-gray-500 mb-2">Address</h4>
                   <p className="text-[15px] text-gray-900">{address}</p>
                 </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Distance</h4>
-                  <p className="text-[15px] text-gray-900">{(distance / 1000).toFixed(1)} km</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Rating</h4>
-                  <div className="flex items-center gap-2">
-                    <Star size={18} className="text-yellow-400 fill-yellow-400" />
-                    <span className="text-[15px] text-gray-900">{rating.toFixed(1)}</span>
-                    <span className="text-[15px] text-gray-500">({reviews} reviews)</span>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Following</h4>
-                  <p className="text-[15px] text-gray-900">{initialLikeCount} followers</p>
-                </div>
-                {(owner?.email || username) && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Owner Details</h4>
-                    {owner?.email && (
-                      <p className="text-[15px] text-gray-900 mb-1">
-                        Email: {owner.email}
-                      </p>
-                    )}
-                    {username && (
-                      <p className="text-[15px] text-gray-900">
-                        Username: {username}
-                      </p>
-                    )}
-                  </div>
-                )}
+
                 {/* Contact Info */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-500 mb-2">Contact</h4>
@@ -399,7 +366,7 @@ console.log(location)
                               schedule.times.map((time, timeIndex) => (
                                 <span key={timeIndex} className="text-[15px] text-gray-900">
                                   {String(time.startTime[0]).padStart(2, '0')}:
-                                  {String(time.startTime[1]).padStart(2, '0')} - 
+                                  {String(time.startTime[1]).padStart(2, '0')} -
                                   {String(time.endTime[0]).padStart(2, '0')}:
                                   {String(time.endTime[1]).padStart(2, '0')}
                                 </span>
@@ -413,11 +380,11 @@ console.log(location)
                     </div>
                   </div>
                 )}
-                
+
                 {/* Owner Details */}
-                
+
               </div>
-              
+
               <button
                 onClick={() => setShowDetailsSheet(false)}
                 className="w-full py-3 bg-secondary text-black rounded-lg font-medium"

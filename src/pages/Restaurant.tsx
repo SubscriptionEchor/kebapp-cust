@@ -269,7 +269,7 @@ const Restaurant = () => {
                   <p className="text-sm text-gray-500 mt-1">{item.internalName}</p>
                   <div className="flex items-center justify-between mt-2">
                     <span className="font-medium">
-                      ₹{item.variationList?.[0]?.price || 0}
+                      {bootstrapData?.currencyConfig?.currencySymbol}{item.variationList?.[0]?.price || 0}
                     </span>
                     <button
                       className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${item.outOfStock

@@ -42,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loginData, setLoginData] = useState<any>(null);
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null); // Track if the user is new
   const [locationCheckComplete, setLocationCheckComplete] = useState(false);
+  const [couponCodeId, setCouponCodeId] = useState("")
   const initializingRef = useRef(false);
   const loginAttemptRef = useRef(false);
 
@@ -153,6 +154,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isNewUser,
         locationCheckComplete,
         setLocationCheckComplete,
+        couponCodeId,
+        setCouponCodeId
       }}
     >
       {children}

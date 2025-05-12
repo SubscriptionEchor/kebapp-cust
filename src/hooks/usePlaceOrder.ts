@@ -40,7 +40,12 @@ export const usePlaceOrder = () => {
     onCompleted: (data) => {
       if (data?.placeOrder) {
         toast.success('Order placed successfully!');
-        navigate(`/order/${data.placeOrder._id}`,{replace:true});
+        navigate(`/order`, {
+          replace: true,
+          state: {
+            id: data.placeOrder._id
+          }
+        });
       }
     },
     onError: (error) => {

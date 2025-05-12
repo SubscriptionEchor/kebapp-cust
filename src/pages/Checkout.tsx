@@ -14,6 +14,8 @@ import { usePlaceOrder } from '../hooks/usePlaceOrder';
 import { UseLocationDetails } from '../context/LocationContext';
 import { RestaurantDetailMap } from '../components/Map/OpenStreetMap';
 import { onClickViewDirections } from '../utils/directions';
+import { useAuth } from '../context/AuthContext';
+import { useBootstrap } from '../context/BootstrapContext';
 
 const Checkout: React.FC = () => {
   const { t } = useTranslation();
@@ -45,6 +47,8 @@ const Checkout: React.FC = () => {
   const state = location.state as { restaurantId?: string } || {};
   const restaurantId = state.restaurantId;
   const { temporaryLocation } = UseLocationDetails()
+  const { bootstrapData } = useBootstrap()
+  const { couponCodeId, setCouponCodeId } = useAuth()
 
   // Fetch restaurant data
   const { data: restaurantData, loading: restaurantLoading } = useQuery(SINGLE_RESTAURANT_QUERY, {
@@ -219,21 +223,20 @@ const Checkout: React.FC = () => {
     }));
 
     // Use dummy Berlin address
-    const dummyAddress = {
-      label: "Berlin Office",
-      deliveryAddress: "Kaiser-Friedrich-Straße 29, 10585 Berlin",
-      longitude: "13.322455",
-      latitude: "52.516267"
+    const address = {
+      label: temporaryLocation?.label || temporaryLocation?.area,
+      deliveryAddress: temporaryLocation?.address,
+      longitude: String(temporaryLocation?.longitude),
+      latitude: String(temporaryLocation?.latitude)
     };
-
     const orderData = {
       restaurant: restaurantId,
       orderInput,
       paymentMethod: 'COD',
-      couponCode: appliedCoupon || '',
+      couponCode: couponCodeId || '',
       tipping: 0,
-      taxationAmount: calculateSubtotal() * 0.1, // 10% tax
-      address: dummyAddress,
+      taxationAmount: 0, // 10% tax
+      address: address,
       isPickedUp: true,
       deliveryCharges: 0,
       specialInstructions: confirmedCookingRequest
@@ -245,6 +248,7 @@ const Checkout: React.FC = () => {
       setSlideComplete(false);
       setConfirmedCookingRequest('')
       setCookingRequest('')
+      setCouponCodeId('')
       setCart((prev) => prev?.filter(prevItem => prevItem?.restaurantId !== restaurantId))
     } catch (error) {
       setSlidePosition(0);
@@ -387,7 +391,7 @@ const Checkout: React.FC = () => {
         </div>
         <div className="flex items-center justify-center gap-1.5 text-sm bg-[#E6FFE6] p-2">
           <div className="flex items-center gap-1">
-            <span className="text-[#00B37A]">€</span>
+            <span className="text-[#00B37A]">{bootstrapData?.currencyConfig?.currencySymbol}</span>
             <span className="text-[#00B37A] font-medium">
               {restaurantCartItems.reduce((total, item) => {
                 const itemSaved = ((item.variationDiscountedPrice || 0) * item.itemCount);
@@ -462,13 +466,13 @@ const Checkout: React.FC = () => {
                   <div className="text-right">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs text-gray-400 line-through">
-                        €{((item.variationPrice + item.variationDiscountedPrice +
+                        {bootstrapData?.currencyConfig?.currencySymbol}{((item.variationPrice + item.variationDiscountedPrice +
                           (item.optionSetList?.reduce((sum, addon) =>
                             sum + addon.selectedOptions.reduce((optSum, opt) =>
                               optSum + (opt.price || 0), 0), 0) || 0)) * item.itemCount).toFixed(2)}
                       </span>
                       <span className="font-medium text-sm">
-                        €{((item.variationPrice +
+                        {bootstrapData?.currencyConfig?.currencySymbol}{((item.variationPrice +
                           (item.optionSetList?.reduce((sum, addon) =>
                             sum + addon.selectedOptions.reduce((optSum, opt) =>
                               optSum + (opt.price || 0), 0), 0) || 0)) * item.itemCount).toFixed(2)}
@@ -704,8 +708,8 @@ const Checkout: React.FC = () => {
             </div>
             <div className="text-left">
               <h3 className="text-[15px] font-medium text-gray-900">Apply Coupon</h3>
-              {appliedCoupon ? (
-                <p className="text-xs text-[#00B37A]">Coupon SAVE5 applied</p>
+              {couponCodeId ? (
+                <p className="text-xs text-[#00B37A]">Coupon {couponCodeId} applied</p>
               ) : (
                 <p className="text-xs text-gray-500">Save more on your order</p>
               )}
@@ -722,13 +726,13 @@ const Checkout: React.FC = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between text-[13px]">
             <span className="text-gray-600">{t('checkout.totalItem')}</span>
-            <span className="font-medium">€{calculateSubtotal().toFixed(2)}</span>
+            <span className="font-medium">{bootstrapData?.currencyConfig?.currencySymbol}{calculateSubtotal().toFixed(2)}</span>
           </div>
 
           {appliedCoupon && (
             <div className="flex items-center justify-between text-[13px]">
               <span className="text-[#00B37A]">{t('checkout.extraDiscount')}</span>
-              <span className="text-[#00B37A] font-medium">-€{calculateDiscount().toFixed(2)}</span>
+              <span className="text-[#00B37A] font-medium">-{bootstrapData?.currencyConfig?.currencySymbol}{calculateDiscount().toFixed(2)}</span>
             </div>
           )}
 
@@ -737,7 +741,7 @@ const Checkout: React.FC = () => {
           <div className="pt-3 mt-3 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <span className="font-medium">{t('checkout.toPay')}</span>
-              <span className="text-lg font-semibold">€{(calculateTotal()).toFixed(2)}</span>
+              <span className="text-lg font-semibold">{bootstrapData?.currencyConfig?.currencySymbol}{(calculateTotal()).toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -778,54 +782,21 @@ const Checkout: React.FC = () => {
             <p className="text-center font-bold text-lg pb-3">
               {placeOrderLoading ? 'Placing your order...' : 'Pay on pickup'}
             </p>
-            <div
-              ref={sliderRef}
-              className={`relative h-12 rounded-full overflow-hidden mx-auto ${placeOrderLoading ? 'bg-gray-300' : 'bg-[#16B364]'
+            <button
+              onClick={handlePlaceOrder}
+              disabled={placeOrderLoading}
+              className={`w-full py-3 rounded-lg font-medium flex items-center justify-center gap-2 ${placeOrderLoading ? 'bg-gray-300 text-gray-500' : 'bg-[#16B364] text-white'
                 }`}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
             >
-              <div
-                className="absolute inset-0 bg-secondary transition-transform"
-                style={{
-                  transform: `translateX(${-100 + (slidePosition / (sliderRef.current?.offsetWidth || 1) * 100)}%)`,
-                  opacity: 0.1
-                }}
-              />
-              <div
-                className="absolute left-1 top-1 bottom-1 flex items-center justify-center bg-white rounded-full transition-transform shadow-lg"
-                style={{
-                  width: 40,
-                  transform: `translateX(${slidePosition}px)`
-                }}
-              >
-                {placeOrderLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-secondary border-t-transparent" />
-                ) : (
-                  <>
-                    <ChevronRight className="text-green-900 w-20" style={{ marginRight: -16 }} size={24} />
-                    <ChevronRight className="text-green-900 w-20 p-0" size={24} />
-                  </>
-                )}
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-white font-medium text-sm">
-                  {placeOrderLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-pulse">Processing your order</div>
-                      <div className="flex gap-1">
-                        <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                    </div>
-                  ) : (
-                    `Slide to place order | €${(calculateTotal() + 0.99).toFixed(2)}`
-                  )}
-                </span>
-              </div>
-            </div>
+              {placeOrderLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  Processing your order...
+                </>
+              ) : (
+                `Place Order | ${bootstrapData?.currencyConfig?.currencySymbol} ${(calculateTotal()).toFixed(2)}`
+              )}
+            </button>
           </div>
         )}
       </div>

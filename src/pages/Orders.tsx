@@ -1,4 +1,4 @@
-import React, { useState,useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Clock, Store, ChevronDown, ChevronUp, Edit2, Send } from 'lucide-react';
 import { useQuery } from '@apollo/client';
@@ -6,6 +6,7 @@ import { GET_ORDERS } from '../graphql/queries';
 import Layout from '../components/Layout';
 import { useTranslation } from 'react-i18next';
 import moment from 'moment';
+import { useBootstrap } from '../context/BootstrapContext';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -31,6 +32,7 @@ const Orders: React.FC = () => {
   const [reviews, setReviews] = useState<Record<string, string>>({});
   const [showReviewInput, setShowReviewInput] = useState<Record<string, boolean>>({});
   const optionsRef = useRef<HTMLDivElement>(null);
+  const { bootstrapData } = useBootstrap()
 
   if (loading) {
     return (
@@ -52,7 +54,7 @@ const Orders: React.FC = () => {
     <Layout title={t('screenTitle.orderHistory')}>
       <div className="space-y-4 pb-20">
         {orders.map((order) => (
-          <div 
+          <div
             key={order._id}
             className="bg-white rounded-xl overflow-hidden border border-gray-100"
           >
@@ -91,10 +93,10 @@ const Orders: React.FC = () => {
                 <span className="text-xs text-gray-500">{order.items?.length} items</span>
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium">
-                    €{order.orderAmount?.toFixed(2)}
+                    {bootstrapData?.currencyConfig?.currencySymbol}{order.orderAmount?.toFixed(2)}
                   </span>
                   <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs">
-                    {order.taxationAmount > 0 && `Saved €${order.taxationAmount?.toFixed(2)}`}
+                    {order.taxationAmount > 0 && `Saved {bootstrapData?.currencyConfig?.{bootstrapData?.currencyConfig?.currencySymbol}${order.taxationAmount?.toFixed(2)}`}
                   </span>
                 </div>
               </div>
@@ -113,18 +115,17 @@ const Orders: React.FC = () => {
                         onClick={() => handleRatingClick(order._id, star)}
                         className="transition-transform hover:scale-110"
                       >
-                        <Star 
+                        <Star
                           size={28}
-                          className={`transition-colors ${
-                            star <= (hoveredRatings[order.id] || ratings[order.id] || 0)
-                              ? 'text-yellow-400 fill-yellow-400'
-                              : 'text-gray-300'
-                          }`}
+                          className={`transition-colors ${star <= (hoveredRatings[order.id] || ratings[order.id] || 0)
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-gray-300'
+                            }`}
                         />
                       </button>
                     ))}
                   </div>
-                  
+
                   {showReviewInput[order._id] && (
                     <div className="w-full space-y-3">
                       <textarea
@@ -154,12 +155,12 @@ const Orders: React.FC = () => {
               <div className="p-4 border-t border-gray-100">
                 <div className="flex justify-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star 
+                    <Star
                       key={star}
                       size={20}
                       className={
-                        star <= order.review.rating 
-                          ? 'text-yellow-400 fill-yellow-400' 
+                        star <= order.review.rating
+                          ? 'text-yellow-400 fill-yellow-400'
                           : 'text-gray-300'
                       }
                     />

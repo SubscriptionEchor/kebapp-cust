@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, ShoppingBag, ChefHat, Utensils, PackageCheck, ThumbsUp, XCircle, Store, PersonStanding, ChevronDown, ChevronUp, X, Navigation } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from '@apollo/client';
 import { GET_ORDER } from '../graphql/queries';
 import LoadingAnimation from '../components/LoadingAnimation';
@@ -11,6 +11,7 @@ import { UseLocationDetails } from '../context/LocationContext';
 import { RestaurantDetailMap } from '../components/Map/OpenStreetMap';
 import Review from './Review';
 import toast from 'react-hot-toast';
+import { useBootstrap } from '../context/BootstrapContext';
 
 
 const ORDER_STATUS = {
@@ -64,7 +65,7 @@ const STATUS_ORDER = [
 const OrderStatus: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { state } = useLocation();
 
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [showHoldingTimeInfo, setShowHoldingTimeInfo] = useState(false);
@@ -72,13 +73,16 @@ const OrderStatus: React.FC = () => {
   const [showRefIdSheet, setShowRefIdSheet] = useState(false);
   const { temporaryLocation } = UseLocationDetails()
   const [status, setStatus] = useState('')
+  const { bootstrapData } = useBootstrap()
 
   let totalDiscount = 0
 
+  console.log(state, "state")
+
   const { loading, error, data, stopPolling } = useQuery(GET_ORDER, {
-    variables: { orderId: id },
+    variables: { orderId: state?.id },
     pollInterval: 10000,
-    skip: !id
+    skip: !state?.id
   });
 
   useEffect(() => {
@@ -316,12 +320,12 @@ const OrderStatus: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <span className="text-[13px] font-medium">
-                      €{(((item.variation?.price || 0) + (item.addons?.reduce((sum, addon) =>
+                      {bootstrapData?.currencyConfig?.currencySymbol}{(((item.variation?.price || 0) + (item.addons?.reduce((sum, addon) =>
                         sum + addon.options.reduce((optSum, opt) => optSum + (opt.price || 0), 0), 0) || 0)) * item.quantity).toFixed(2)}
                     </span>
                     {item.variation?.discountedPrice > 0 && (
                       <p className="text-xs text-green-600">
-                        Saved €{((item.variation.discountedPrice) * item.quantity).toFixed(2)}
+                        Saved {bootstrapData?.currencyConfig?.currencySymbol}{((item.variation.discountedPrice) * item.quantity).toFixed(2)}
                       </p>
                     )}
                   </div>
@@ -356,26 +360,22 @@ const OrderStatus: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Item total</span>
-                      <span>€{(order.orderAmount - order.taxationAmount).toFixed(2)}</span>
+                      <span>{bootstrapData?.currencyConfig?.currencySymbol}{(order.orderAmount - order.taxationAmount).toFixed(2)}</span>
                     </div>
                     {/* <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Restaurant tip</span>
-                      <span>€{order.tipping.toFixed(2)}</span>
+                      <span>{bootstrapData?.currencyConfig?.{bootstrapData?.currencyConfig?.currencySymbol}{order.tipping.toFixed(2)}</span>
                     </div> */}
                     {/* <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Platform fee</span>
-                      <span>€{order.deliveryCharges.toFixed(2)}</span>
+                      <span>{bootstrapData?.currencyConfig?.{bootstrapData?.currencyConfig?.currencySymbol}{order.deliveryCharges.toFixed(2)}</span>
                     </div> */}
-                    <div className="flex justify-between text-[13px] text-gray-900">
-                      <span>Tax</span>
-                      <span>€{order.taxationAmount.toFixed(2)}</span>
-                    </div>
                     <div className="flex justify-between text-[13px] font-medium text-gray-900 pt-2 border-t border-gray-100">
                       <span>Total</span>
                       <div className="text-right">
-                        <p>€{order.orderAmount.toFixed(2)}</p>
+                        <p>{bootstrapData?.currencyConfig?.currencySymbol}{order.orderAmount.toFixed(2)}</p>
                         <p className="text-[11px] text-green-600 font-normal">
-                          €{totalDiscount.toFixed(2)} saved on this order
+                          {bootstrapData?.currencyConfig?.currencySymbol}{totalDiscount.toFixed(2)} saved on this order
                         </p>
                       </div>
                     </div>
@@ -388,9 +388,9 @@ const OrderStatus: React.FC = () => {
               <div className="mt-3 flex justify-between items-end">
                 <span className="text-[13px] text-gray-900">Total</span>
                 <div className="text-right">
-                  <p className="text-[13px] font-medium text-gray-900">€{order?.orderAmount?.toFixed(2)}</p>
+                  <p className="text-[13px] font-medium text-gray-900">{bootstrapData?.currencyConfig?.currencySymbol}{order?.orderAmount?.toFixed(2)}</p>
                   <p className="text-[11px] text-green-600">
-                    €{totalDiscount?.toFixed(2)} saved on this order
+                    {bootstrapData?.currencyConfig?.currencySymbol}{totalDiscount?.toFixed(2)} saved on this order
                   </p>
                 </div>
               </div>

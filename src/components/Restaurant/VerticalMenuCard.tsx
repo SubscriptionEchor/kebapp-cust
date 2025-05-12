@@ -4,6 +4,7 @@ import { MenuItem } from './MenuSection';
 import DishInfoModal from './DishInfoModal';
 import VariationBottomSheet from './VariationBottomSheet';
 import { useCart } from '../../context/CartContext';
+import { useBootstrap } from '../../context/BootstrapContext';
 
 interface VerticalMenuCardProps {
   item: MenuItem;
@@ -20,6 +21,7 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
   const [showDishInfo, setShowDishInfo] = React.useState(false);
   const [showVariations, setShowVariations] = React.useState(false);
   const [isDecrementing, setIsDecrementing] = React.useState(false);
+  const { bootstrapData } = useBootstrap()
 
   const cartItems = getCartItems(item._id, item?.restaurantId);;
   const existingCartItem = cartItems[0];
@@ -28,7 +30,7 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
   const itemCount = getItemCount(item._id, variationId, item?.restaurantId);
   const isVeg = item?.dietaryType?.includes("VEG")
 
-      const price = item.variationList?.[0]?.price || item.price || 0;
+  const price = item.variationList?.[0]?.price || item.price || 0;
   const originalPrice = price + item.variationList?.[0]?.discountedPrice || 0;
 
   const handleAddClick = () => {
@@ -83,10 +85,10 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
 
         <div className="mb-1.5">
           <span className="text-[13px] font-medium text-gray-900">
-            ₹{item.variationList[0]?.price || 0}
+            {bootstrapData?.currencyConfig?.currencySymbol}{item.variationList[0]?.price || 0}
           </span>
-          { originalPrice>price&& <span className="text-[10px] font-medium ms-2 line-through text-gray-400 strike">
-            ₹{originalPrice}
+          {originalPrice > price && <span className="text-[10px] font-medium ms-2 line-through text-gray-400 strike">
+            {bootstrapData?.currencyConfig?.currencySymbol}{originalPrice}
           </span>}
         </div>
 

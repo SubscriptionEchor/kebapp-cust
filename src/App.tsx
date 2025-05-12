@@ -47,8 +47,8 @@ function App() {
                   <Route path="/profile/details" element={<UserDetails />} />
                   <Route path="/profile/addresses" element={<SavedAddresses />} />
                   <Route path="/profile/support" element={<Support />} />
-                  <Route path="/order/:id" element={<OrderStatus />} />
-                  <Route path="/restaurant/:id" element={<RestaurantDetails />} />
+                  <Route path="/order" element={<OrderStatus />} />
+                  <Route path="/restaurant" element={<RestaurantDetails />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/coupons" element={<Coupons />} />
                   <Route path="/search" element={<Search />} />

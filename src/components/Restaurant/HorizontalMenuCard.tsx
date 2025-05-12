@@ -4,6 +4,7 @@ import VariationBottomSheet from './VariationBottomSheet';
 import DishInfoModal from './DishInfoModal';
 import { Info } from 'lucide-react';
 import { useCart, CartItem } from '../../context/CartContext';
+import { useBootstrap } from '../../context/BootstrapContext';
 
 interface HorizontalMenuCardProps {
   item: MenuItem;
@@ -19,6 +20,7 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
   const [showVariations, setShowVariations] = React.useState(false);
   const [isDecrementing, setIsDecrementing] = React.useState(false);
   const [showDishInfo, setShowDishInfo] = React.useState(false);
+  const { bootstrapData } = useBootstrap()
 
   const cartItems = getCartItems(item._id, item?.restaurantId);
   const existingCartItem = cartItems[0];
@@ -125,10 +127,10 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-medium text-white">
-                ₹{price}
+                {bootstrapData?.currencyConfig?.currencySymbol}{price}
               </span>
               {originalPrice > price && (
-                <span className="text-[10px] text-white/60 line-through ml-2">₹{originalPrice}</span>
+                <span className="text-[10px] text-white/60 line-through ml-2">{bootstrapData?.currencyConfig?.currencySymbol}{originalPrice}</span>
               )}
             </div>
 

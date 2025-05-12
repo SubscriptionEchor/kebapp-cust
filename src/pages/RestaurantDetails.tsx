@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { SINGLE_RESTAURANT_QUERY } from '../graphql/queries';
 import { BadgePercent, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -15,7 +15,7 @@ import { UseLocationDetails } from '../context/LocationContext';
 
 
 const RestaurantDetails: React.FC = () => {
-  const { id } = useParams();
+  const { state } = useLocation();
   const { bootstrapData } = useBootstrap();
   const [searchQuery, setSearchQuery] = useState('');
   const [isVegOnly, setIsVegOnly] = useState(false);
@@ -26,7 +26,7 @@ const RestaurantDetails: React.FC = () => {
   const [isMapview, setIsMapView] = useState(false)
   const { temporaryLocation } = UseLocationDetails()
   const [dietary, setDietary] = useState('')
-  console.log(temporaryLocation)
+
 
   // Auto-rotate promotions
   useEffect(() => {
@@ -41,10 +41,10 @@ const RestaurantDetails: React.FC = () => {
 
   const { loading, error, data } = useQuery(SINGLE_RESTAURANT_QUERY, {
     variables: {
-      id,
-      restaurantId: id
+      id: state?.id,
+      restaurantId: state?.id
     },
-    skip: !id
+    skip: !state?.id
   });
   console.log(data)
 
@@ -250,10 +250,10 @@ const RestaurantDetails: React.FC = () => {
                           <span className="text-lg font-bold text-secondary">
                             {promo.campaignType === "PERCENTAGE"
                               ? `${promo.percentageDiscount}% OFF`
-                              : `€${promo.flatDiscount} OFF`}
+                              : `{bootstrapData?.currencyConfig?.{bootstrapData?.currencyConfig?.currencySymbol}${promo.flatDiscount} OFF`}
                           </span>
                           <p className="text-[11px] text-gray-600 mt-1">
-                            Min. order <span className="font-medium">€{promo.minimumOrderValue}</span>
+                            Min. order <span className="font-medium">{bootstrapData?.currencyConfig?.currencySymbol}{promo.minimumOrderValue}</span>
                           </p>
                         </div>
                       </div>

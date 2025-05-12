@@ -17,7 +17,7 @@ interface CartSummaryProps {
 }
 
 const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
-  const { cart,setCart } = useCart();
+  const { cart, setCart } = useCart();
   const navigate = useNavigate();
   const [touchStart, setTouchStart] = React.useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -66,7 +66,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
           total: 0
         };
       }
-      
+
       let itemTotal = item.variationPrice * item.itemCount;
       if (item.optionSetList?.length > 0) {
         item.optionSetList.forEach(optionSet => {
@@ -85,7 +85,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
 
     return Object.values(groupedItems);
   }, [cart, restaurantId]);
-  
+
   if (restaurantCarts.length === 0) return null;
 
   const handlePrevious = () => {
@@ -124,29 +124,28 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
     setIsExpanded(prev => !prev);
   };
   return (
-    <div 
-      style={{bottom:restaurantId?0:70}}
-      className={`fixed z-50 left-0 px-3 right-0 bg-white transition-all duration-300 ease-in-out ${
-        isExpanded ? 'max-h-[80vh]  border rounded-t-3xl pt-3' : 'max-h-[72px]'
-      }`}
+    <div
+      style={{ bottom: restaurantId ? 0 : 70 }}
+      className={`fixed z-50 left-0 px-3 right-0 bg-white transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[80vh]  border rounded-t-3xl pt-3' : 'max-h-[72px]'
+        }`}
     >
-      {isExpanded?<button 
-            onClick={toggleExpand}
-            className="p-3  absolute -top-14 bg-black left-[44%] hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={20} className="text-gray-100" />
-          </button>:null}
-      <div 
+      {isExpanded ? <button
+        onClick={toggleExpand}
+        className="p-3  absolute -top-14 bg-black left-[44%] hover:bg-gray-100 rounded-full transition-colors"
+      >
+        <X size={20} className="text-gray-100" />
+      </button> : null}
+      <div
         className="relative"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {/* Cart items stacked view */}
-        <div 
+        <div
           className="relative"
-          style={{ 
-            height: isExpanded ? `${20+(restaurantCarts.length * 80)}px` : '80px',
+          style={{
+            height: isExpanded ? `${20 + (restaurantCarts.length * 80)}px` : '80px',
             transition: 'height 300ms ease-in-out'
           }}
         >
@@ -161,19 +160,19 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
               }}
             >
               <div className="flex relative items-center justify-between">
-                {!isExpanded && restaurantCarts.length > 1?<div className="flex items-center absolute text-[10px] font-bold text-secondary bg-white z-50 shadow-sm py-2 px-3 rounded-3xl" style={{top: -40, left: '40%'}}>
+                {!isExpanded && restaurantCarts.length > 1 ? <div className="flex items-center absolute text-[10px] font-bold text-secondary bg-white z-50 shadow-sm py-2 px-3 rounded-3xl" style={{ top: -40, left: '40%' }}>
                   {isExpanded ? 'Collapse' : 'All carts'}
-                  <ChevronUp width={20} height={20}/>
-                </div>:null}
+                  <ChevronUp width={20} height={20} />
+                </div> : null}
                 <div>
                   <div className="flex items-center">
-                    
+
                     <p className="text-sm font-bold text-gray-900">{restaurantCarts[0].restaurantName}</p>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">{restaurantCarts[0].itemCount} item(s)</p>
                 </div>
                 <div className="text-right flex items-center">
-                  <button onClick={()=>navigate('/checkout',{state:{restaurantId:restaurantCarts[0].restaurantId}})} className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
+                  <button onClick={() => navigate('/checkout', { state: { restaurantId: restaurantCarts[0].restaurantId } })} className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -183,7 +182,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
                   >
                     <Trash2 size={16} className="text-red-500" />
                   </button>
-                  {/* <p className="text-sm font-medium">€{restaurantCarts[0].total.toFixed(2)}</p> */}
+                  {/* <p className="text-sm font-medium">{bootstrapData?.currencyConfig?.{bootstrapData?.currencyConfig?.currencySymbol}{restaurantCarts[0].total.toFixed(2)}</p> */}
                 </div>
               </div>
             </div>
@@ -196,8 +195,8 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
               onClick={toggleExpand}
               className="bg-white rounded-xl shadow-md border border-gray-200 p-4 absolute w-full transition-all duration-300 cursor-pointer"
               style={{
-                bottom: isExpanded 
-                  ? `${15+(index + 1) * 80}px` // Start after the first card
+                bottom: isExpanded
+                  ? `${15 + (index + 1) * 80}px` // Start after the first card
                   : `${20 + (index * 10)}px`, // Peeking from behind
                 zIndex: restaurantCarts.length - index - 1,
                 opacity: 1,
@@ -207,15 +206,15 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center">
-                   
+
                     <p className="text-sm font-bold text-gray-900">{item.restaurantName}</p>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">{item.itemCount} item(s)</p>
                 </div>
                 <div className="text-right">
-                   <button 
-                     onClick={()=>navigate('/checkout',{state:{restaurantId:item.restaurantId}})}
-                     className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
+                  <button
+                    onClick={() => navigate('/checkout', { state: { restaurantId: item.restaurantId } })}
+                    className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

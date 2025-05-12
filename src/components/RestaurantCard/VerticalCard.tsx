@@ -170,7 +170,11 @@ const VerticalCard: React.FC<RestaurantProps> = ({
     if ((e.target as HTMLElement).closest('button')) {
       return;
     }
-    navigate(`/restaurant/${id}`);
+    navigate(`/restaurant`, {
+      state: {
+        id: id
+      }
+    });
   };
 
   const showPromotion = campaigns?.find((camp) => camp?.promotion);
@@ -180,7 +184,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
   };
 
   return (
-    <div 
+    <div
       className="w-full bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer mb-4"
       onClick={handleCardClick}
     >
@@ -227,7 +231,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
               <span>{openingStatus.message}</span>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 text-xs text-gray-600">
             <div className="flex items-center gap-1">
               <MapPin size={14} />
@@ -238,7 +242,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
               <span>{likeCount}</span>
             </div>
           </div>
-           <div className="flex items-center  justify-between mb-2">
+          <div className="flex items-center  justify-between mb-2">
             <div className="flex items-center justify-center mt-2 py-1 rounded-lg">
               <span className="text-emerald-600  font-bold text-xs mr-1">{rating.toFixed(1)}</span>
               <Star className="text-emerald-600 " size={14} />
@@ -246,14 +250,14 @@ const VerticalCard: React.FC<RestaurantProps> = ({
             </div>
           </div>
         </div>
-        
+
       </div>
       <div className="flex items-center px-4  pb-3 gap-2">
         {showPromotion && (
           <div className="flex  items-center bg-secondary/10 text-black px-3 py-1.5 rounded-lg">
             <div className="flex items-center gap-1.5">
               <BadgePercent size={14} className="text-secondary" />
-              <span className="text-[11px] font-bold">{showPromotion?.displayName }</span>
+              <span className="text-[11px] font-bold">{showPromotion?.displayName}</span>
             </div>
           </div>
         )}
@@ -267,7 +271,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
             </div>
           </div>
         )}
-        </div>
+      </div>
     </div>
   );
 };
