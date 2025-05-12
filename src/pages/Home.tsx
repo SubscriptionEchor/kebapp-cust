@@ -42,7 +42,7 @@ const Home: React.FC = () => {
 
 
   console.log(temporaryLocation, profile)
-  const selectedLocation = {
+  const selectedLocation = temporaryLocation || {
     latitude: 52.516267, // Default fallback coordinates
     longitude: 13.322455
   };
