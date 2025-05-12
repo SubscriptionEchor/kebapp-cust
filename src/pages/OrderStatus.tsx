@@ -86,6 +86,9 @@ const OrderStatus: React.FC = () => {
   });
 
   useEffect(() => {
+    if (state?.type == "history") {
+      return
+    }
     const currentStatus = data?.order?.orderStatus;
     setStatus(currentStatus);
 
@@ -99,7 +102,7 @@ const OrderStatus: React.FC = () => {
         }, 5000)
       }
     }
-  }, [data, stopPolling]);
+  }, [data, stopPolling, state?.type]);
 
   const currentStatus = data?.order?.orderStatus || ORDER_STATUS.PENDING;
   console.log(currentStatus, "CS")
@@ -133,7 +136,7 @@ const OrderStatus: React.FC = () => {
 
   const order = data.order;
   console.log(OrderStatus, ORDER_STATUS?.DELIVERED)
-  if (currentStatus === ORDER_STATUS?.DELIVERED) {
+  if (currentStatus === ORDER_STATUS?.DELIVERED && state?.type !== "history") {
     return <Review restaurant={{
       ...order?.restaurant,
       orderId: order?._id

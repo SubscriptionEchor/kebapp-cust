@@ -42,7 +42,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/following" element={<Following />} />
                   <Route path="/orders" element={<Orders />} />
-                  <Route path="/orders" element={<Orders />} />
+                  {/* <Route path="/orders" element={<Orders />} /> */}
                   <Route path="/profile/addresses" element={<SavedAddresses />} />
                   <Route path="/profile/details" element={<UserDetails />} />
                   <Route path="/profile/addresses" element={<SavedAddresses />} />
