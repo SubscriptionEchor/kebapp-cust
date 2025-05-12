@@ -771,3 +771,7 @@ export const REVIEW_ORDER = gql`mutation ReviewOrder($reviewInput: ReviewInput!)
     _id
   }
 }`;
+
+export const DELETE_ACCOUNT = gql`mutation Mutation {
+  deleteUserAccount
+}`
