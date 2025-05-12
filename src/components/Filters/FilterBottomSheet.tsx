@@ -25,19 +25,19 @@ const offers = [
   }
 ];
 
-const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ 
-  isOpen, 
+const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
+  isOpen,
   onClose,
-  onFilterUpdate 
+  onFilterUpdate
 }) => {
   // Temporary state for current session
   const [tempDistance, setTempDistance] = useState(50);
   const [tempSelectedOffer, setTempSelectedOffer] = useState<number | null>(null);
-  
+
   // Permanent state that persists after applying
   const [distance, setDistance] = useState(50);
   const [selectedOffer, setSelectedOffer] = useState<number | null>(null);
-  
+
   // Track if any changes were made
   const [hasChanges, setHasChanges] = useState(false);
   const [isCleared, setIsCleared] = useState(false);
@@ -100,15 +100,19 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 animate-fade-in"
+      <div
+        style={{ zIndex: 1000 }}
+        className="fixed inset-0 bg-black bg-opacity-50  animate-fade-in"
         onClick={handleCancel}
       />
-      
+
       {/* Bottom Sheet */}
-      <div 
+      <div
+        // style={{ zIndex: 1000 }}
+
         className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[90vh] overflow-hidden animate-slide-up"
         style={{
+          zIndex: 10000,
           boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.1)',
         }}
       >
@@ -116,7 +120,7 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         <div className="sticky top-0 bg-white px-4 py-3">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold">Filter</h3>
-            <button 
+            <button
               onClick={handleCancel}
               className="p-1 hover:bg-gray-100 rounded-full transition-colors"
             >
@@ -135,11 +139,10 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                 <button
                   key={offer.id}
                   onClick={() => handleOfferSelect(offer.id)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-lg transition-all bg-white border ${
-                    tempSelectedOffer === offer.id
-                      ? 'border-secondary border-2'
-                      : 'border-gray-200 border-2'
-                  }`}
+                  className={`flex flex-col items-center justify-center p-4 rounded-lg transition-all bg-white border ${tempSelectedOffer === offer.id
+                    ? 'border-secondary border-2'
+                    : 'border-gray-200 border-2'
+                    }`}
                 >
                   <span className="text-xl mb-1.5">{offer.icon}</span>
                   <span className="text-xs font-medium text-center whitespace-nowrap">{offer.name}</span>
@@ -160,14 +163,14 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                   value={tempDistance}
                   onChange={(e) => handleDistanceChange(Number(e.target.value))}
                   className="range-slider w-full"
-                  style={{ 
+                  style={{
                     '--value-percent': `${(tempDistance - 3) / 47 * 100}%`,
                   } as React.CSSProperties}
                 />
               </div>
               <div className="flex items-center gap-2">
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={tempDistance}
                   min="3"
                   max="50"
@@ -190,11 +193,10 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             <button
               onClick={handleApply}
               disabled={!hasChanges || isCleared}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                hasChanges && !isCleared
-                  ? 'bg-secondary text-black hover:bg-opacity-90' 
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${hasChanges && !isCleared
+                ? 'bg-secondary text-black hover:bg-opacity-90'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
             >
               Apply
             </button>

@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ShoppingBag, ChefHat, Utensils, PackageCheck, ThumbsUp, XCircle, Store, PersonStanding, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Check, ShoppingBag, ChefHat, Utensils, PackageCheck, ThumbsUp, XCircle, Store, PersonStanding, ChevronDown, ChevronUp, X, Navigation } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from '@apollo/client';
-import { GET_ORDER } from '../graphql/queries'; 
+import { GET_ORDER } from '../graphql/queries';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { onClickViewDirections } from '../utils/directions';
+import { UseLocationDetails } from '../context/LocationContext';
+import { RestaurantDetailMap } from '../components/Map/OpenStreetMap';
+import Review from './Review';
+import toast from 'react-hot-toast';
+
 
 const ORDER_STATUS = {
   PENDING: 'PENDING',
@@ -59,20 +65,40 @@ const OrderStatus: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
-  
+
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [showHoldingTimeInfo, setShowHoldingTimeInfo] = useState(false);
   const [showBillingDetails, setShowBillingDetails] = useState(false);
   const [showRefIdSheet, setShowRefIdSheet] = useState(false);
-  let totalDiscount=0
+  const { temporaryLocation } = UseLocationDetails()
+  const [status, setStatus] = useState('')
 
-  const { loading, error, data } = useQuery(GET_ORDER, {
+  let totalDiscount = 0
+
+  const { loading, error, data, stopPolling } = useQuery(GET_ORDER, {
     variables: { orderId: id },
     pollInterval: 10000,
     skip: !id
   });
 
-  const currentStatus = data?.order?.orderStatua || ORDER_STATUS.PENDING;
+  useEffect(() => {
+    const currentStatus = data?.order?.orderStatus;
+    setStatus(currentStatus);
+
+    if (currentStatus === ORDER_STATUS.CANCELLED || currentStatus === ORDER_STATUS.DELIVERED) {
+      stopPolling();
+      if (currentStatus === ORDER_STATUS.CANCELLED) {
+        toast.error("sorry for the inconvinience. Your order has been cancelled")
+        setTimeout(() => {
+          toast.error("Navigating back to home page")
+          navigate('/home', { replace: true })
+        }, 5000)
+      }
+    }
+  }, [data, stopPolling]);
+
+  const currentStatus = data?.order?.orderStatus || ORDER_STATUS.PENDING;
+  console.log(currentStatus, "CS")
   const statusConfig = STATUS_CONFIG[currentStatus];
   const statusIndex = STATUS_ORDER.indexOf(currentStatus);
   const progress = (statusIndex / (STATUS_ORDER.length - 1)) * 100;
@@ -102,15 +128,23 @@ const OrderStatus: React.FC = () => {
   }
 
   const order = data.order;
+  console.log(OrderStatus, ORDER_STATUS?.DELIVERED)
+  if (currentStatus === ORDER_STATUS?.DELIVERED) {
+    return <Review restaurant={{
+      ...order?.restaurant,
+      orderId: order?._id
+    }
+    } />
+  }
 
   return (
     <div className="min-h-screen bg-white">
       <div className="p-4 space-y-6">
-        <h1 className="text-xl font-semibold text-gray-900">Order #{order.orderId}</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Order #{order?.orderId}</h1>
 
         <div className="mt-6 mb-4">
           <div className="flex items-center gap-3">
-            {React.createElement(statusConfig.icon, { 
+            {React.createElement(statusConfig.icon, {
               size: 20,
               className: `text-[${statusConfig.color}]`
             })}
@@ -127,7 +161,7 @@ const OrderStatus: React.FC = () => {
 
         <div className="mt-8 relative">
           <div className="absolute top-5 left-4 right-4 h-0.5 bg-gray-200">
-            <motion.div 
+            <motion.div
               className={`h-full bg-[${statusConfig.color}]`}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -140,81 +174,98 @@ const OrderStatus: React.FC = () => {
               const isComplete = index <= statusIndex;
               const isCurrent = index === statusIndex;
               const config = STATUS_CONFIG[status];
-              
+
               return (
-              <div 
-               key={index}
-               className={`flex flex-col items-center ${
-                  isComplete ? `text-[${config.color}]` : 'text-gray-400'
-                }`}
-               style={{ width: '20%' }}
-              >
-               <div className="relative">
-                  {isCurrent && (
-                    <motion.div
-                      className={`absolute -inset-3 rounded-full opacity-20`}
-                      style={{ backgroundColor: config.color }}
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  )}
-                  
-                  <motion.div 
-                    className={`w-10 h-10 rounded-full flex items-center justify-center`}
-                    style={{
-                      backgroundColor: isComplete ? config.color : '#E5E7EB',
-                      color: isComplete ? 'white' : '#9CA3AF'
-                    }}
-                    initial={false}
-                    animate={{
-                      scale: isCurrent ? [1, 1.1, 1] : 1,
-                      rotate: isCurrent ? [0, 10, -10, 0] : 0
-                    }}
-                    transition={{
-                      duration: 0.5,
-                      ease: "easeInOut",
-                      repeat: isCurrent ? Infinity : 0,
-                      repeatDelay: 1
-                    }}
-                  >
-                    {isComplete && !isCurrent ? (
-                      <Check size={20} />
-                    ) : (
-                      React.createElement(config.icon, { size: 20 })
+                <div
+                  key={index}
+                  className={`flex flex-col items-center ${isComplete ? `text-[${config.color}]` : 'text-gray-400'
+                    }`}
+                  style={{ width: '20%' }}
+                >
+                  <div className="relative">
+                    {isCurrent && (
+                      <motion.div
+                        className={`absolute -inset-3 rounded-full opacity-20`}
+                        style={{ backgroundColor: config.color }}
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
                     )}
-                  </motion.div>
+
+                    <motion.div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center`}
+                      style={{
+                        backgroundColor: isComplete ? config.color : '#E5E7EB',
+                        color: isComplete ? 'white' : '#9CA3AF'
+                      }}
+                      initial={false}
+                      animate={{
+                        scale: isCurrent ? [1, 1.1, 1] : 1,
+                        rotate: isCurrent ? [0, 10, -10, 0] : 0
+                      }}
+                      transition={{
+                        duration: 0.5,
+                        ease: "easeInOut",
+                        repeat: isCurrent ? Infinity : 0,
+                        repeatDelay: 1
+                      }}
+                    >
+                      {isComplete && !isCurrent ? (
+                        <Check size={20} />
+                      ) : (
+                        React.createElement(config.icon, { size: 20 })
+                      )}
+                    </motion.div>
+                  </div>
                 </div>
-              </div>
-            )})}
+              )
+            })}
           </div>
         </div>
+        {temporaryLocation?.latitude && order?.restaurant?.location?.coordinates && <RestaurantDetailMap
+          userLocation={{
+            lat: Number(temporaryLocation?.latitude),
+            lng: Number(temporaryLocation?.longitude)
+          }}
 
+          restaurantLocation={{
+            lat: Number(order?.restaurant?.location?.coordinates[1]),
+            lng: Number(order?.restaurant?.location?.coordinates[0])
+          }}
+          height={"150px"}
+
+        />}
         {/* Section 2: Restaurant Details */}
         <div className="bg-gray-50 rounded-xl p-4">
           <h2 className="text-[15px] font-semibold text-gray-900 mb-4">In-restaurant pick-up</h2>
-          
+
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
               <Store size={20} className="text-gray-600" />
             </div>
-            
+
             <div className="flex-1">
               <div className="mb-3">
                 <h3 className="text-[15px] font-medium text-gray-900">{order.restaurant.name}</h3>
                 <p className="text-[13px] text-gray-500 mt-1">{order.restaurant.address}</p>
               </div>
-              
-              <div className="flex gap-2">
+
+              {/* <div className=" gap-2">
                 <button className="px-4 py-2 bg-white text-[13px] text-gray-900 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                  Contact restaurant
+                  Contact Deatils
                 </button>
-                <button className="px-4 py-2 bg-white text-[13px] text-gray-900 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                  Get directions
-                </button>
-              </div>
+                <p></p>
+              </div> */}
+              <button
+                onClick={() => onClickViewDirections(temporaryLocation, data?.order?.restaurant?.location)}
+                className="mx-auto px-4 inline-flex items-center justify-center gap-2 py-2 border border-[#CCAD11] text-[#CCAD11] rounded-lg text-[13px] font-medium mt-2"
+              >
+                <Navigation size={16} />
+                {t('orderStatus.getDirections')}
+              </button>
             </div>
           </div>
-          
+
           <div className="mt-4 flex items-center gap-4">
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
               <PersonStanding size={20} className="text-gray-600" />
@@ -224,7 +275,7 @@ const OrderStatus: React.FC = () => {
               <p className="text-xs text-gray-600 mt-0.5">{(order.restaurant.distanceInMeters / 1000).toFixed(1)} kilometers</p>
             </div>
           </div>
-       
+
           <div className="flex items-center gap-4 mt-4 justify-between">
             <div>
               <h3 className="text-[15px] font-semibold text-gray-900">Reference ID</h3>
@@ -244,7 +295,7 @@ const OrderStatus: React.FC = () => {
                 4 hrs
               </p>
             </div>
-            <button 
+            <button
               onClick={() => setShowHoldingTimeInfo(true)}
               className="text-[13px] text-[#00B37A] font-medium ml-1"
             >
@@ -255,27 +306,28 @@ const OrderStatus: React.FC = () => {
           <h2 className="text-[15px] font-semibold text-gray-900">Your Items</h2>
           <div className="space-y-3 mt-4">
             {order.items.map((item, index) => {
-       totalDiscount+=(item.variation.discountedPrice||0)* item.quantity
-      return(
-              <div key={index} className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-[13px] text-gray-900">{item.title}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">{item.description || ''}</p>
-                  
+              totalDiscount += (item.variation.discountedPrice || 0) * item.quantity
+              return (
+                <div key={index} className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-[13px] text-gray-900">{item.title}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">{item.description || ''}</p>
+
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[13px] font-medium">
+                      €{(((item.variation?.price || 0) + (item.addons?.reduce((sum, addon) =>
+                        sum + addon.options.reduce((optSum, opt) => optSum + (opt.price || 0), 0), 0) || 0)) * item.quantity).toFixed(2)}
+                    </span>
+                    {item.variation?.discountedPrice > 0 && (
+                      <p className="text-xs text-green-600">
+                        Saved €{((item.variation.discountedPrice) * item.quantity).toFixed(2)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-[13px] font-medium">
-                    €{(((item.variation?.price || 0) + (item.addons?.reduce((sum, addon) => 
-                      sum + addon.options.reduce((optSum, opt) => optSum + (opt.price || 0), 0), 0) || 0)) * item.quantity).toFixed(2)}
-                  </span>
-                  {item.variation?.discountedPrice > 0 && (
-                    <p className="text-xs text-green-600">
-                      Saved €{((item.variation.discountedPrice) * item.quantity).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )})}
+              )
+            })}
           </div>
 
           <div className="mt-6 border-t border-gray-200 pt-4">
@@ -304,7 +356,7 @@ const OrderStatus: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Item total</span>
-                      <span>€{(order.orderAmount-order.taxationAmount).toFixed(2)}</span>
+                      <span>€{(order.orderAmount - order.taxationAmount).toFixed(2)}</span>
                     </div>
                     {/* <div className="flex justify-between text-[13px] text-gray-900">
                       <span>Restaurant tip</span>
@@ -331,7 +383,7 @@ const OrderStatus: React.FC = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-            
+
             {!showBillingDetails && (
               <div className="mt-3 flex justify-between items-end">
                 <span className="text-[13px] text-gray-900">Total</span>
@@ -354,17 +406,17 @@ const OrderStatus: React.FC = () => {
           </p>
         </div>
 
-       
+
         {/* Holding Time Info Modal */}
         {showHoldingTimeInfo && (
           <>
-            <div 
+            <div
               className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
               onClick={() => setShowHoldingTimeInfo(false)}
             />
             <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 animate-slide-up">
               <div className="flex justify-end p-4">
-                <button 
+                <button
                   onClick={() => setShowHoldingTimeInfo(false)}
                   className="text-gray-400"
                 >

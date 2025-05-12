@@ -44,7 +44,7 @@ const Checkout: React.FC = () => {
   const location = useLocation();
   const state = location.state as { restaurantId?: string } || {};
   const restaurantId = state.restaurantId;
-  const {temporaryLocation}=UseLocationDetails()
+  const { temporaryLocation } = UseLocationDetails()
 
   // Fetch restaurant data
   const { data: restaurantData, loading: restaurantLoading } = useQuery(SINGLE_RESTAURANT_QUERY, {
@@ -336,7 +336,7 @@ const Checkout: React.FC = () => {
           {/* Map Placeholder */}
           {/* <div className="h-[150px] bg-[#F3F4F6] rounded-lg mb-4" /> */}
 
-         {temporaryLocation?.latitude && restaurantData?.restaurant?.location?.coordinates && <RestaurantDetailMap
+          {temporaryLocation?.latitude && restaurantData?.restaurant?.location?.coordinates && <RestaurantDetailMap
             userLocation={{
               lat: Number(temporaryLocation?.latitude),
               lng: Number(temporaryLocation?.longitude)
@@ -362,7 +362,7 @@ const Checkout: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={()=>onClickViewDirections(temporaryLocation,restaurantData?.restaurant?.location)}
+              onClick={() => onClickViewDirections(temporaryLocation, restaurantData?.restaurant?.location)}
               className="mx-auto ms-10 px-4 inline-flex items-center justify-center gap-2 py-2 border border-[#CCAD11] text-[#CCAD11] rounded-lg text-[13px] font-medium mt-2"
             >
               <Navigation size={16} />
@@ -691,7 +691,11 @@ const Checkout: React.FC = () => {
       {/* Coupon Section */}
       <div className="bg-white mt-4 p-4 m-3 rounded-lg">
         <button
-          onClick={() => navigate('/coupons')}
+          onClick={() => navigate('/coupons', {
+            state: {
+              restaurantId: restaurantId
+            }
+          })}
           className="w-full flex items-center justify-between py-2"
         >
           <div className="flex items-center gap-3">
@@ -728,12 +732,12 @@ const Checkout: React.FC = () => {
             </div>
           )}
 
-         
+
 
           <div className="pt-3 mt-3 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <span className="font-medium">{t('checkout.toPay')}</span>
-              <span className="text-lg font-semibold">€{(calculateTotal() ).toFixed(2)}</span>
+              <span className="text-lg font-semibold">€{(calculateTotal()).toFixed(2)}</span>
             </div>
           </div>
         </div>

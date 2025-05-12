@@ -1,65 +1,77 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { GET_CAMPAIGNS_BY_RESTAURANT } from '../graphql/queries';
+import { useQuery } from '@apollo/client';
+import { useBootstrap } from '../context/BootstrapContext';
+
 
 const coupons = [
-  {
-    code: 'WEEKEND20',
-    description: 'Enjoy 20% off on orders over ₹500',
-    image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg',
-    isActive: true
-  },
-  {
-    code: 'WEEKEND20',
-    description: 'Enjoy 20% off on orders over ₹500',
-    image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg',
-    isActive: true
-  },
-  {
-    code: 'WEEKEND20',
-    description: 'Enjoy 20% off on orders over ₹500',
-    image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg',
-    isActive: true
-  },
-  {
-    code: 'WEEKEND20',
-    description: 'Enjoy 20% off on orders over ₹500',
-    image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg',
-    isActive: true
-  }
+
 ];
 
 const Coupons: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [campaignsData, setCampaignsData] = useState([]);
+  const { bootstrapData } = useBootstrap()
+  const state = useLocation()
+
+  console.log(state, "sss")
+  const { loading } = useQuery(GET_CAMPAIGNS_BY_RESTAURANT, {
+    variables: {
+      restaurantId: state?.state?.restaurantId,
+    },
+    fetchPolicy: "network-only",
+    // nextFetchPolicy: 'cache-only',
+    skip: !state?.state?.restaurantId,
+    onCompleted: (data) => {
+      if (data?.getCampaignsByRestaurant, "campaigns") {
+        setCampaignsData(data?.getCampaignsByRestaurant);
+      }
+    }
+  });
+
+  const restaurantCampaigns = (campaignsData) => {
+    return campaignsData?.map(campaign => {
+      const promotion = bootstrapData?.promotions?.find(
+        (p: any) => p._id === campaign.promotion
+      );
+      if (promotion) {
+        return {
+          ...campaign,
+          displayName: promotion.displayName,
+          baseCode: promotion.baseCode,
+          promotionType: promotion.promotionType,
+          minPercentageDiscount: promotion.minPercentageDiscount,
+          maxPercentageDiscount: promotion.maxPercentageDiscount,
+          minFlatDiscount: promotion.minFlatDiscount,
+          maxFlatDiscount: promotion.maxFlatDiscount
+        };
+      }
+
+      return campaign;
+    });
+  };
+
+  const campaignsWithDetails = restaurantCampaigns(campaignsData);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center">
-        <button 
-          onClick={() => navigate(-1)}
-          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronLeft size={20} className="text-gray-600" />
-        </button>
-        <h1 className="text-[15px] font-semibold text-gray-900 ml-2">
-          Coupons
-        </h1>
-      </div>
 
       {/* Coupons List */}
       <div className="p-4 space-y-4">
-        {coupons.map((coupon, index) => (
-          <div 
+        {campaignsWithDetails.map((coupon, index) => (
+          <div
             key={index}
             className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100"
           >
             <div className="flex p-4">
               <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                <img 
-                  src={coupon.image} 
+                <img
+                  src={coupon.image}
                   alt={coupon.code}
                   className="w-full h-full object-cover"
                 />

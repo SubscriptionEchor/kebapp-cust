@@ -744,7 +744,7 @@ export const DELETE_ADDRESS = gql`mutation DeleteAddress($deleteAddressId:ID!){
 }`
 
 
-export const getCampaignsByRestaurant = `query GetCampaignsByRestaurant($restaurantId: ID!) {
+export const GET_CAMPAIGNS_BY_RESTAURANT = gql`query GetCampaignsByRestaurant($restaurantId: ID!) {
   getCampaignsByRestaurant(restaurantId: $restaurantId) {
     _id
     restaurant
@@ -764,3 +764,10 @@ export const getCampaignsByRestaurant = `query GetCampaignsByRestaurant($restaur
     isActive
   }
 }`
+
+
+export const REVIEW_ORDER = gql`mutation ReviewOrder($reviewInput: ReviewInput!) {
+  reviewOrder(reviewInput: $reviewInput) {
+    _id
+  }
+}`;

@@ -204,20 +204,23 @@ const Home: React.FC = () => {
         /> */}
 
         <HomeMap
+          radius={selectedRadius}
           userLocation={{
             lat: selectedLocation.latitude,
             lng: selectedLocation.longitude
           }}
         />
         <button
+          style={{ zIndex: 10000 }}
           onClick={() => setShowFilters(true)}
-          className="fixed top-10 right-4 bg-white text-black p-4 rounded-full shadow-lg hover:bg-gray-50 transition-all duration-200 z-50"
+          className="fixed top-10 right-4 bg-white text-black p-4 rounded-full shadow-lg hover:bg-gray-50 transition-all duration-200 "
         >
           <SlidersHorizontal size={24} />
         </button>
         <button
+          style={{ zIndex: 10000 }}
           onClick={() => setShowMap(false)}
-          className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all bottom-20 duration-200 z-50"
+          className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all bottom-20 duration-200 "
         >
           <HomeIcon size={24} />
         </button>
