@@ -4,6 +4,7 @@ import { useFavorite } from '../../hooks/useFavorite';
 import { useRestaurantNotifications } from '../../hooks/useRestaurantNotifications';
 import { useBootstrap } from '../../context/BootstrapContext';
 import { useNavigate } from 'react-router-dom';
+import { AppRoutes } from '../../routeenums';
 
 interface RestaurantProps {
   id: string;
@@ -61,11 +62,12 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
     if ((e.target as HTMLElement).closest('button')) {
       return;
     }
-    navigate(`/restaurant`, {
+    navigate(AppRoutes.RESTAURANT, {
       state: {
         id: id
       }
     });
+    localStorage.setItem("restaurant", id)
   };
   return (
     <div onClick={handleCardClick} className={`w-[180px] flex-shrink-0 shadow-sm bg-white rounded-xl overflow-hidden card-hover animate-scale-in`}>

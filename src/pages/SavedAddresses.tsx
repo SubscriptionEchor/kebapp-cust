@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useEffect, useRef } from 'react';
 import { DELETE_ADDRESS } from "../graphql/queries"
 import { useMutation } from '@apollo/client';
+import { AppRoutes } from '../routeenums';
 
 const SavedAddresses: React.FC = () => {
   const navigate = useNavigate();
@@ -108,7 +109,7 @@ const SavedAddresses: React.FC = () => {
 
         </div>
         <button
-          onClick={() => navigate('/location/search')}
+          onClick={() => navigate(AppRoutes.LOCATION_SEARCH)}
           className="flex items-center gap-1 text-[#00B37A]"
         >
           <Plus size={20} />
@@ -188,7 +189,7 @@ const SavedAddresses: React.FC = () => {
               <MapPin size={24} className="text-gray-400" />
             </div>
             <button
-              onClick={() => navigate('/location/search')}
+              onClick={() => navigate(AppRoutes.LOCATION_SEARCH)}
 
               className="flex text-white p-2 rounded-lg mb-3 w-fit items-center gap-1 bg-[#00B37A]"
             >

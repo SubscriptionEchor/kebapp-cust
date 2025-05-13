@@ -17,6 +17,7 @@ import OnboardingTwo from "../assets/jpeg/OnboardingTwo.png";
 import OnboardingThree from "../assets/jpeg/OnboardingThree.png";
 import '../css/splash.css'; // Import your CSS file
 import { useBootstrap } from '../context/BootstrapContext';
+import { AppRoutes } from '../routeenums';
 
 const Splash: React.FC = () => {
   const { t } = useTranslation(); // Initialize translation hook
@@ -75,9 +76,9 @@ const Splash: React.FC = () => {
       setShowDefaultLocationPopup(false);
 
       if (!isNewUser) {
-        navigate('/onboarding', { replace: true });
+        navigate(AppRoutes.ONBOARDING, { replace: true });
       } else {
-        navigate('/home', { replace: true });
+        navigate(AppRoutes.HOME, { replace: true });
       }
     })();
   }, [fallbackZoneDetails]);
@@ -87,9 +88,9 @@ const Splash: React.FC = () => {
       setFallbackZoneDetails(null);
       setShowDefaultLocationPopup(false);
       if (!isNewUser) {
-        navigate('/onboarding', { replace: true });
+        navigate(AppRoutes.ONBOARDING, { replace: true });
       } else {
-        navigate('/home', { replace: true });
+        navigate(AppRoutes.HOME, { replace: true });
       }
     }
   };
@@ -120,9 +121,9 @@ const Splash: React.FC = () => {
       });
 
       if (isNewUser) {
-        navigate('/onboarding', { replace: true });
+        navigate(AppRoutes.ONBOARDING, { replace: true });
       } else {
-        navigate('/home', { replace: true });
+        navigate(AppRoutes.HOME, { replace: true });
       }
     }
   };

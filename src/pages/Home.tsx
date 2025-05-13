@@ -28,7 +28,8 @@ const HOME_API_PARAMETERS = {
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate(); const { temporaryLocation } = UseLocationDetails();
+  const navigate = useNavigate();
+  const { temporaryLocation } = UseLocationDetails();
   const { bootstrapData, loading: bootstrapLoading } = useBootstrap();
   const { profile, loading: profileLoading } = useUser();
   const [showConsentPopup, setShowConsentPopup] = useState(false);
@@ -42,7 +43,7 @@ const Home: React.FC = () => {
 
 
   console.log(temporaryLocation, profile)
-  const selectedLocation = {
+  const selectedLocation = temporaryLocation || {
     latitude: 52.516267, // Default fallback coordinates
     longitude: 13.322455
   };

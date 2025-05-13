@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBootstrap } from '../context/BootstrapContext';
 import Layout from '../components/Layout';
 import TelegramBackButton from '../components/TelegramBackButton';
+import { AppRoutes } from '../routeenums';
 
 const Checkout: React.FC = () => {
   const { t } = useTranslation();
@@ -306,7 +307,11 @@ const Checkout: React.FC = () => {
             <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
             <p className="text-gray-500 mb-6">Add items to your cart to proceed with checkout</p>
             <button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate(AppRoutes.RESTAURANT, {
+                state: {
+                  id: restaurantId
+                }
+              })}
               className="px-6 py-3 bg-secondary text-black rounded-lg font-medium"
             >
               Browse Restaurants
@@ -612,7 +617,13 @@ const Checkout: React.FC = () => {
             </button>
             <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-lg text-[13px] font-medium">
               <span className="text-xl">+</span>
-              <span onClick={() => navigate(`/restaurant/${restaurantId}`)}>Add more items</span>
+              <span
+                onClick={() => navigate(AppRoutes.RESTAURANT, {
+                  state: {
+                    id: restaurantId
+                  }
+                })}
+              >Add more items</span>
             </button>
           </div>
 
@@ -705,7 +716,7 @@ const Checkout: React.FC = () => {
         {/* Coupon Section */}
         <div className="bg-white mt-4 p-4 m-3 rounded-lg">
           <button
-            onClick={() => navigate('/coupons', {
+            onClick={() => navigate(AppRoutes.COUPONS, {
               state: {
                 restaurantId: restaurantId
               }

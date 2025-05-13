@@ -2,6 +2,7 @@ import { useMutation } from '@apollo/client';
 import { PLACE_ORDER } from '../graphql/queries';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { AppRoutes } from '../routeenums';
 
 interface OrderInput {
   food: string;
@@ -40,12 +41,13 @@ export const usePlaceOrder = () => {
     onCompleted: (data) => {
       if (data?.placeOrder) {
         toast.success('Order placed successfully!');
-        navigate(`/order`, {
+        navigate(AppRoutes.ORDER, {
           replace: true,
           state: {
             id: data.placeOrder._id
           }
         });
+        localStorage.setItem("order", data.placeOrder._id)
       }
     },
     onError: (error) => {

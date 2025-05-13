@@ -3,6 +3,7 @@ import { useCart } from '../../context/CartContext';
 import { ChevronLeft, ChevronRight, Store, ChevronUp, ChevronDown, X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { AppRoutes } from '../../routeenums';
 
 interface RestaurantCart {
   restaurantId: string;
@@ -172,7 +173,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
                   <p className="text-xs text-gray-500 mt-1">{restaurantCarts[0].itemCount} item(s)</p>
                 </div>
                 <div className="text-right flex items-center">
-                  <button onClick={() => navigate('/checkout', { state: { restaurantId: restaurantCarts[0].restaurantId } })} className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
+                  <button onClick={() => navigate(AppRoutes.CHECKOUT, { state: { restaurantId: restaurantCarts[0].restaurantId } })} className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -213,7 +214,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
                 </div>
                 <div className="text-right">
                   <button
-                    onClick={() => navigate('/checkout', { state: { restaurantId: item.restaurantId } })}
+                    onClick={() => navigate(AppRoutes.CHECKOUT, { state: { restaurantId: item.restaurantId } })}
                     className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
                   <button
                     onClick={(e) => {

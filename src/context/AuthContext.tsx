@@ -3,6 +3,7 @@ import { useMutation } from '@apollo/client';
 import { LOGIN_VIA_TELEGRAM } from '../graphql/queries';
 import { useTelegram } from './TelegramContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { AppRoutes } from '../routeenums';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -131,13 +132,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (protectedRoutes.includes(location.pathname)) {
 
       if (!isAuthenticated && !isLoading) {
-        navigate('/splash', { replace: true });
+        navigate(AppRoutes.SPLASH, { replace: true });
         return
       }
       let isNewUserStored = localStorage.getItem('isNewUser') === 'true';
 
       if (isAuthenticated && location.pathname === '/onboarding' && !isNewUserStored) {
-        navigate('/home', { replace: true });
+        navigate(AppRoutes.HOME, { replace: true });
         return;
       }
     }

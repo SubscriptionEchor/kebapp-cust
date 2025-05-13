@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import TelegramBackButton from '../components/TelegramBackButton';
+import { AppRoutes } from '../routeenums';
 
 const Review: React.FC = ({ restaurant }) => {
   const { t } = useTranslation();
@@ -104,7 +105,7 @@ const Review: React.FC = ({ restaurant }) => {
               </div>
               <div className='flex w-full justify-between'>
                 <button
-                  onClick={() => navigate('/home', { replace: true })}
+                  onClick={() => navigate(AppRoutes.HOME, { replace: true })}
                   className=" py-3.5 border w-[45%] text-[#00B37A] border-[#00B37A]  rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors"
                 >
                   Back to Home
@@ -152,7 +153,7 @@ const Review: React.FC = ({ restaurant }) => {
               </p>
 
               <button
-                onClick={() => navigate('/home', { replace: true })}
+                onClick={() => navigate(AppRoutes.HOME, { replace: true })}
                 className="w-full py-3.5 bg-[#00B37A] text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors"
               >
                 Back to Home

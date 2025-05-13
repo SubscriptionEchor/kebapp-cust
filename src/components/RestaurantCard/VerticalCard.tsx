@@ -9,6 +9,7 @@ import { useBootstrap } from '../../context/BootstrapContext';
 import moment from 'moment';
 import Lottie from 'lottie-react';
 import fireAnimation from './fire-animation.json';
+import { AppRoutes } from '../../routeenums';
 
 interface RestaurantProps {
   id: string;
@@ -170,11 +171,12 @@ const VerticalCard: React.FC<RestaurantProps> = ({
     if ((e.target as HTMLElement).closest('button')) {
       return;
     }
-    navigate(`/restaurant`, {
+    navigate(AppRoutes.RESTAURANT, {
       state: {
         id: id
       }
     });
+    localStorage.setItem("restaurant", id)
   };
 
   const showPromotion = campaigns?.find((camp) => camp?.promotion);

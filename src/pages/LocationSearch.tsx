@@ -12,6 +12,7 @@ import { ApolloClient, NormalizedCacheObject, useApolloClient, useLazyQuery } fr
 import { CHECK_ZONE_RESTRICTIONS } from '../graphql/queries';
 import { getLocationFromCoordinates } from '../utils/locationUtils';
 import { handleNavigationWithZoneCheck } from '../utils/navigation';
+import { AppRoutes } from '../routeenums';
 
 const LocationSearch: React.FC = () => {
   const navigate = useNavigate();
@@ -85,9 +86,9 @@ const LocationSearch: React.FC = () => {
             area: locationDetails.area,
             address: locationDetails.address
           })
-          return navigate('/home', { replace: true });
+          return navigate(AppRoutes.HOME, { replace: true });
         }
-        navigate('/saveAddress', {
+        navigate(AppRoutes.SAVE_ADDRESS, {
           state: {
             location: {
               latitude: coordinates[1],
@@ -114,7 +115,7 @@ const LocationSearch: React.FC = () => {
       toast.error(t('toasts.locationerror'));
     }
     if (data?.checkZoneRestrictions?.selectedZoneDetails) {
-      navigate('/saveAddress', {
+      navigate(AppRoutes.SAVE_ADDRESS, {
         state: {
           location: {
             latitude: location?.coordinates[1],
@@ -150,9 +151,9 @@ const LocationSearch: React.FC = () => {
             area: locationDetails.area,
             address: locationDetails.address
           })
-          return navigate('/home', { replace: true });
+          return navigate(AppRoutes.HOME, { replace: true });
         }
-        navigate('/saveAddress', {
+        navigate(AppRoutes.SAVE_ADDRESS, {
           state: {
             location: {
               latitude: coordinates[1],

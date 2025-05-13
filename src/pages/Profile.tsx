@@ -90,7 +90,7 @@ const Profile: React.FC = () => {
 
           <div className="bg-white">
             <button
-              onClick={() => navigate('/profile/details')}
+              onClick={() => navigate(AppRoutes.PROFILE_DETAILS)}
               className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
             >
               <span className="text-[15px] text-gray-900">Your Details</span>
@@ -98,7 +98,7 @@ const Profile: React.FC = () => {
             </button>
 
             <button
-              onClick={() => navigate('/profile/addresses')}
+              onClick={() => navigate(AppRoutes.PROFILE_ADDRESSES)}
               className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
             >
               <span className="text-[15px] text-gray-900">Saved Addresses</span>
@@ -106,7 +106,7 @@ const Profile: React.FC = () => {
             </button>
 
             <button
-              onClick={() => navigate('/profile/support')}
+              onClick={() => navigate(AppRoutes.PROFILE_SUPPORT)}
               className="w-full px-4 py-3 flex items-center justify-between border-b border-gray-100"
             >
               <span className="text-[15px] text-gray-900">Support Center</span>

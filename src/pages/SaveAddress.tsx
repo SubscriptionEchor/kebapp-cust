@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { useUser } from '../context/UserContext';
 import { getLocationFromCoordinates } from '../utils/locationUtils';
 import TelegramBackButton from '../components/TelegramBackButton';
+import { AppRoutes } from '../routeenums';
 
 const SaveAddress: React.FC = () => {
     const { t } = useTranslation();
@@ -146,7 +147,7 @@ const SaveAddress: React.FC = () => {
             address: currentUserLocation?.address,
             area: currentUserLocation?.area,
         })
-        return navigate('/home', { replace: true });
+        return navigate(AppRoutes.HOME, { replace: true });
     }
 
     const onLocationChanged = async (location: any) => {
@@ -320,7 +321,7 @@ const SaveAddress: React.FC = () => {
                 <div className="bottom-0 left-0 right-0 bg-white p-4 shadow-top">
                     <div className="my-4">
                         {!userLocation?.state?.location?.isEdit && <div className='flex items-center justify-end'>
-                            <button onClick={() => navigate('/location/search')} className='text-gray-900 p-2 rounded bg-gray-200'>{t('fetchLocation.change')}</button>
+                            <button onClick={() => navigate(AppRoutes.LOCATION_SEARCH)} className='text-gray-900 p-2 rounded bg-gray-200'>{t('fetchLocation.change')}</button>
                         </div>}
                         <div className=''>
                             <div className="flex items-start mb-2">

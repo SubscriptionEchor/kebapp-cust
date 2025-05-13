@@ -699,7 +699,7 @@ const HomeMapController: React.FC<{
     // Initialize map
     useEffect(() => {
       console.log("trigger", radius, "ss")
-      fitMapToBounds();
+      // fitMapToBounds();
       const center = map.getCenter();
       const effectiveRadius = calculateEffectiveRadius();
       setCurrentCenter(center);
@@ -922,6 +922,30 @@ interface HomeMapProps {
   onMapMove?: (center: L.LatLng, radius: number) => void;
 }
 
+const FitMapToBounds = ({ userLocation, radius }) => {
+  console.log("sysysysy")
+  const map = useMap()
+  function fitBounds() {
+    const radiusInMeters = radius * 1000;
+    const earthCircumference = 40075016.686;
+    const latChange = (radiusInMeters / earthCircumference) * 360;
+    const lngChange = latChange / Math.cos((Math.PI / 180) * userLocation.lat);
+
+    const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
+    const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
+    const bounds = L.latLngBounds(southWest, northEast);
+    console.log(bounds, "dd")
+
+    map.fitBounds(bounds, {
+      padding: [50, 50] // Increased padding to ensure the circle fits within the screen
+    });
+  }
+  useEffect(() => {
+    fitBounds()
+  }, [userLocation, radius])
+  return null
+};
+
 export const HomeMap: React.FC<HomeMapProps> = ({
   height = '100%',
   userLocation,
@@ -958,7 +982,7 @@ export const HomeMap: React.FC<HomeMapProps> = ({
       >
         <TileLayer url={config.api.maps.tiles} />
         <TileErrorHandler />
-
+        <FitMapToBounds userLocation={userLocation} radius={radius} />
         <HomeMapController
           userLocation={userLocation}
           radius={radius}
@@ -1194,7 +1218,7 @@ const RestaurantDetailController: React.FC<{
           [userLocation.lat, userLocation.lng],
           [restaurantLocation.lat, restaurantLocation.lng]
         ]);
-        map.fitBounds(bounds, { padding: [50, 50] });
+        // map.fitBounds(bounds, { padding: [50, 50] });
 
         // Store elements for cleanup
         setRouteElements({ polyline, userMarker, restaurantMarker });

@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { useBootstrap } from '../context/BootstrapContext';
 import Layout from '../components/Layout';
 import TelegramBackButton from '../components/TelegramBackButton';
+import { AppRoutes } from '../routeenums';
 
 
 const ORDER_STATUS = {
@@ -100,7 +101,7 @@ const OrderStatus: React.FC = () => {
         toast.error("sorry for the inconvinience. Your order has been cancelled")
         setTimeout(() => {
           toast.error("Navigating back to home page")
-          navigate('/home', { replace: true })
+          navigate(AppRoutes.HOME, { replace: true })
         }, 5000)
       }
     }
@@ -128,7 +129,7 @@ const OrderStatus: React.FC = () => {
           <div className="text-center">
             <p className="text-red-500 mb-4">Failed to load order details</p>
             <button
-              onClick={() => navigate('/orders')}
+              onClick={() => navigate(AppRoutes.ORDERS)}
               className="px-4 py-2 bg-secondary text-black rounded-lg"
             >
               Go Back

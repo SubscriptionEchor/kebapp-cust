@@ -10,6 +10,7 @@ import OnboardingTwo from "../assets/jpeg/OnboardingTwo.png";
 import OnboardingThree from "../assets/jpeg/OnboardingThree.png";
 import { useBootstrap } from '../context/BootstrapContext';
 import { useUser } from '../context/UserContext';
+import { AppRoutes } from '../routeenums';
 
 const OnboardingStep: React.FC<{
   setIsCompliance: () => void;
@@ -119,12 +120,12 @@ const Onboarding: React.FC = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      navigate('/home', { replace: true });
+      navigate(AppRoutes.HOME, { replace: true });
     }
   };
 
   const handleSkip = () => {
-    navigate('/home', { replace: true });
+    navigate(AppRoutes.HOME, { replace: true });
   };
 
   return (
