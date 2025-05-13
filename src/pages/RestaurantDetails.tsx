@@ -41,12 +41,14 @@ const RestaurantDetails: React.FC = () => {
     return () => clearInterval(interval);
   }, [promotions?.length]);
 
+  let restId = localStorage.getItem("restaurant");
+
   const { loading, error, data } = useQuery(SINGLE_RESTAURANT_QUERY, {
     variables: {
-      id: state?.id,
-      restaurantId: state?.id
+      id: restId,
+      restaurantId: restId
     },
-    skip: !state?.id
+    skip: !restId
   });
   console.log(data)
 
@@ -165,7 +167,7 @@ const RestaurantDetails: React.FC = () => {
   // };
   console.log(promotions)
   return (
-    <>
+    <div className='bg-white'>
       <TelegramBackButton />
       <RestaurantHeader
         id={data.restaurant._id}
@@ -208,7 +210,7 @@ const RestaurantDetails: React.FC = () => {
           />
           {/* Promotions Carousel */}
           {promotions?.length > 0 && (
-            <div className="px-4 py-3 relative">
+            <div className="px-4 py-3  relative">
               <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#FFF3D0] to-[#FFE4B5] shadow-sm">
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
@@ -366,7 +368,7 @@ const RestaurantDetails: React.FC = () => {
           />}
         </>
       }
-    </ >
+    </div >
 
   );
 };

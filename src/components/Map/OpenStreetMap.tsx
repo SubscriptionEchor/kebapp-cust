@@ -1218,7 +1218,7 @@ const RestaurantDetailController: React.FC<{
           [userLocation.lat, userLocation.lng],
           [restaurantLocation.lat, restaurantLocation.lng]
         ]);
-        // map.fitBounds(bounds, { padding: [50, 50] });
+        map.fitBounds(bounds, { padding: [50, 50] });
 
         // Store elements for cleanup
         setRouteElements({ polyline, userMarker, restaurantMarker });

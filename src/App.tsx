@@ -26,6 +26,7 @@ import LocationSearch from './pages/LocationSearch';
 import SaveAddress from './pages/SaveAddress';
 import { AppRoutes } from './routeenums';
 import TermsAndCondition from './pages/termsandcondition';
+import ProtectedRoute from './protectedRoute';
 
 
 
@@ -37,28 +38,30 @@ function App() {
           <BootstrapProvider>
             <LocationProvider>
               <UserProvider>
-                <Routes>
-                  {/* Default route redirects to splash */}
-                  <Route path="/" element={<Navigate to={AppRoutes.SPLASH} replace />} />
-                  <Route path={AppRoutes.SPLASH} element={<Splash />} />
-                  <Route path={AppRoutes.ONBOARDING} element={<Onboarding />} />
-                  <Route path={AppRoutes.HOME} element={<Home />} />
-                  <Route path={AppRoutes.PROFILE} element={<Profile />} />
-                  <Route path={AppRoutes.FOLLOWING} element={<Following />} />
-                  <Route path={AppRoutes.ORDERS} element={<Orders />} />
-                  <Route path={AppRoutes.PROFILE_ADDRESSES} element={<SavedAddresses />} />
-                  <Route path={AppRoutes.PROFILE_DETAILS} element={<UserDetails />} />
-                  <Route path={AppRoutes.PROFILE_SUPPORT} element={<Support />} />
-                  <Route path={AppRoutes.ORDER} element={<OrderStatus />} />
-                  <Route path={AppRoutes.RESTAURANT} element={<RestaurantDetails />} />
-                  <Route path={AppRoutes.CHECKOUT} element={<Checkout />} />
-                  <Route path={AppRoutes.COUPONS} element={<Coupons />} />
-                  <Route path={AppRoutes.SEARCH} element={<Search />} />
-                  <Route path={AppRoutes.LOCATION_SEARCH} element={<LocationSearch />} />
-                  <Route path={AppRoutes.REVIEW} element={<Review />} />
-                  <Route path={AppRoutes.SAVE_ADDRESS} element={<SaveAddress />} />
-                  <Route path={AppRoutes.TERMS} element={<TermsAndCondition />} />
-                </Routes>
+                <ProtectedRoute>
+                  <Routes>
+                    {/* Default route redirects to splash */}
+                    <Route path="/" element={<Navigate to={AppRoutes.SPLASH} replace />} />
+                    <Route path={AppRoutes.SPLASH} element={<Splash />} />
+                    <Route path={AppRoutes.ONBOARDING} element={<Onboarding />} />
+                    <Route path={AppRoutes.HOME} element={<Home />} />
+                    <Route path={AppRoutes.PROFILE} element={<Profile />} />
+                    <Route path={AppRoutes.FOLLOWING} element={<Following />} />
+                    <Route path={AppRoutes.ORDERS} element={<Orders />} />
+                    <Route path={AppRoutes.PROFILE_ADDRESSES} element={<SavedAddresses />} />
+                    <Route path={AppRoutes.PROFILE_DETAILS} element={<UserDetails />} />
+                    <Route path={AppRoutes.PROFILE_SUPPORT} element={<Support />} />
+                    <Route path={AppRoutes.ORDER} element={<OrderStatus />} />
+                    <Route path={AppRoutes.RESTAURANT} element={<RestaurantDetails />} />
+                    <Route path={AppRoutes.CHECKOUT} element={<Checkout />} />
+                    <Route path={AppRoutes.COUPONS} element={<Coupons />} />
+                    <Route path={AppRoutes.SEARCH} element={<Search />} />
+                    <Route path={AppRoutes.LOCATION_SEARCH} element={<LocationSearch />} />
+                    <Route path={AppRoutes.REVIEW} element={<Review />} />
+                    <Route path={AppRoutes.SAVE_ADDRESS} element={<SaveAddress />} />
+                    <Route path={AppRoutes.TERMS} element={<TermsAndCondition />} />
+                  </Routes>
+                </ProtectedRoute>
               </UserProvider>
             </LocationProvider>
           </BootstrapProvider>

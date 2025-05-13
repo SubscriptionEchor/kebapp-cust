@@ -53,9 +53,9 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   }));
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 bg-white">
       <div className="px-4 py-3 sticky top-0 bg-white z-40">
-        <button 
+        <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full flex items-center justify-between"
         >
@@ -73,8 +73,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
         transition-all duration-300
       `}>
         <div className={`
-          ${layout === 'horizontal' 
-            ? 'flex gap-3 pb-4 px-4 min-w-max' 
+          ${layout === 'horizontal'
+            ? 'flex gap-3 pb-4 px-4 min-w-max'
             : 'space-y-2'
           }
         `}>
@@ -90,9 +90,9 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
               <VerticalMenuCard
                 key={item._id}
                 item={item}
-                fallbackImage={fallbackImage} 
+                fallbackImage={fallbackImage}
                 optionSetList={optionSetList}
-                
+
               />
             )
           ))}
