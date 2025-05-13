@@ -7,7 +7,7 @@ import LoadingAnimation from '../components/LoadingAnimation';
 import Logo from '../components/Logo';
 import { getLocationFromCoordinates } from '../utils/locationUtils';
 import { UseLocationDetails } from '../context/LocationContext';
-import KebappNameLogo from "../assets/svg/KebappNameLogo.svg";
+import KebappNameLogo from "../assets/svg/KebaapNameLogo.svg";
 import KebappLogo from "../assets/svg/KebappLogo.svg";
 import { useTranslation } from 'react-i18next'; // Import useTranslation
 import Spinner from '../components/Spinner/Spinner';

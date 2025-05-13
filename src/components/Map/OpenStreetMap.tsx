@@ -458,7 +458,7 @@
 
 // export default OpenStreetMap;
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Circle, useMap, Popup, useMapEvents, Marker } from 'react-leaflet';
 import { useQuery } from '@apollo/client';
 import L from 'leaflet';
@@ -469,6 +469,11 @@ import { config } from '../../config';
 import MarkerIcon from '../../assets/PNG/marker-icon-2x-red.png';
 import MarkerShadow from '../../assets/PNG/marker-shadow.png';
 import MarketSvg from '../../assets/svg/KebappLogo.svg';
+import Kebab from "../../assets/svg/kebabBlack.svg";
+import Fire from "../../assets/gif/fire.gif";
+import Hat from "../../assets/gif/hatRed.gif";
+import Star from "../../assets/gif/starRed.gif";
+import "./style.css"
 
 
 
@@ -525,9 +530,11 @@ const HomeMapController: React.FC<{
   radius: number;
   onMapMove: (center: L.LatLng, radius: number) => void;
 }> = ({
+  maxCurrentRadius,
   userLocation,
   radius,
-  onMapMove
+  onMapMove,
+  handleRestaurant = { handleRestaurant }
 }) => {
     const map = useMap();
     const markersRef = useRef<{
@@ -545,6 +552,8 @@ const HomeMapController: React.FC<{
     const [isInitialized, setIsInitialized] = useState(false);
     const [prevRadiusAbove3km, setPrevRadiusAbove3km] = useState(currentRadius > 3);
     const [isLoading, setIsLoading] = useState(false);
+
+    console.log(currentRadius, radius, "setCurrentRadius")
 
     // Use refs for state that doesn't need to trigger re-renders
     const lastEventRef = useRef<{ time: number, type: string }>({ time: 0, type: '' });
@@ -597,7 +606,7 @@ const HomeMapController: React.FC<{
         const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
         const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
         const bounds = L.latLngBounds(southWest, northEast);
-        console.log(bounds, "dd")
+
 
         map.fitBounds(bounds, {
           padding: [50, 50] // Increased padding to ensure the circle fits within the screen
@@ -606,30 +615,57 @@ const HomeMapController: React.FC<{
     };
 
     const calculateEffectiveRadius = () => {
-      const bounds = map.getBounds();
-      const southWest = bounds.getSouthWest();
-      const northEast = bounds.getNorthEast();
-      const distance = southWest.distanceTo(northEast) / 1000;
-      const effectiveRadius = distance / 2;
+      if (!map) return 50;
+      try {
+        const center = map.getCenter();
+        const size = map.getSize();
+        const eastPoint = map.containerPointToLatLng([size.x, size.y / 2]);
+        const radiusInMeters = center.distanceTo(eastPoint);
+        const radiusInKm = radiusInMeters / 1000;
 
-      let closestThreshold = RADIUS_THRESHOLDS[0];
-      let minDiff = Math.abs(effectiveRadius - closestThreshold);
-
-      for (const threshold of RADIUS_THRESHOLDS) {
-        const diff = Math.abs(effectiveRadius - threshold);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestThreshold = threshold;
+        if (radiusInKm > maxCurrentRadius) {
+          return maxCurrentRadius
         }
+        if (radiusInKm > 50) {
+          return 50
+        }
+        if (radiusInKm < 2) {
+          return 2
+        }
+        return Math.max(Math.round(radiusInKm * 10) / 10, 0.5);
+      } catch (error) {
+        console.error("Error calculating radius:", error);
+        return 50;
       }
+      // if (!map || !map.getBounds) {
+      //   console.error("Map or map bounds are not available.");
+      //   return RADIUS_THRESHOLDS[0]; // Default to the smallest threshold
+      // }
 
-      if (effectiveRadius < RADIUS_THRESHOLDS[0] && effectiveRadius > 3) {
-        return RADIUS_THRESHOLDS[0];
-      }
-      if (effectiveRadius <= 3) {
-        return effectiveRadius;
-      }
-      return closestThreshold;
+      // const bounds = map.getBounds();
+      // const southWest = bounds.getSouthWest();
+      // const northEast = bounds.getNorthEast();
+      // const distance = southWest.distanceTo(northEast) / 1000;
+      // const effectiveRadius = distance / 2;
+      // console.log(effectiveRadius, "eff")
+      // let closestThreshold = RADIUS_THRESHOLDS[0];
+      // let minDiff = Math.abs(effectiveRadius - closestThreshold);
+
+      // for (const threshold of RADIUS_THRESHOLDS) {
+      //   const diff = Math.abs(effectiveRadius - threshold);
+      //   if (diff < minDiff) {
+      //     minDiff = diff;
+      //     closestThreshold = threshold;
+      //   }
+      // }
+
+      // if (effectiveRadius < RADIUS_THRESHOLDS[0] && effectiveRadius > 3) {
+      //   return RADIUS_THRESHOLDS[0];
+      // }
+      // if (effectiveRadius <= 3) {
+      //   return effectiveRadius;
+      // }
+      // return closestThreshold;
     };
 
     // Reliable cleanup function that removes markers directly from the map
@@ -698,13 +734,12 @@ const HomeMapController: React.FC<{
 
     // Initialize map
     useEffect(() => {
-      console.log("trigger", radius, "ss")
       // fitMapToBounds();
       const center = map.getCenter();
       const effectiveRadius = calculateEffectiveRadius();
       setCurrentCenter(center);
       setIsInitialized(true);
-      onMapMove(center, effectiveRadius);
+      // onMapMove(center, effectiveRadius);
       setupUserMarker();
 
       if (map.getZoom() > MAX_ZOOM_LEVEL) {
@@ -724,6 +759,7 @@ const HomeMapController: React.FC<{
     }, [map, userLocation, radius, setupUserMarker, cleanupAllMarkers]);
 
     // Handle radius changes from props
+    console.log(radius, currentRadius)
     useEffect(() => {
       if (radius !== currentRadius) {
         setCurrentRadius(radius);
@@ -736,15 +772,16 @@ const HomeMapController: React.FC<{
 
     // Consolidated map event handler with debouncing
     const handleMapEvent = useCallback((eventType: string) => {
+      console.log("mmvoviifif")
       // Throttle events to prevent duplicate triggers
-      const now = Date.now();
-      if (now - lastEventRef.current.time < 300 && lastEventRef.current.type !== eventType) {
-        // Skip this event if another event was triggered recently
-        return;
-      }
+      // const now = Date.now();
+      // if (now - lastEventRef.current.time < 300 && lastEventRef.current.type !== eventType) {
+      //   // Skip this event if another event was triggered recently
+      //   return;
+      // }
 
-      lastEventRef.current = { time: now, type: eventType };
-
+      // lastEventRef.current = { time: now, type: eventType };
+      console.log("sdj")
       // Clear markers immediately for responsive UI
       cleanupAllMarkers();
 
@@ -752,13 +789,13 @@ const HomeMapController: React.FC<{
       const effectiveRadius = calculateEffectiveRadius();
       setCurrentCenter(center);
       onMapMove(center, effectiveRadius);
-
+      console.log("sdj1")
       const shouldUpdateRadius = RADIUS_THRESHOLDS.some((threshold, index) => {
         const prevThreshold = index > 0 ? RADIUS_THRESHOLDS[index - 1] : 3;
         return (currentRadius >= prevThreshold && currentRadius < threshold) !==
           (effectiveRadius >= prevThreshold && effectiveRadius < threshold);
       });
-
+      console.log(effectiveRadius, "sss")
       if (shouldUpdateRadius || (currentRadius <= 3 && effectiveRadius > 3) || (currentRadius > 3 && effectiveRadius <= 3)) {
         setCurrentRadius(effectiveRadius);
       }
@@ -784,10 +821,40 @@ const HomeMapController: React.FC<{
         setPrevRadiusAbove3km(isAbove3km);
       }
     }, [currentRadius, prevRadiusAbove3km, currentCenter, cleanupAllMarkers, debouncedFetch]);
-
+    const createCustomIcon = (mapType, user, distance, isAvailable, onboarded, gif, count, __typename) => {
+      // console.log(kebab)
+      if (__typename !== "RestaurantCluster") {
+        return L.divIcon({
+          html: `
+             <div class="restaurant" style="opacity: ${isAvailable ? 1 : 0.5}">
+               <div class="${onboarded ? "restaurant-indicator" : "restaurant-indicator-dull"}">
+                <img src="${Kebab}" style="height:20px" alt="cluster"/>
+              </div>
+               <div class="filter-icon-style" style="display: ${mapType === "HOME" && gif ? "flex" : "none"}">
+                <img src="${gif}" style="height:20px" alt="cluster"/>
+              </div>
+            </div>
+          `,
+          className: 'custom-distance-marker',
+          iconSize: L.point(distance ? 80 : 40, 24)
+        });
+      }
+      return L.divIcon({
+        html: `
+          <div class="restaurant" >
+        <div class="restaurant-indicator-dull">
+          <div>${count}</div>
+        </div>
+          </div>
+        `,
+        className: 'custom-distance-marker',
+        iconSize: L.point(40, 24)
+      });
+    };
     // Handle clusters rendering
     useEffect(() => {
-      if (currentRadius > 3 && clustersData?.restaurantClusters?.clusters && currentCenter && !isLoading) {
+      if (currentRadius > 3 && clustersData?.restaurantClusters?.clusters && currentCenter) {
+        setIsLoading(false);
         // Clean existing markers
         markersRef.current.clusters.forEach(({ marker }) => {
           if (marker) map.removeLayer(marker);
@@ -804,31 +871,23 @@ const HomeMapController: React.FC<{
           if (calculateDistance(currentCenter, clusterPosition) <= currentRadius) {
             const position: L.LatLngExpression = [lat, lng];
 
-            const el = document.createElement('div');
-            el.className = 'restaurant-cluster';
-            el.style.backgroundColor = '#E5E7EB';
-            el.style.color = '#000000';
-            el.style.width = '50px';
-            el.style.height = '32px';
-            el.style.borderRadius = '40%';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            el.style.fontWeight = 'bold';
-            el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-            el.innerHTML = cluster.count.toString();
-
-            const customIcon = L.divIcon({
-              html: el,
-              className: 'custom-cluster-marker',
-              iconSize: L.point(32, 32),
-              iconAnchor: L.point(16, 16)
-            });
+            const customIcon = createCustomIcon(
+              "HOME",
+              false,
+              false,
+              false,
+              false,
+              null,
+              cluster.count,
+              "RestaurantCluster"
+            );
 
             // Create and add marker
             const marker = L.marker(position, { icon: customIcon })
               .addTo(map)
-              .bindPopup(`${cluster.count} restaurants in this area`);
+              .bindPopup(`${cluster.count} restaurants in this area`)
+
+
 
             newMarkers.push({ marker, id: cluster._id });
           }
@@ -841,48 +900,61 @@ const HomeMapController: React.FC<{
 
     // Handle restaurants rendering
     useEffect(() => {
-      if (currentRadius <= 3 && restaurantsData?.restaurantsMapApi?.restaurants && currentCenter && !isLoading) {
+      if (currentRadius <= 3 && restaurantsData?.restaurantsMapApi?.restaurants && currentCenter) {
+        setIsLoading(false);
         // Clean existing markers
         markersRef.current.restaurants.forEach(({ marker }) => {
           if (marker) map.removeLayer(marker);
         });
         markersRef.current.restaurants = [];
 
+        const matchCampaignsWithRestaurants = (restaurants, campaigns) => {
+          const campaignsByRestaurant = campaigns.reduce((acc, campaign) => {
+            const restaurantId = campaign.restaurant;
+            if (!acc[restaurantId]) {
+              acc[restaurantId] = [];
+            }
+            acc[restaurantId].push(campaign);
+            return acc;
+          }, {});
+
+          return restaurants.map(restaurant => ({
+            ...restaurant,
+            campaigns: campaignsByRestaurant[restaurant._id] || []
+          }));
+
+        };
+
         // Create new markers
         const newMarkers: MarkerInfo[] = [];
 
-        restaurantsData.restaurantsMapApi.restaurants.forEach(restaurant => {
+        matchCampaignsWithRestaurants(restaurantsData.restaurantsMapApi.restaurants,
+          restaurantsData.restaurantsMapApi.campaigns
+        ).forEach(restaurant => {
           const [lng, lat] = restaurant.location.coordinates;
           const restaurantPosition = L.latLng(parseFloat(lat), parseFloat(lng));
 
           if (calculateDistance(currentCenter, restaurantPosition) <= currentRadius) {
             const position: L.LatLngExpression = [parseFloat(lat), parseFloat(lng)];
 
-            const el = document.createElement('div');
-            el.className = 'restaurant-marker';
-            el.style.backgroundColor = 'yellow';
-            el.style.color = '#000000';
-            el.style.width = '32px';
-            el.style.height = '32px';
-            el.style.borderRadius = '50%';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            el.style.fontWeight = 'bold';
-            el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-            el.innerHTML = 'R';
-
-            const customIcon = L.divIcon({
-              html: el,
-              className: 'custom-marker',
-              iconSize: L.point(32, 32),
-              iconAnchor: L.point(16, 16)
-            });
+            const customIcon = createCustomIcon(
+              "HOME",
+              false,
+              false,
+              restaurant.isAvailable,
+              restaurant.onboarded,
+              restaurant.gif,
+              null,
+              "Restaurant"
+            );
 
             // Create and add marker
             const marker = L.marker(position, { icon: customIcon })
               .addTo(map)
-              .bindPopup(`Restaurant ID: ${restaurant._id}`);
+              .bindPopup(`Restaurant ID: ${restaurant._id}`)
+              .on('click', () => {
+                handleRestaurant(restaurant)
+              });
 
             newMarkers.push({ marker, id: restaurant._id });
           }
@@ -920,10 +992,11 @@ interface HomeMapProps {
   };
   radius?: number;
   onMapMove?: (center: L.LatLng, radius: number) => void;
+  handleRestaurant?: (restaurant: any) => void; // Add this property
 }
 
 const FitMapToBounds = ({ userLocation, radius }) => {
-  console.log("sysysysy")
+
   const map = useMap()
   function fitBounds() {
     const radiusInMeters = radius * 1000;
@@ -934,7 +1007,7 @@ const FitMapToBounds = ({ userLocation, radius }) => {
     const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
     const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
     const bounds = L.latLngBounds(southWest, northEast);
-    console.log(bounds, "dd")
+
 
     map.fitBounds(bounds, {
       padding: [50, 50] // Increased padding to ensure the circle fits within the screen
@@ -950,25 +1023,36 @@ export const HomeMap: React.FC<HomeMapProps> = ({
   height = '100%',
   userLocation,
   radius = 50,
-  onMapMove = () => { }
+  onMapMove = () => { },
+  handleRestaurant
 }) => {
-  console.log(radius, "e")
+
   const [mapCenter, setMapCenter] = useState<L.LatLng>(
     L.latLng(userLocation?.lat || 52.516267, userLocation?.lng || 13.322455)
   );
   const [currentRadius, setCurrentRadius] = useState(radius);
+  const [updateRadius, setUpdateRadius] = useState(radius)
+  const [showMap, setShowMap] = useState(false)
+  const [restaurantData, setRestaurantData] = useState({})
 
   useEffect(() => {
     setCurrentRadius(radius)
+    setUpdateRadius(radius)
   }, [radius])
 
 
+
+
   const handleMapMove = (center: L.LatLng, newRadius: number) => {
+    if (updateRadius > currentRadius) {
+      return
+    }
     setMapCenter(center);
-    setCurrentRadius(newRadius);
+    setUpdateRadius(newRadius);
     onMapMove(center, newRadius);
   };
-  console.log(mapCenter, radius, "ssss")
+
+
   return (
     <div style={{ height, width: '100%' }}>
       <MapContainer
@@ -982,24 +1066,19 @@ export const HomeMap: React.FC<HomeMapProps> = ({
       >
         <TileLayer url={config.api.maps.tiles} />
         <TileErrorHandler />
-        <FitMapToBounds userLocation={userLocation} radius={radius} />
-        <HomeMapController
-          userLocation={userLocation}
-          radius={radius}
-          onMapMove={handleMapMove}
-        />
-
-        {/* <Circle
-          center={mapCenter}
-          radius={currentRadius * 1000}
-          pathOptions={{
-            color: '#93c5fd',
-            fillColor: '#93c5fd',
-            fillOpacity: 0.1,
-            weight: 3,
-            // dashArray: '10, 10'
-          }}
-        /> */}
+        {
+          useMemo(() => (
+            <FitMapToBounds userLocation={userLocation} radius={radius} />
+          ), [radius, userLocation])}
+        {useMemo(() => (
+          <HomeMapController
+            maxCurrentRadius={radius}
+            userLocation={userLocation}
+            radius={updateRadius}
+            onMapMove={handleMapMove}
+            handleRestaurant={handleRestaurant}
+          />
+        ), [radius, userLocation, updateRadius, handleMapMove])}
 
         <Circle
           center={mapCenter}
@@ -1009,9 +1088,7 @@ export const HomeMap: React.FC<HomeMapProps> = ({
             fillColor: '#93c5fd',
             fillOpacity: 0.1,
             weight: 3,
-            // dashArray: '10, 10'
           }}
-
         />
 
         <div className="absolute bottom-4 right-4 bg-white px-4 py-3 rounded-lg shadow-md z-[1000]">

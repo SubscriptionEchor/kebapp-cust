@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import CartSummary from '../components/Restaurant/CartSummary';
 import { UseLocationDetails } from '../context/LocationContext';
 import { HomeMap } from '../components/Map/OpenStreetMap';
+import MapRestaurantCard from '../components/MapRestaurantCard';
 
 const HOME_API_PARAMETERS = {
   DISTANCE: 50,
@@ -40,6 +41,7 @@ const Home: React.FC = () => {
   const [sections, setSections] = useState<any[]>([]);
   const [allRestaurants, setAllRestaurants] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>(null);
+  const [showDetails, setShowDetails] = useState(false)
 
 
   console.log(temporaryLocation, profile)
@@ -210,6 +212,9 @@ const Home: React.FC = () => {
             lat: selectedLocation.latitude,
             lng: selectedLocation.longitude
           }}
+          handleRestaurant={(res) => {
+            setShowDetails(res)
+          }}
         />
         <button
           style={{ zIndex: 10000 }}
@@ -230,6 +235,11 @@ const Home: React.FC = () => {
           onClose={() => setShowFilters(false)}
           onFilterUpdate={handleFilterUpdate}
         />
+        {/* {showDetails &&
+          <MapRestaurantCard
+            data={showDetails}
+          />
+        } */}
       </div>
     );
   }
