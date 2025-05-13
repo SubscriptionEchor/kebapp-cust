@@ -1083,7 +1083,7 @@ interface LocationSelectorMapProps {
 }
 
 export const LocationSelectorMap: React.FC<LocationSelectorMapProps> = ({
-  height = '70vh',
+  height = '55vh',
   initialLocation,
   onLocationSelected
 }) => {
@@ -1102,7 +1102,7 @@ export const LocationSelectorMap: React.FC<LocationSelectorMapProps> = ({
         center={center as L.LatLngExpression}
         zoom={16}
         style={{ height: '100%', width: '100%' }}
-        className="rounded-lg"
+        // className="rounded-lg"
         minZoom={3}
         maxZoom={MAX_ZOOM_LEVEL}
         zoomControl={true}
