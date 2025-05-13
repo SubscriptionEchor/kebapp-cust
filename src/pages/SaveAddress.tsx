@@ -318,7 +318,7 @@ const SaveAddress: React.FC = () => {
                     }}
                 />}
 
-                <div className="bottom-0 left-0 right-0 bg-white p-4 shadow-top">
+                <div className="relative  h-[45%] p-4 shadow-top">
                     <div className="my-4">
                         {!userLocation?.state?.location?.isEdit && <div className='flex items-center justify-end'>
                             <button onClick={() => navigate(AppRoutes.LOCATION_SEARCH)} className='text-gray-900 p-2 rounded bg-gray-200'>{t('fetchLocation.change')}</button>
@@ -337,8 +337,8 @@ const SaveAddress: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className='w-full py-3 rounded-lg font-medium'>
-                        <div className='flex justify-between gap-4 w-full'>
+                    <div className='w-full py-3 absolute bottom-5 left-0 right-0  rounded-lg font-medium'>
+                        <div className='flex  mx-2 justify-between '>
                             {!userLocation?.state?.location?.isEdit && <button
                                 onClick={onClickContinue}
                                 className="w-[45%] py-2 px-4 border border-secondary text-secondary text-center rounded"
