@@ -1,108 +1,48 @@
-import React, { Children, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTelegram } from '../context/TelegramContext';
+import { ChevronLeft } from 'lucide-react';
 
-const TelegramBackButton: React.FC = ({ Children }) => {
+const TelegramBackButton: React.FC = () => {
   const { webApp } = useTelegram();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [history, setHistory] = useState(() => {
-    const savedHistory = localStorage.getItem('navigationHistory');
-    return savedHistory ? JSON.parse(savedHistory) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('navigationHistory', JSON.stringify(history));
-  }, [history]);
-
-  useEffect(() => {
+  // Updated logic to check if we're on an entry page
+  const isEntryPage = () => {
     const entryPaths = ['/', '/splash', '/home'];
-
-    if (entryPaths.includes(location.pathname)) {
-      setHistory([location.pathname]);
-      if (webApp) {
-        webApp.BackButton.hide();
-      }
-      return;
-    }
-
-    if (history[history.length - 1] !== location.pathname) {
-      setHistory((prev) => [...prev, location.pathname]);
-    }
-  }, [location.pathname, webApp, history]);
-
-  const handleCustomBack = () => {
-    if (history.length <= 1) {
-      return;
-    }
-
-    const newHistory = [...history];
-    const currentPath = newHistory.pop();
-    const previousPath = newHistory[newHistory.length - 1];
-
-    if (previousPath === '/' || previousPath === '/splash' || previousPath === '/home') {
-      setHistory([previousPath]);
-      if (webApp) {
-        webApp.BackButton.hide();
-      }
-    } else {
-      setHistory(newHistory);
-      if (newHistory.length <= 1 && webApp) {
-        webApp.BackButton.hide();
-      }
-    }
-    navigate(previousPath);
+    // Check if current path exactly matches any entry path
+    return entryPaths.some(path => path === location.pathname);
   };
 
   useEffect(() => {
+    console.log(webApp, "webapp");
     if (!webApp) return;
 
-    const handleBackNavigation = () => {
-      handleCustomBack();
-    };
+    const onEntryPage = isEntryPage();
 
-    const entryPaths = ['/', '/splash', '/home'];
-    if (entryPaths.includes(location.pathname)) {
+    if (onEntryPage) {
+      // Show Telegram's native close button on entry pages
       webApp.BackButton.hide();
-    } else if (history.length > 1) {
-      webApp.BackButton.show();
-      webApp.BackButton.onClick(handleBackNavigation);
+      console.log("Hiding back button on entry page:", location.pathname);
     } else {
-      webApp.BackButton.hide();
+      // Show back button on all other pages, including dynamic routes
+      webApp.BackButton.show();
+      webApp.BackButton.onClick(() => {
+        navigate(-1);
+      });
+      console.log("Showing back button on non-entry page:", location.pathname);
     }
 
+    // Clean up event listener when component unmounts
     return () => {
-      webApp.BackButton.offClick(handleBackNavigation);
-    };
-  }, [webApp, history, location.pathname]);
-
-  useEffect(() => {
-    window.handleCustomBack = handleCustomBack;
-
-    window.clearNavigationHistory = (targetPath = null) => {
-      if (targetPath) {
-        setHistory([targetPath]);
-      } else {
-        setHistory([]);
-      }
-
       if (webApp) {
-        webApp.BackButton.hide();
+        webApp.BackButton.offClick();
       }
     };
+  }, [webApp, location.pathname, navigate]);
 
-    return () => {
-      delete window.handleCustomBack;
-      delete window.clearNavigationHistory;
-    };
-  }, [history, webApp]);
-
-  return (
-    <div>
-      {Children}
-    </div>
-  );
+  return null;
 };
 
 export default TelegramBackButton;
