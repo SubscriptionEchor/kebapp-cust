@@ -179,12 +179,12 @@ const Home: React.FC = () => {
     }
   }, [profile]);
 
-  useEffect(() => {
-    if (bootstrapData?.activeConsentDocData && profile?.consentInfo) {
-      const needsConsent = bootstrapData.activeConsentDocData.docVersionId !== profile.consentInfo[0].docVersionId;
-      setShowConsentPopup(needsConsent);
-    }
-  }, [bootstrapData, profile]);
+  // useEffect(() => {
+  //   if (bootstrapData?.activeConsentDocData && profile?.consentInfo) {
+  //     const needsConsent = bootstrapData.activeConsentDocData.docVersionId !== profile.consentInfo[0].docVersionId;
+  //     setShowConsentPopup(needsConsent);
+  //   }
+  // }, [bootstrapData, profile]);
 
   const handleFilterUpdate = (radius: number) => {
     setSelectedRadius(radius);
