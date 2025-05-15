@@ -124,7 +124,7 @@ export const getTelegramWebApp = (): WebApp | null => {
  */
 export const getInitData = (): string | null => {
   const webApp = getTelegramWebApp();
-  return webApp ? webApp.initData : null
+  // return webApp ? webApp.initData : null
   return "query_id=AAFaCK5IAwAAAFoIrkgFvAom&user=%7B%22id%22%3A7661815898%2C%22first_name%22%3A%22Nik%22%2C%22last_name%22%3A%22Red%22%2C%22language_code%22%3A%22en%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FO_d6KG5pC3ZikiIM4TniSbgHFEZdv59CG8zBoq3bzV5vQ-ENam_fBijq-w-uy4q5.svg%22%7D&auth_date=1735041263&signature=muUncpLrRItIxCkhxghHHW-OfrgOeBIXV3s9XpbYkL1DlZq-99z6RakPm7ytER_UoXkfxZtML6dz57075PLLCQ&hash=68ecd83817ef0f024abd24e0f5fd7b4c820b353aecbc0814be9eaf04e42b82a2";
   ;
 };
