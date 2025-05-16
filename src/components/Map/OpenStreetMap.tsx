@@ -1,470 +1,10 @@
-// import React, { useEffect, useState, useCallback } from 'react';
-// import { MapContainer, TileLayer, Circle, useMap, Popup, useMapEvents } from 'react-leaflet';
-// import { useQuery } from '@apollo/client';
-// import L from 'leaflet';
-// import { debounce } from 'lodash';
-// import 'leaflet/dist/leaflet.css';
-// import { GET_RESTAURANT_CLUSTERS, GET_RESTAURANTS_MAP_API } from '../../graphql/queries';
-// import { config } from '../../config';
-
-// const RADIUS_THRESHOLDS = [5.02, 6.97, 9.67, 13.44, 18.66, 25.92, 36.0, 50.0];
-// const DEBOUNCE_DELAY = 2000; // 500ms delay
-
-// const MapController: React.FC<{
-//   userLocation: any;
-//   radius: number;
-//   onMapMove: (center: L.LatLng, radius: number) => void;
-//   showRoute?: boolean;
-//   restaurantLocation?: {
-//     lat: number;
-//     lng: number;
-//   };
-// }> = ({
-//   userLocation,
-//   radius,
-//   onMapMove,
-//   showRoute = false,
-//   restaurantLocation
-// }) => {
-//     const map = useMap();
-//     const [currentRadius, setCurrentRadius] = useState(radius);
-//     const [currentCenter, setCurrentCenter] = useState<L.LatLng | null>(null);
-//     const [isInitialized, setIsInitialized] = useState(false);
-//     const [prevRadiusAbove3km, setPrevRadiusAbove3km] = useState(currentRadius > 3);
-//     const [clusterMarkers, setClusterMarkers] = useState<L.Marker[]>([]);
-//     const [restaurantMarkers, setRestaurantMarkers] = useState<L.Marker[]>([]);
-//     const [routeElements, setRouteElements] = useState<{
-//       polyline?: L.Polyline;
-//       userMarker?: L.Marker;
-//       restaurantMarker?: L.Marker;
-//     }>({});
-//     const { data: clustersData, refetch: refetchClusters, loading: clustersLoading } = useQuery(GET_RESTAURANT_CLUSTERS, {
-//       variables: {
-//         input: {
-//           location: currentCenter
-//             ? [currentCenter.lng, currentCenter.lat]
-//             : userLocation
-//               ? [userLocation.lng, userLocation.lat]
-//               : [0, 0],
-//           maxDistance: currentRadius,
-//         }
-//       },
-//       skip: !isInitialized || !currentCenter || currentRadius <= 3,
-//       fetchPolicy: 'network-only',
-//     });
-
-//     const { data: restaurantsData, refetch: refetchRestaurants, loading: restaurantsLoading } = useQuery(GET_RESTAURANTS_MAP_API, {
-//       variables: {
-//         userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
-//         location: currentCenter
-//           ? [currentCenter.lng, currentCenter.lat]
-//           : userLocation
-//             ? [userLocation.lng, userLocation.lat]
-//             : [0, 0],
-//         distance: currentRadius,
-//         limit: 200
-//       },
-//       skip: !isInitialized || !currentCenter || currentRadius > 3,
-//       fetchPolicy: 'network-only',
-//     });
-
-//     const calculateDistance = (point1: L.LatLng, point2: L.LatLng): number => {
-//       return point1.distanceTo(point2) / 1000;
-//     };
-
-//     const fitMapToBounds = () => {
-//       if (userLocation) {
-//         const center = L.latLng(userLocation.lat, userLocation.lng);
-//         const radiusInMeters = radius * 1000;
-
-//         const earthCircumference = 40075016.686;
-//         const latChange = (radiusInMeters / earthCircumference) * 360;
-//         const lngChange = latChange / Math.cos((Math.PI / 180) * userLocation.lat);
-
-//         const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
-//         const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
-//         const bounds = L.latLngBounds(southWest, northEast);
-
-//         map.fitBounds(bounds, {
-//           padding: [20, 20]
-//         });
-//       }
-//     };
-
-//     const calculateEffectiveRadius = () => {
-//       const bounds = map.getBounds();
-//       const southWest = bounds.getSouthWest();
-//       const northEast = bounds.getNorthEast();
-//       const distance = southWest.distanceTo(northEast) / 1000;
-//       const effectiveRadius = distance / 2;
-
-//       let closestThreshold = RADIUS_THRESHOLDS[0];
-//       let minDiff = Math.abs(effectiveRadius - closestThreshold);
-
-//       for (const threshold of RADIUS_THRESHOLDS) {
-//         const diff = Math.abs(effectiveRadius - threshold);
-//         if (diff < minDiff) {
-//           minDiff = diff;
-//           closestThreshold = threshold;
-//         }
-//       }
-
-//       if (effectiveRadius < RADIUS_THRESHOLDS[0] && effectiveRadius > 3) {
-//         return RADIUS_THRESHOLDS[0];
-//       }
-//       if (effectiveRadius <= 3) {
-//         return effectiveRadius;
-//       }
-//       return closestThreshold;
-//     };
-
-//     // Debounced fetch function
-//     const debouncedFetch = useCallback(
-//       debounce((center: L.LatLng, effectiveRadius: number) => {
-//         if (effectiveRadius > 3) {
-//           refetchClusters();
-//         } else {
-//           refetchRestaurants();
-//         }
-//       }, DEBOUNCE_DELAY),
-//       [refetchClusters, refetchRestaurants]
-//     );
-
-//     useEffect(() => {
-//       fitMapToBounds();
-//       const center = map.getCenter();
-//       const effectiveRadius = calculateEffectiveRadius();
-//       setCurrentCenter(center);
-//       setIsInitialized(true);
-//       onMapMove(center, effectiveRadius);
-//     }, [map, userLocation, radius]);
-
-//     useEffect(() => {
-//       const shouldUpdateRadius = RADIUS_THRESHOLDS.some((threshold, index) => {
-//         const prevThreshold = index > 0 ? RADIUS_THRESHOLDS[index - 1] : 3;
-//         return (currentRadius >= prevThreshold && currentRadius < threshold) !==
-//           (radius >= prevThreshold && radius < threshold);
-//       });
-
-//       if (shouldUpdateRadius) {
-//         setCurrentRadius(radius);
-//         clusterMarkers.forEach(marker => marker.remove());
-//         setClusterMarkers([]);
-//         restaurantMarkers.forEach(marker => marker.remove());
-//         setRestaurantMarkers([]);
-//         debouncedFetch(currentCenter!, radius);
-//       }
-//     }, [radius, currentCenter]);
-
-//     // Handle route display
-//     useEffect(() => {
-//       if (showRoute && userLocation && restaurantLocation) {
-//         // Clean up previous route elements
-//         if (routeElements.polyline) routeElements.polyline.remove();
-//         if (routeElements.userMarker) routeElements.userMarker.remove();
-//         if (routeElements.restaurantMarker) routeElements.restaurantMarker.remove();
-
-//         // Create polyline between user and restaurant
-//         const polyline = L.polyline(
-//           [
-//             [userLocation.lat, userLocation.lng],
-//             [restaurantLocation.lat, restaurantLocation.lng]
-//           ],
-//           {
-//             color: '#93c5fd',
-//             weight: 3,
-//             opacity: 0.8,
-//             dashArray: '10, 10'
-//           }
-//         ).addTo(map);
-
-//         // Add markers
-//         const userMarker = L.marker([userLocation.lat, userLocation.lng], {
-//           icon: L.divIcon({
-//             className: 'custom-marker',
-//             html: `<div class="w-8 h-8 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>`,
-//             iconSize: [32, 32],
-//             iconAnchor: [16, 16]
-//           })
-//         }).addTo(map);
-
-//         const restaurantMarker = L.marker([restaurantLocation.lat, restaurantLocation.lng], {
-//           icon: L.divIcon({
-//             className: 'custom-marker',
-//             html: `<div class="w-8 h-8 bg-secondary rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-//             <div class="w-4 h-4 bg-black rounded-full"></div>
-//           </div>`,
-//             iconSize: [32, 32],
-//             iconAnchor: [16, 16]
-//           })
-//         }).addTo(map);
-
-//         // Fit bounds to show both markers
-//         const bounds = L.latLngBounds([
-//           [userLocation.lat, userLocation.lng],
-//           [restaurantLocation.lat, restaurantLocation.lng]
-//         ]);
-//         map.fitBounds(bounds, { padding: [50, 50] });
-
-//         // Store route elements for cleanup
-//         setRouteElements({ polyline, userMarker, restaurantMarker });
-
-//         return () => {
-//           polyline.remove();
-//           userMarker.remove();
-//           restaurantMarker.remove();
-//         };
-//       }
-//     }, [showRoute, userLocation, restaurantLocation, map]);
-
-//     // Moved handleMapUpdate outside of useEffect
-//     const handleMapUpdate = useCallback(() => {
-//       const center = map.getCenter();
-//       const effectiveRadius = calculateEffectiveRadius();
-//       setCurrentCenter(center);
-//       onMapMove(center, effectiveRadius);
-
-//       const shouldUpdateRadius = RADIUS_THRESHOLDS.some((threshold, index) => {
-//         const prevThreshold = index > 0 ? RADIUS_THRESHOLDS[index - 1] : 3;
-//         return (currentRadius >= prevThreshold && currentRadius < threshold) !==
-//           (effectiveRadius >= prevThreshold && effectiveRadius < threshold);
-//       });
-
-//       if (shouldUpdateRadius || (currentRadius <= 3 && effectiveRadius > 3) || (currentRadius > 3 && effectiveRadius <= 3)) {
-//         setCurrentRadius(effectiveRadius);
-//       }
-
-//       clusterMarkers.forEach(marker => marker.remove());
-//       setClusterMarkers([]);
-//       restaurantMarkers.forEach(marker => marker.remove());
-//       setRestaurantMarkers([]);
-//       debouncedFetch(center, effectiveRadius);
-//     }, [map, currentRadius, clusterMarkers, restaurantMarkers, debouncedFetch, onMapMove]);
-
-//     useMapEvents({
-//       moveend: handleMapUpdate,
-//       zoomend: handleMapUpdate
-//     });
-
-//     useEffect(() => {
-//       const isAbove3km = currentRadius > 3;
-//       if (isAbove3km !== prevRadiusAbove3km) {
-//         if (isAbove3km) {
-//           restaurantMarkers.forEach(marker => marker.remove());
-//           setRestaurantMarkers([]);
-//           debouncedFetch(currentCenter!, currentRadius);
-//         } else {
-//           clusterMarkers.forEach(marker => marker.remove());
-//           setClusterMarkers([]);
-//           debouncedFetch(currentCenter!, currentRadius);
-//         }
-//         setPrevRadiusAbove3km(isAbove3km);
-//       }
-//     }, [currentRadius, prevRadiusAbove3km, currentCenter]);
-
-//     useEffect(() => {
-//       if (currentRadius > 3 && clustersData?.restaurantClusters?.clusters && currentCenter) {
-//         clusterMarkers.forEach(marker => marker.remove());
-//         const newMarkers: L.Marker[] = [];
-
-//         clustersData.restaurantClusters.clusters.forEach(cluster => {
-//           const [lng, lat] = cluster.location.coordinates;
-//           const clusterPosition = L.latLng(lat, lng);
-
-//           if (calculateDistance(currentCenter, clusterPosition) <= currentRadius) {
-//             const position: L.LatLngExpression = [lat, lng];
-
-//             const el = document.createElement('div');
-//             el.className = 'restaurant-cluster';
-//             el.style.backgroundColor = '#E5E7EB';
-//             el.style.color = '#000000';
-//             el.style.width = '32px';
-//             el.style.height = '32px';
-//             el.style.borderRadius = '50%';
-//             el.style.display = 'flex';
-//             el.style.alignItems = 'center';
-//             el.style.justifyContent = 'center';
-//             el.style.fontWeight = 'bold';
-//             el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-//             el.innerHTML = cluster.count.toString();
-
-//             const customIcon = L.divIcon({
-//               html: el,
-//               className: 'custom-cluster-marker',
-//               iconSize: L.point(32, 32),
-//               iconAnchor: L.point(16, 16)
-//             });
-
-//             const marker = L.marker(position, { icon: customIcon })
-//               .addTo(map)
-//               .bindPopup(`${cluster.count} restaurants in this area`);
-//             newMarkers.push(marker);
-//           }
-//         });
-
-//         setClusterMarkers(newMarkers);
-//       } else {
-//         clusterMarkers.forEach(marker => marker.remove());
-//         setClusterMarkers([]);
-//       }
-//     }, [clustersData, map, currentRadius, currentCenter]);
-
-//     useEffect(() => {
-//       if (currentRadius <= 3 && restaurantsData?.restaurantsMapApi?.restaurants && currentCenter) {
-//         restaurantMarkers.forEach(marker => marker.remove());
-//         const newMarkers: L.Marker[] = [];
-
-//         restaurantsData.restaurantsMapApi.restaurants.forEach(restaurant => {
-//           const [lng, lat] = restaurant.location.coordinates;
-//           const restaurantPosition = L.latLng(parseFloat(lat), parseFloat(lng));
-
-//           if (calculateDistance(currentCenter, restaurantPosition) <= currentRadius) {
-//             const position: L.LatLngExpression = [parseFloat(lat), parseFloat(lng)];
-
-//             const el = document.createElement('div');
-//             el.className = 'restaurant-cluster';
-//             el.style.backgroundColor = 'yellow';
-//             el.style.color = '#000000';
-//             el.style.width = '32px';
-//             el.style.height = '32px';
-//             el.style.borderRadius = '50%';
-//             el.style.display = 'flex';
-//             el.style.alignItems = 'center';
-//             el.style.justifyContent = 'center';
-//             el.style.fontWeight = 'bold';
-//             el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-//             el.innerHTML = 'R';
-
-//             const customIcon = L.divIcon({
-//               html: el,
-//               className: 'custom-cluster-marker',
-//               iconSize: L.point(32, 32),
-//               iconAnchor: L.point(16, 16)
-//             });
-
-//             const marker = L.marker(position, { icon: customIcon })
-//               .addTo(map)
-//               .bindPopup(`Restaurant ID: ${restaurant._id}`);
-//             newMarkers.push(marker);
-//           }
-//         });
-
-//         setRestaurantMarkers(newMarkers);
-//       } else {
-//         restaurantMarkers.forEach(marker => marker.remove());
-//         setRestaurantMarkers([]);
-//       }
-//     }, [restaurantsData, map, currentRadius, currentCenter]);
-
-//     return (
-//       <>
-//         {(clustersLoading || restaurantsLoading) && (
-//           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000]">
-//             <div className="bg-white px-4 py-2 rounded-full shadow-lg flex items-center space-x-2">
-//               <div className="flex space-x-1">
-//                 <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-//                 <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-//                 <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-//               </div>
-//               <span className="text-sm font-medium text-gray-600">Loading</span>
-//             </div>
-//           </div>
-//         )}
-//       </>
-//     );
-//   };
-
-// interface OpenStreetMapProps {
-//   height?: string;
-//   userLocation: {
-//     lat: number;
-//     lng: number;
-//   };
-//   restaurantLocation?: {
-//     lat: number;
-//     lng: number;
-//   };
-//   showRoute?: boolean;
-//   radius?: number;
-// }
-
-// const OpenStreetMap: React.FC<OpenStreetMapProps> = ({
-//   height = '100%',
-//   userLocation = null,
-//   restaurantLocation = null,
-//   showRoute = false,
-//   radius = 50
-// }) => {
-//   const defaultCenter = [52.516267, 13.322455];
-//   const center = userLocation
-//     ? [userLocation.lat, userLocation.lng]
-//     : defaultCenter;
-
-//   console.log(center, 'userLocation', userLocation);
-
-//   const [mapCenter, setMapCenter] = useState<L.LatLng>(L.latLng(center[0], center[1]));
-//   const [currentRadius, setCurrentRadius] = useState(radius);
-
-//   const handleMapMove = (center: L.LatLng, newRadius: number) => {
-//     setMapCenter(center);
-//     setCurrentRadius(newRadius);
-//   };
-
-//   return (
-//     <div style={{ height, width: '100%' }}>
-//       <MapContainer
-//         center={center as L.LatLngExpression}
-//         zoom={14}
-//         style={{ height: '100%', width: '100%' }}
-//         className="rounded-lg"
-//         minZoom={6}
-//         maxZoom={22}
-//       >
-//         <TileLayer
-//           url={config.api.maps.tiles}
-//           attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-//         />
-
-//         <MapController
-//           userLocation={userLocation}
-//           radius={radius}
-//           onMapMove={handleMapMove}
-//           showRoute={showRoute}
-//           restaurantLocation={restaurantLocation}
-//         />
-
-//         <Circle
-//           center={mapCenter}
-//           radius={currentRadius * 1000}
-//           pathOptions={{
-//             color: '#93c5fd',
-//             fillColor: '#93c5fd',
-//             fillOpacity: 0.1,
-//             weight: 3,
-//             dashArray: '10, 10'
-//           }}
-//         />
-
-//         <div className="absolute bottom-4 right-4 bg-white px-4 py-3 rounded-lg shadow-md z-[1000]">
-//           <div className="flex items-center gap-2">
-//             <div className="w-3 h-3 rounded-full bg-[#93c5fd]"></div>
-//             <p className="text-sm">Radius: {currentRadius.toFixed(1)}km</p>
-//           </div>
-//         </div>
-//       </MapContainer>
-//     </div>
-//   );
-// };
-
-// export default OpenStreetMap;
-
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Circle, useMap, Popup, useMapEvents, Marker } from 'react-leaflet';
 import { useQuery } from '@apollo/client';
 import L from 'leaflet';
 import { debounce } from 'lodash';
 import 'leaflet/dist/leaflet.css';
-import { GET_RESTAURANT_CLUSTERS, GET_RESTAURANTS_MAP_API } from '../../graphql/queries';
+import { GET_RESTAURANT_CLUSTERS, GET_RESTAURANTS_MAP_API, GET_STALLS_BY_EVENT_ID } from '../../graphql/queries';
 import { config } from '../../config';
 import MarkerIcon from '../../assets/PNG/marker-icon-2x-red.png';
 import MarkerShadow from '../../assets/PNG/marker-shadow.png';
@@ -475,9 +15,10 @@ import Hat from "../../assets/gif/hatRed.gif";
 import Star from "../../assets/gif/starRed.gif";
 import "./style.css"
 
-
-
-// export default CustomCircle;
+// Debug helper function
+const debugEvent = (message, data = null) => {
+  console.log(`%c EVENT DEBUG: ${message}`, 'background: #FF4081; color: white; padding: 2px 6px; border-radius: 4px;', data || '');
+};
 
 // Constants
 const RADIUS_THRESHOLDS = [5.02, 6.97, 9.67, 13.44, 18.66, 25.92, 36.0, 50.0];
@@ -529,22 +70,31 @@ const HomeMapController: React.FC<{
   };
   radius: number;
   onMapMove: (center: L.LatLng, radius: number) => void;
+  handleRestaurant?: (restaurant: any) => void;
+  activeFilters?: any;
+  debug?: boolean;
 }> = ({
   maxCurrentRadius,
   userLocation,
   radius,
   onMapMove,
-  handleRestaurant = { handleRestaurant }
+  handleRestaurant = (restaurant) => { },
+  activeFilters = {},
+  debug = true
 }) => {
     const map = useMap();
     const markersRef = useRef<{
       clusters: MarkerInfo[],
       restaurants: MarkerInfo[],
-      user: L.Marker | null
+      events: MarkerInfo[],
+      user: L.Marker | null,
+      debug: L.Marker[]
     }>({
       clusters: [],
       restaurants: [],
-      user: null
+      events: [],
+      user: null,
+      debug: []
     });
 
     const [currentRadius, setCurrentRadius] = useState(radius);
@@ -552,8 +102,80 @@ const HomeMapController: React.FC<{
     const [isInitialized, setIsInitialized] = useState(false);
     const [prevRadiusAbove3km, setPrevRadiusAbove3km] = useState(currentRadius > 3);
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+    const [showStallsModal, setShowStallsModal] = useState(false);
+    const [eventDebugInfo, setEventDebugInfo] = useState<string | null>(null);
 
-    console.log(currentRadius, radius, "setCurrentRadius")
+    // Direct approach to ensure event is displayed
+    useEffect(() => {
+      // Force specific event to always be visible
+      const eventLng = 13.436279296875002;
+      const eventLat = 52.496159531097106;
+      const eventId = "6825dca2b7a66e1d42540e6a";
+      const eventName = "Event 3";
+
+      debugEvent("DIRECTLY PLOTTING EVENT AT:", [eventLat, eventLng]);
+
+      // Create a highly visible event marker that won't be removed
+      const directMarker = L.marker([eventLat, eventLng], {
+        icon: L.divIcon({
+          html: `
+            <div class="super-debug-marker">
+              <div class="super-debug-pulse"></div>
+              <div class="super-debug-inner">EVENT</div>
+            </div>
+          `,
+          className: '',
+          iconSize: [100, 100],
+          iconAnchor: [50, 50]
+        }),
+        zIndexOffset: 9999 // Extremely high z-index
+      }).addTo(map);
+
+      // Add popup with event details and actions
+      directMarker.bindPopup(`
+        <div style="padding: 10px; min-width: 200px;">
+          <h3 style="font-weight: bold; margin-bottom: 5px;">${eventName}</h3>
+          <p style="font-size: 12px; margin-bottom: 5px;">ID: ${eventId}</p>
+          <p style="font-size: 12px; margin-bottom: 10px;">Coordinates: [${eventLat}, ${eventLng}]</p>
+          <button id="fetch-stalls-direct" style="background: #FF4081; color: white; border: none; 
+            padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%;">
+            Show Event Stalls
+          </button>
+        </div>
+      `);
+
+      // Handle popup open to add event listeners to buttons
+      directMarker.on('popupopen', () => {
+        setTimeout(() => {
+          const stallsButton = document.getElementById('fetch-stalls-direct');
+          if (stallsButton) {
+            stallsButton.addEventListener('click', () => {
+              console.log('Direct event stall button clicked, setting ID:', eventId);
+              setSelectedEventId(eventId);
+              const { loading } = useQuery(GET_STALLS_BY_EVENT_ID, {
+                  variables: {
+                    eventId: eventId
+                  },
+                  fetchPolicy: "network-only",
+                });
+            });
+          }
+        }, 100);
+      });
+
+      // Add the marker to the debug markers array for tracking
+      if (!markersRef.current.debug) markersRef.current.debug = [];
+      markersRef.current.debug.push(directMarker);
+
+      // Focus map on the event location
+      setTimeout(() => {
+        map.setView([eventLat, eventLng], 15);
+        setEventDebugInfo(`EVENT FOUND at [${eventLat.toFixed(6)}, ${eventLng.toFixed(6)}]`);
+      }, 1000);
+
+      // No cleanup to ensure the marker stays visible
+    }, [map]);
 
     // Use refs for state that doesn't need to trigger re-renders
     const lastEventRef = useRef<{ time: number, type: string }>({ time: 0, type: '' });
@@ -584,12 +206,129 @@ const HomeMapController: React.FC<{
             ? [userLocation.lng, userLocation.lat]
             : [0, 0],
         distance: currentRadius,
-        limit: 200
+        limit: 200,
+        showEvents: activeFilters?.events || true // Always show events in debug mode
       },
       skip: !isInitialized || !currentCenter || currentRadius > 3,
       fetchPolicy: 'network-only',
-      onCompleted: () => setIsLoading(false),
+      onCompleted: (data) => {
+        setIsLoading(false);
+        if (debug && data?.allRestaurants?.events) {
+          debugEvent(`Data response received with ${data.allRestaurants.events.length} events`, data.allRestaurants.events);
+        }
+      },
     });
+
+    // Add query for stalls data
+    const { data: stallsData, loading: stallsLoading } = useQuery(GET_STALLS_BY_EVENT_ID, {
+      variables: {
+        eventId: selectedEventId
+      },
+      skip: !selectedEventId,
+      fetchPolicy: 'network-only',
+      onCompleted: (data) => {
+        if (data && data.getStallsByEventId) {
+          setShowStallsModal(true);
+          debugEvent("Stalls data received:", data.getStallsByEventId);
+        } else {
+          debugEvent("No stalls data returned for event ID:", selectedEventId);
+        }
+      },
+      onError: (error) => {
+        console.error("Error fetching stalls:", error);
+        debugEvent("Failed to fetch stalls for event ID:", selectedEventId);
+      }
+    });
+
+    // Debug: Add dynamic markers for events from API response
+    useEffect(() => {
+      if (debug && restaurantsData?.allRestaurants?.events) {
+        debugEvent(`Found ${restaurantsData.allRestaurants.events.length} events in response`, restaurantsData.allRestaurants.events);
+
+        // Remove any existing debug markers (except our direct marker)
+        if (markersRef.current.debug.length > 1) {
+          // Keep the first marker (direct marker) and remove the rest
+          for (let i = 1; i < markersRef.current.debug.length; i++) {
+            if (markersRef.current.debug[i]) map.removeLayer(markersRef.current.debug[i]);
+          }
+          markersRef.current.debug = [markersRef.current.debug[0]];
+        }
+
+        // Process each event in the array
+        restaurantsData.allRestaurants.events.forEach((event, index) => {
+          debugEvent(`Processing event ${index}:`, event);
+
+          try {
+            if (!event.location || !event.location.coordinates) {
+              debugEvent(`Event ${index} missing coordinates`);
+              return;
+            }
+
+            // IMPORTANT: Events use [lng, lat] format, but Leaflet needs [lat, lng]
+            const [lng, lat] = event.location.coordinates;
+            debugEvent(`Raw coordinates: [${lng}, ${lat}]`);
+
+            // Parse coordinates as numbers
+            const eventLng = parseFloat(lng);
+            const eventLat = parseFloat(lat);
+
+            if (isNaN(eventLat) || isNaN(eventLng)) {
+              debugEvent(`Invalid coordinates for event ${index}`);
+              return;
+            }
+
+            debugEvent(`Creating marker at position: [${eventLat}, ${eventLng}]`);
+
+            // Create a visible debug marker (not as visible as the direct marker)
+            const marker = L.marker([eventLat, eventLng], {
+              icon: L.divIcon({
+                html: `
+                  <div class="event-marker-debug">
+                    <span>EVENT ${index}</span>
+                  </div>
+                `,
+                className: '',
+                iconSize: [80, 30],
+                iconAnchor: [40, 15]
+              }),
+              zIndexOffset: 5000
+            }).addTo(map);
+
+            marker.bindPopup(`
+              <div style="padding: 10px;">
+                <h3 style="font-weight: bold;">${event.name || 'Event'}</h3>
+                <p>ID: ${event._id}</p>
+                <p>Coordinates: [${eventLat}, ${eventLng}]</p>
+                <button id="zoom-to-event-${index}" style="background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Zoom Here</button>
+                <button id="fetch-stalls-${index}" style="background: #FF4081; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 5px;">Fetch Stalls</button>
+              </div>
+            `);
+
+            marker.on('popupopen', () => {
+              setTimeout(() => {
+                const zoomButton = document.getElementById(`zoom-to-event-${index}`);
+                if (zoomButton) {
+                  zoomButton.addEventListener('click', () => {
+                    map.setView([eventLat, eventLng], 18);
+                  });
+                }
+
+                const stallsButton = document.getElementById(`fetch-stalls-${index}`);
+                if (stallsButton) {
+                  stallsButton.addEventListener('click', () => {
+                    setSelectedEventId(event._id);
+                  });
+                }
+              }, 100);
+            });
+
+            markersRef.current.debug.push(marker);
+          } catch (error) {
+            debugEvent(`Error processing event ${index}:`, error);
+          }
+        });
+      }
+    }, [restaurantsData, debug, map]);
 
     // Helper functions
     const calculateDistance = (point1: L.LatLng, point2: L.LatLng): number => {
@@ -637,46 +376,18 @@ const HomeMapController: React.FC<{
         console.error("Error calculating radius:", error);
         return 50;
       }
-      // if (!map || !map.getBounds) {
-      //   console.error("Map or map bounds are not available.");
-      //   return RADIUS_THRESHOLDS[0]; // Default to the smallest threshold
-      // }
-
-      // const bounds = map.getBounds();
-      // const southWest = bounds.getSouthWest();
-      // const northEast = bounds.getNorthEast();
-      // const distance = southWest.distanceTo(northEast) / 1000;
-      // const effectiveRadius = distance / 2;
-      // console.log(effectiveRadius, "eff")
-      // let closestThreshold = RADIUS_THRESHOLDS[0];
-      // let minDiff = Math.abs(effectiveRadius - closestThreshold);
-
-      // for (const threshold of RADIUS_THRESHOLDS) {
-      //   const diff = Math.abs(effectiveRadius - threshold);
-      //   if (diff < minDiff) {
-      //     minDiff = diff;
-      //     closestThreshold = threshold;
-      //   }
-      // }
-
-      // if (effectiveRadius < RADIUS_THRESHOLDS[0] && effectiveRadius > 3) {
-      //   return RADIUS_THRESHOLDS[0];
-      // }
-      // if (effectiveRadius <= 3) {
-      //   return effectiveRadius;
-      // }
-      // return closestThreshold;
     };
 
     // Reliable cleanup function that removes markers directly from the map
     const cleanupAllMarkers = useCallback(() => {
       console.log("Cleaning up markers:",
         markersRef.current.clusters.length,
-        markersRef.current.restaurants.length
+        markersRef.current.restaurants.length,
+        markersRef.current.events.length
       );
 
       // Remove all markers from the map first
-      [...markersRef.current.clusters, ...markersRef.current.restaurants].forEach(({ marker }) => {
+      [...markersRef.current.clusters, ...markersRef.current.restaurants, ...markersRef.current.events].forEach(({ marker }) => {
         if (marker) {
           try {
             map.removeLayer(marker);
@@ -689,6 +400,9 @@ const HomeMapController: React.FC<{
       // Clear the arrays
       markersRef.current.clusters = [];
       markersRef.current.restaurants = [];
+      markersRef.current.events = [];
+
+      // Don't clear debug markers during normal cleanup
     }, [map]);
 
     // Setup user location marker
@@ -755,11 +469,16 @@ const HomeMapController: React.FC<{
         if (markersRef.current.user) {
           map.removeLayer(markersRef.current.user);
         }
+        // Only clean up dynamic debug markers, leave the direct marker
+        if (markersRef.current.debug.length > 1) {
+          for (let i = 1; i < markersRef.current.debug.length; i++) {
+            if (markersRef.current.debug[i]) map.removeLayer(markersRef.current.debug[i]);
+          }
+        }
       };
     }, [map, userLocation, radius, setupUserMarker, cleanupAllMarkers]);
 
     // Handle radius changes from props
-    console.log(radius, currentRadius)
     useEffect(() => {
       if (radius !== currentRadius) {
         setCurrentRadius(radius);
@@ -772,16 +491,6 @@ const HomeMapController: React.FC<{
 
     // Consolidated map event handler with debouncing
     const handleMapEvent = useCallback((eventType: string) => {
-      console.log("mmvoviifif")
-      // Throttle events to prevent duplicate triggers
-      // const now = Date.now();
-      // if (now - lastEventRef.current.time < 300 && lastEventRef.current.type !== eventType) {
-      //   // Skip this event if another event was triggered recently
-      //   return;
-      // }
-
-      // lastEventRef.current = { time: now, type: eventType };
-      console.log("sdj")
       // Clear markers immediately for responsive UI
       cleanupAllMarkers();
 
@@ -789,13 +498,13 @@ const HomeMapController: React.FC<{
       const effectiveRadius = calculateEffectiveRadius();
       setCurrentCenter(center);
       onMapMove(center, effectiveRadius);
-      console.log("sdj1")
+
       const shouldUpdateRadius = RADIUS_THRESHOLDS.some((threshold, index) => {
         const prevThreshold = index > 0 ? RADIUS_THRESHOLDS[index - 1] : 3;
         return (currentRadius >= prevThreshold && currentRadius < threshold) !==
           (effectiveRadius >= prevThreshold && effectiveRadius < threshold);
       });
-      console.log(effectiveRadius, "sss")
+
       if (shouldUpdateRadius || (currentRadius <= 3 && effectiveRadius > 3) || (currentRadius > 3 && effectiveRadius <= 3)) {
         setCurrentRadius(effectiveRadius);
       }
@@ -821,9 +530,35 @@ const HomeMapController: React.FC<{
         setPrevRadiusAbove3km(isAbove3km);
       }
     }, [currentRadius, prevRadiusAbove3km, currentCenter, cleanupAllMarkers, debouncedFetch]);
+
     const createCustomIcon = (mapType, user, distance, isAvailable, onboarded, gif, count, __typename) => {
-      // console.log(kebab)
-      if (__typename !== "RestaurantCluster") {
+      if (__typename === "RestaurantCluster") {
+        return L.divIcon({
+          html: `
+            <div class="restaurant" >
+              <div class="restaurant-indicator-dull">
+                <div>${count}</div>
+              </div>
+            </div>
+          `,
+          className: 'custom-distance-marker',
+          iconSize: L.point(40, 24)
+        });
+      } else if (__typename === "Event") {
+        // Custom icon for events - made larger and more visible
+        return L.divIcon({
+          html: `
+            <div class="event-marker">
+              <div class="event-marker-inner">
+                <span>Event</span>
+              </div>
+            </div>
+          `,
+          className: 'custom-event-marker',
+          iconSize: L.point(60, 60),
+          iconAnchor: [30, 30]
+        });
+      } else {
         return L.divIcon({
           html: `
              <div class="restaurant" style="opacity: ${isAvailable ? 1 : 0.5}">
@@ -839,18 +574,8 @@ const HomeMapController: React.FC<{
           iconSize: L.point(distance ? 80 : 40, 24)
         });
       }
-      return L.divIcon({
-        html: `
-          <div class="restaurant" >
-        <div class="restaurant-indicator-dull">
-          <div>${count}</div>
-        </div>
-          </div>
-        `,
-        className: 'custom-distance-marker',
-        iconSize: L.point(40, 24)
-      });
     };
+
     // Handle clusters rendering
     useEffect(() => {
       if (currentRadius > 3 && clustersData?.restaurantClusters?.clusters && currentCenter) {
@@ -887,8 +612,6 @@ const HomeMapController: React.FC<{
               .addTo(map)
               .bindPopup(`${cluster.count} restaurants in this area`)
 
-
-
             newMarkers.push({ marker, id: cluster._id });
           }
         });
@@ -898,72 +621,192 @@ const HomeMapController: React.FC<{
       }
     }, [clustersData, map, currentRadius, currentCenter, isLoading]);
 
-    // Handle restaurants rendering
+    // Handle restaurants and events rendering
     useEffect(() => {
-      if (currentRadius <= 3 && restaurantsData?.restaurantsMapApi?.restaurants && currentCenter) {
+      if (currentRadius <= 3 && restaurantsData?.allRestaurants && currentCenter) {
         setIsLoading(false);
-        // Clean existing markers
+
+        // Clean existing restaurant markers
         markersRef.current.restaurants.forEach(({ marker }) => {
           if (marker) map.removeLayer(marker);
         });
         markersRef.current.restaurants = [];
 
-        const matchCampaignsWithRestaurants = (restaurants, campaigns) => {
-          const campaignsByRestaurant = campaigns.reduce((acc, campaign) => {
-            const restaurantId = campaign.restaurant;
-            if (!acc[restaurantId]) {
-              acc[restaurantId] = [];
+        // Clean existing event markers
+        markersRef.current.events.forEach(({ marker }) => {
+          if (marker) map.removeLayer(marker);
+        });
+        markersRef.current.events = [];
+
+        // Create new restaurant markers if restaurants exist
+        // FIX: Removed the !activeFilters?.events condition to show restaurants always
+        if (restaurantsData?.allRestaurants?.restaurants) {
+          const matchCampaignsWithRestaurants = (restaurants, campaigns) => {
+            const campaignsByRestaurant = campaigns?.reduce((acc, campaign) => {
+              const restaurantId = campaign.restaurant;
+              if (!acc[restaurantId]) {
+                acc[restaurantId] = [];
+              }
+              acc[restaurantId].push(campaign);
+              return acc;
+            }, {}) || {};
+
+            return restaurants.map(restaurant => ({
+              ...restaurant,
+              campaigns: campaignsByRestaurant[restaurant._id] || []
+            }));
+          };
+
+          const restaurantMarkers: MarkerInfo[] = [];
+
+          matchCampaignsWithRestaurants(
+            restaurantsData.allRestaurants.restaurants,
+            restaurantsData.allRestaurants.campaigns
+          ).forEach(restaurant => {
+            if (!restaurant.location || !restaurant.location.coordinates) return;
+
+            const [lng, lat] = restaurant.location.coordinates;
+            const restaurantPosition = L.latLng(parseFloat(lat), parseFloat(lng));
+
+            if (calculateDistance(currentCenter, restaurantPosition) <= currentRadius) {
+              const position: L.LatLngExpression = [parseFloat(lat), parseFloat(lng)];
+
+              const customIcon = createCustomIcon(
+                "HOME",
+                false,
+                false,
+                restaurant.isAvailable,
+                restaurant.onboarded,
+                restaurant.gif,
+                null,
+                "Restaurant"
+              );
+
+              // Create and add marker
+              const marker = L.marker(position, { icon: customIcon })
+                .addTo(map)
+                .bindPopup(`Restaurant ID: ${restaurant._id}`)
+                .on('click', () => {
+                  handleRestaurant(restaurant);
+                });
+
+              restaurantMarkers.push({ marker, id: restaurant._id });
             }
-            acc[restaurantId].push(campaign);
-            return acc;
-          }, {});
+          });
 
-          return restaurants.map(restaurant => ({
-            ...restaurant,
-            campaigns: campaignsByRestaurant[restaurant._id] || []
-          }));
+          // Update ref
+          markersRef.current.restaurants = restaurantMarkers;
+        }
 
-        };
+        // Create new event markers if events exist - directly accessing the events array
+        if (restaurantsData?.allRestaurants?.events) {
+          debugEvent("Creating standard event markers for", restaurantsData.allRestaurants.events.length, "events");
 
-        // Create new markers
-        const newMarkers: MarkerInfo[] = [];
+          const eventMarkers: MarkerInfo[] = [];
 
-        matchCampaignsWithRestaurants(restaurantsData.restaurantsMapApi.restaurants,
-          restaurantsData.restaurantsMapApi.campaigns
-        ).forEach(restaurant => {
-          const [lng, lat] = restaurant.location.coordinates;
-          const restaurantPosition = L.latLng(parseFloat(lat), parseFloat(lng));
+          restaurantsData.allRestaurants.events.forEach((event, index) => {
+            debugEvent(`Processing standard event ${index}:`, event);
 
-          if (calculateDistance(currentCenter, restaurantPosition) <= currentRadius) {
-            const position: L.LatLngExpression = [parseFloat(lat), parseFloat(lng)];
+            if (!event.location || !event.location.coordinates) {
+              debugEvent(`Event ${index} has no location or coordinates`);
+              return;
+            }
+
+            // IMPORTANT: Convert from [lng, lat] to [lat, lng] format
+            const [lng, lat] = event.location.coordinates;
+            debugEvent(`Raw coordinates: [${lng}, ${lat}]`);
+
+            // Ensure coordinates are parsed as numbers
+            const eventLng = parseFloat(lng);
+            const eventLat = parseFloat(lat);
+
+            if (isNaN(eventLat) || isNaN(eventLng)) {
+              debugEvent(`Invalid coordinates for event ${index}`);
+              return;
+            }
+
+            debugEvent(`Creating regular marker at position: [${eventLat}, ${eventLng}]`);
+
+            // Always show events regardless of distance
+            const position: L.LatLngExpression = [eventLat, eventLng];
 
             const customIcon = createCustomIcon(
               "HOME",
               false,
               false,
-              restaurant.isAvailable,
-              restaurant.onboarded,
-              restaurant.gif,
+              event.isAvailable,
+              false,
               null,
-              "Restaurant"
+              null,
+              "Event"
             );
 
-            // Create and add marker
-            const marker = L.marker(position, { icon: customIcon })
+            // Create and add marker with larger size for visibility
+            const marker = L.marker(position, {
+              icon: customIcon,
+              zIndexOffset: 1000 // Ensure events appear above other markers
+            })
               .addTo(map)
-              .bindPopup(`Restaurant ID: ${restaurant._id}`)
+              .bindPopup(`Event: ${event.name || 'Unknown Event'}`)
               .on('click', () => {
-                handleRestaurant(restaurant)
+                debugEvent(`Event ${event._id} clicked, fetching stalls data`);
+                console.log(`Setting selectedEventId to: ${event._id}`);
+                setSelectedEventId(event._id);
               });
 
-            newMarkers.push({ marker, id: restaurant._id });
-          }
-        });
+            eventMarkers.push({ marker, id: event._id });
+            debugEvent(`Added regular event marker for event ${index}`);
+          });
 
-        // Update ref
-        markersRef.current.restaurants = newMarkers;
+          debugEvent(`Created ${eventMarkers.length} regular event markers`);
+
+          // Update event markers ref
+          markersRef.current.events = eventMarkers;
+        }
       }
-    }, [restaurantsData, map, currentRadius, currentCenter, isLoading]);
+    }, [restaurantsData, map, currentRadius, currentCenter, isLoading, activeFilters, handleRestaurant, debug]);
+
+    // Modal for displaying stalls data
+    const StallsModal = () => {
+      if (!stallsData || !showStallsModal) return null;
+
+      return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-lg max-h-[80vh] overflow-auto">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Event Stalls</h3>
+              <button
+                onClick={() => {
+                  setShowStallsModal(false);
+                  setSelectedEventId(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <pre className="text-xs bg-gray-50 p-4 rounded-lg overflow-auto max-h-[50vh]">
+                {JSON.stringify(stallsData.getStallsByEventId, null, 2)}
+              </pre>
+            </div>
+            <div className="p-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowStallsModal(false);
+                  setSelectedEventId(null);
+                }}
+                className="w-full py-2 bg-secondary text-black rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
 
     return (
       <>
@@ -979,6 +822,9 @@ const HomeMapController: React.FC<{
             </div>
           </div>
         )}
+
+        {/* Event Stalls Data Modal */}
+        {showStallsModal && stallsData && <StallsModal />}
       </>
     );
   };
@@ -992,7 +838,9 @@ interface HomeMapProps {
   };
   radius?: number;
   onMapMove?: (center: L.LatLng, radius: number) => void;
-  handleRestaurant?: (restaurant: any) => void; // Add this property
+  handleRestaurant?: (restaurant: any) => void;
+  activeFilters?: any;
+  debug?: boolean;
 }
 
 const FitMapToBounds = ({ userLocation, radius }) => {
@@ -1024,24 +872,23 @@ export const HomeMap: React.FC<HomeMapProps> = ({
   userLocation,
   radius = 50,
   onMapMove = () => { },
-  handleRestaurant
+  handleRestaurant,
+  activeFilters,
+  debug = true // Default to true for testing
 }) => {
 
   const [mapCenter, setMapCenter] = useState<L.LatLng>(
     L.latLng(userLocation?.lat || 52.516267, userLocation?.lng || 13.322455)
   );
   const [currentRadius, setCurrentRadius] = useState(radius);
-  const [updateRadius, setUpdateRadius] = useState(radius)
-  const [showMap, setShowMap] = useState(false)
-  const [restaurantData, setRestaurantData] = useState({})
+  const [updateRadius, setUpdateRadius] = useState(radius);
+  const [showMap, setShowMap] = useState(false);
+  const [restaurantData, setRestaurantData] = useState({});
 
   useEffect(() => {
-    setCurrentRadius(radius)
-    setUpdateRadius(radius)
-  }, [radius])
-
-
-
+    setCurrentRadius(radius);
+    setUpdateRadius(radius);
+  }, [radius]);
 
   const handleMapMove = (center: L.LatLng, newRadius: number) => {
     if (updateRadius > currentRadius) {
@@ -1077,8 +924,10 @@ export const HomeMap: React.FC<HomeMapProps> = ({
             radius={updateRadius}
             onMapMove={handleMapMove}
             handleRestaurant={handleRestaurant}
+            activeFilters={activeFilters}
+            debug={debug}
           />
-        ), [radius, userLocation, updateRadius, handleMapMove])}
+        ), [radius, userLocation, updateRadius, handleMapMove, activeFilters, debug])}
 
         <Circle
           center={mapCenter}

@@ -34,7 +34,7 @@ const Home: React.FC = () => {
   const { bootstrapData, loading: bootstrapLoading } = useBootstrap();
   const { profile, loading: profileLoading } = useUser();
   const [showConsentPopup, setShowConsentPopup] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedRadius, setSelectedRadius] = useState(50);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
