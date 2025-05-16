@@ -10,7 +10,6 @@ import VerticalCard from '../components/RestaurantCard/VerticalCard';
 import Banner from '../components/Banner';
 import Filters from '../components/Filters';
 import FilterBottomSheet from '../components/Filters/FilterBottomSheet';
-// import OpenStreetMap, { HomePageMap } from '../components/Map/OpenStreetMap';
 import ConsentPopup from '../components/ConsentPopup';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { Map, Home as HomeIcon, SlidersHorizontal } from 'lucide-react';
@@ -40,15 +39,15 @@ const Home: React.FC = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [sections, setSections] = useState<any[]>([]);
   const [allRestaurants, setAllRestaurants] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>(null);
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(false);
 
-
-  console.log(temporaryLocation, profile)
   const selectedLocation = temporaryLocation || {
     latitude: 52.516267, // Default fallback coordinates
     longitude: 13.322455
   };
+  
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -88,25 +87,40 @@ const Home: React.FC = () => {
     variables: {
       distance: HOME_API_PARAMETERS.DISTANCE,
       limit: HOME_API_PARAMETERS.LIMIT,
-      location: [Number(selectedLocation.longitude), Number(selectedLocation.latitude)]
+      location: [Number(selectedLocation.longitude), Number(selectedLocation.latitude)],
+      showEvents: true
     },
     skip: !bootstrapData,
     onCompleted: (data) => {
-      if (data?.allRestaurants?.restaurants) {
-        const processedRestaurants = processRestaurants(
-          data.allRestaurants.restaurants,
-          data.allRestaurants.campaigns
-        );
-        const sectionData = data.allRestaurants.sections.map((section: any) => ({
-          ...section,
-          restaurants: section.restaurants
-            .map((id: string) => processedRestaurants.find(r => r._id === id))
-            .filter(Boolean)
-        })).filter(section => section.restaurants.length > 0);
+      if (data?.allRestaurants) {
+        // Process restaurants
+        if (data.allRestaurants.restaurants) {
+          const processedRestaurants = processRestaurants(
+            data.allRestaurants.restaurants,
+            data.allRestaurants.campaigns
+          );
+          
+          const sectionData = data.allRestaurants.sections.map((section: any) => ({
+            ...section,
+            restaurants: section.restaurants
+              .map((id: string) => processedRestaurants.find(r => r._id === id))
+              .filter(Boolean)
+          })).filter(section => section.restaurants.length > 0);
 
-        setSections(sectionData);
-        setAllRestaurants(processedRestaurants);
-        setPagination(data.allRestaurants.pagination);
+          setSections(sectionData);
+          setAllRestaurants(processedRestaurants);
+        }
+
+        // Set pagination data
+        if (data.allRestaurants.pagination) {
+          setPagination(data.allRestaurants.pagination);
+        }
+
+        // Process events
+        if (data.allRestaurants.events && Array.isArray(data.allRestaurants.events)) {
+          console.log('Events data received:', data.allRestaurants.events);
+          setEvents(data.allRestaurants.events);
+        }
       }
     }
   });
@@ -127,18 +141,36 @@ const Home: React.FC = () => {
           lastRestaurant: {
             _id: lastRestaurantData?._id,
             distanceInMeters: lastRestaurantData?.distanceInMeters?.toString()
-          }
+          },
+          showEvents: true
         },
         fetchPolicy: "network-only"
       });
 
-      if (result?.data?.allRestaurants?.restaurants) {
-        const processedRestaurants = processRestaurants(
-          result.data.allRestaurants.restaurants,
-          result.data.allRestaurants.campaigns
-        );
-        setAllRestaurants(prevRestaurants => [...prevRestaurants, ...processedRestaurants]);
-        setPagination(result.data.allRestaurants.pagination);
+      if (result?.data?.allRestaurants) {
+        // Process restaurants
+        if (result.data.allRestaurants.restaurants) {
+          const processedRestaurants = processRestaurants(
+            result.data.allRestaurants.restaurants,
+            result.data.allRestaurants.campaigns
+          );
+          setAllRestaurants(prevRestaurants => [...prevRestaurants, ...processedRestaurants]);
+        }
+
+        // Set pagination data
+        if (result.data.allRestaurants.pagination) {
+          setPagination(result.data.allRestaurants.pagination);
+        }
+
+        // Process new events if any
+        if (result.data.allRestaurants.events && Array.isArray(result.data.allRestaurants.events)) {
+          const newEvents = result.data.allRestaurants.events;
+          setEvents(prevEvents => {
+            const eventIds = new Set(prevEvents.map(e => e._id));
+            const uniqueNewEvents = newEvents.filter(e => !eventIds.has(e._id));
+            return [...prevEvents, ...uniqueNewEvents];
+          });
+        }
       }
     } catch (error) {
       console.error('Error loading more restaurants:', error);
@@ -173,19 +205,6 @@ const Home: React.FC = () => {
     };
   }, [loadMoreRestaurants, isLoadingMore, pagination]);
 
-  useEffect(() => {
-    if (profile) {
-      console.log('User Profile:', profile);
-    }
-  }, [profile]);
-
-  // useEffect(() => {
-  //   if (bootstrapData?.activeConsentDocData && profile?.consentInfo) {
-  //     const needsConsent = bootstrapData.activeConsentDocData.docVersionId !== profile.consentInfo[0].docVersionId;
-  //     setShowConsentPopup(needsConsent);
-  //   }
-  // }, [bootstrapData, profile]);
-
   const handleFilterUpdate = (radius: number) => {
     setSelectedRadius(radius);
   };
@@ -197,15 +216,6 @@ const Home: React.FC = () => {
   if (showMap) {
     return (
       <div className="fixed inset-0 bg-white">
-        {/* <OpenStreetMap
-          height="100vh"
-          userLocation={{
-            lat: selectedLocation.latitude,
-            lng: selectedLocation.longitude
-          }}
-          radius={selectedRadius}
-        /> */}
-
         <HomeMap
           radius={selectedRadius}
           userLocation={{
@@ -213,20 +223,22 @@ const Home: React.FC = () => {
             lng: selectedLocation.longitude
           }}
           handleRestaurant={(res) => {
-            setShowDetails(res)
+            setShowDetails(res);
           }}
+          events={events}
+          debug={true}
         />
         <button
           style={{ zIndex: 10000 }}
           onClick={() => setShowFilters(true)}
-          className="fixed top-10 right-4 bg-white text-black p-4 rounded-full shadow-lg hover:bg-gray-50 transition-all duration-200 "
+          className="fixed top-10 right-4 bg-white text-black p-4 rounded-full shadow-lg hover:bg-gray-50 transition-all duration-200"
         >
           <SlidersHorizontal size={24} />
         </button>
         <button
           style={{ zIndex: 10000 }}
           onClick={() => setShowMap(false)}
-          className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all bottom-20 duration-200 "
+          className="fixed right-4 bg-secondary text-black p-4 rounded-full shadow-lg hover:bg-opacity-90 transition-all bottom-20 duration-200"
         >
           <HomeIcon size={24} />
         </button>
@@ -235,11 +247,11 @@ const Home: React.FC = () => {
           onClose={() => setShowFilters(false)}
           onFilterUpdate={handleFilterUpdate}
         />
-        {/* {showDetails &&
+        {showDetails &&
           <MapRestaurantCard
             data={showDetails}
           />
-        } */}
+        }
       </div>
     );
   }

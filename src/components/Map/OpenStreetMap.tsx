@@ -1,18 +1,13 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { MapContainer, TileLayer, Circle, useMap, Popup, useMapEvents, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, useMap, useMapEvents, Marker } from 'react-leaflet';
 import { useQuery } from '@apollo/client';
 import L from 'leaflet';
 import { debounce } from 'lodash';
 import 'leaflet/dist/leaflet.css';
 import { GET_RESTAURANT_CLUSTERS, GET_RESTAURANTS_MAP_API, GET_STALLS_BY_EVENT_ID } from '../../graphql/queries';
 import { config } from '../../config';
-import MarkerIcon from '../../assets/PNG/marker-icon-2x-red.png';
-import MarkerShadow from '../../assets/PNG/marker-shadow.png';
 import MarketSvg from '../../assets/svg/KebappLogo.svg';
 import Kebab from "../../assets/svg/kebabBlack.svg";
-import Fire from "../../assets/gif/fire.gif";
-import Hat from "../../assets/gif/hatRed.gif";
-import Star from "../../assets/gif/starRed.gif";
 import "./style.css"
 
 // Debug helper function
@@ -22,27 +17,21 @@ const debugEvent = (message, data = null) => {
 
 // Constants
 const RADIUS_THRESHOLDS = [5.02, 6.97, 9.67, 13.44, 18.66, 25.92, 36.0, 50.0];
-const DEBOUNCE_DELAY = 2000;
-const MAX_ZOOM_LEVEL = 18; // Most tile servers support up to zoom level 18
+const MAX_ZOOM_LEVEL = 18;
 
-// Tile Error Handler Component - Used in all map types
+// Tile Error Handler Component
 const TileErrorHandler: React.FC = () => {
   const map = useMap();
 
   useEffect(() => {
     const handleTileError = (e: any) => {
       console.error("Tile loading error:", e);
-
-      // If current zoom is higher than max supported zoom, reduce it
       if (map.getZoom() > MAX_ZOOM_LEVEL) {
-        console.log(`Reducing zoom from ${map.getZoom()} to ${MAX_ZOOM_LEVEL}`);
         map.setZoom(MAX_ZOOM_LEVEL);
       }
     };
 
-    // Add tile error handler
     map.on('tileerror', handleTileError);
-
     return () => {
       map.off('tileerror', handleTileError);
     };
@@ -51,10 +40,6 @@ const TileErrorHandler: React.FC = () => {
   return null;
 };
 
-/**************************************
- * 1. HOME MAP COMPONENT
- **************************************/
-
 // Types for HOME map
 interface MarkerInfo {
   marker: L.Marker;
@@ -62,39 +47,44 @@ interface MarkerInfo {
 }
 
 // Controller for HOME map
-// HomeMapController with reliable marker handling
 const HomeMapController: React.FC<{
   userLocation: {
     lat: number;
     lng: number;
   };
   radius: number;
+  maxCurrentRadius: number;
   onMapMove: (center: L.LatLng, radius: number) => void;
   handleRestaurant?: (restaurant: any) => void;
   activeFilters?: any;
   debug?: boolean;
+  events?: any[];
+  initialFocusOnEvent?: boolean;
 }> = ({
   maxCurrentRadius,
   userLocation,
   radius,
   onMapMove,
-  handleRestaurant = (restaurant) => { },
+  handleRestaurant = () => { },
   activeFilters = {},
-  debug = true
+  debug = true,
+  events = [],
+  initialFocusOnEvent = true
 }) => {
     const map = useMap();
+    const eventsRef = useRef(events);
     const markersRef = useRef<{
       clusters: MarkerInfo[],
       restaurants: MarkerInfo[],
       events: MarkerInfo[],
       user: L.Marker | null,
-      debug: L.Marker[]
+      eventMarkers: { [id: string]: L.Marker }
     }>({
       clusters: [],
       restaurants: [],
       events: [],
       user: null,
-      debug: []
+      eventMarkers: {}
     });
 
     const [currentRadius, setCurrentRadius] = useState(radius);
@@ -104,81 +94,174 @@ const HomeMapController: React.FC<{
     const [isLoading, setIsLoading] = useState(false);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [showStallsModal, setShowStallsModal] = useState(false);
-    const [eventDebugInfo, setEventDebugInfo] = useState<string | null>(null);
+    const [hasInitiallyFocused, setHasInitiallyFocused] = useState(false);
+    const [haveEventsBeenRendered, setHaveEventsBeenRendered] = useState(false);
 
-    // Direct approach to ensure event is displayed
+    // Keep events ref updated
     useEffect(() => {
-      // Force specific event to always be visible
-      const eventLng = 13.436279296875002;
-      const eventLat = 52.496159531097106;
-      const eventId = "6825dca2b7a66e1d42540e6a";
-      const eventName = "Event 3";
+      eventsRef.current = events;
+    }, [events]);
 
-      debugEvent("DIRECTLY PLOTTING EVENT AT:", [eventLat, eventLng]);
+    // Handle events - THIS SHOULD ONLY RUN ONCE
+    useEffect(() => {
+      if (haveEventsBeenRendered || !events || events.length === 0) {
+        return;
+      }
 
-      // Create a highly visible event marker that won't be removed
-      const directMarker = L.marker([eventLat, eventLng], {
-        icon: L.divIcon({
-          html: `
-            <div class="super-debug-marker">
-              <div class="super-debug-pulse"></div>
-              <div class="super-debug-inner">EVENT</div>
-            </div>
-          `,
-          className: '',
-          iconSize: [100, 100],
-          iconAnchor: [50, 50]
-        }),
-        zIndexOffset: 9999 // Extremely high z-index
-      }).addTo(map);
+      debugEvent(`INITIAL RENDERING OF ${events.length} EVENTS`, events);
 
-      // Add popup with event details and actions
-      directMarker.bindPopup(`
-        <div style="padding: 10px; min-width: 200px;">
-          <h3 style="font-weight: bold; margin-bottom: 5px;">${eventName}</h3>
-          <p style="font-size: 12px; margin-bottom: 5px;">ID: ${eventId}</p>
-          <p style="font-size: 12px; margin-bottom: 10px;">Coordinates: [${eventLat}, ${eventLng}]</p>
-          <button id="fetch-stalls-direct" style="background: #FF4081; color: white; border: none; 
-            padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%;">
-            Show Event Stalls
-          </button>
-        </div>
-      `);
+      // Create markers for each event
+      events.forEach((event, index) => {
+        if (!event.location || !event.location.coordinates) {
+          debugEvent(`Event ${index} missing coordinates`);
+          return;
+        }
 
-      // Handle popup open to add event listeners to buttons
-      directMarker.on('popupopen', () => {
-        setTimeout(() => {
-          const stallsButton = document.getElementById('fetch-stalls-direct');
-          if (stallsButton) {
-            stallsButton.addEventListener('click', () => {
-              console.log('Direct event stall button clicked, setting ID:', eventId);
-              setSelectedEventId(eventId);
-              const { loading } = useQuery(GET_STALLS_BY_EVENT_ID, {
-                  variables: {
-                    eventId: eventId
-                  },
-                  fetchPolicy: "network-only",
-                });
-            });
-          }
-        }, 100);
+        // Convert [lng, lat] to [lat, lng]
+        const [lng, lat] = event.location.coordinates;
+        const eventLng = parseFloat(lng);
+        const eventLat = parseFloat(lat);
+
+        if (isNaN(eventLat) || isNaN(eventLng)) {
+          debugEvent(`Invalid coordinates for event ${index}`);
+          return;
+        }
+
+        // Create permanent marker that won't be removed with cleanupAllMarkers
+        const marker = L.marker([eventLat, eventLng], {
+          icon: L.divIcon({
+            html: `
+              <div class="super-debug-marker">
+                <div class="super-debug-pulse"></div>
+                <div class="super-debug-inner">EVENT</div>
+              </div>
+            `,
+            className: '',
+            iconSize: [100, 100],
+            iconAnchor: [50, 50]
+          }),
+          zIndexOffset: 9999
+        }).addTo(map);
+
+        // Add popup
+        marker.bindPopup(`
+          <div style="padding: 10px; min-width: 200px;">
+            <h3 style="font-weight: bold; margin-bottom: 5px;">${event.name || `Event ${index + 1}`}</h3>
+            <p style="font-size: 12px; margin-bottom: 5px;">ID: ${event._id}</p>
+            <p style="font-size: 12px; margin-bottom: 10px;">Coordinates: [${eventLat}, ${eventLng}]</p>
+            <button id="fetch-stalls-${event._id}" style="background: #FF4081; color: white; border: none; 
+              padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%;">
+              Show Event Stalls
+            </button>
+          </div>
+        `);
+
+        // Add event listener
+        marker.on('popupopen', () => {
+          setTimeout(() => {
+            const stallsButton = document.getElementById(`fetch-stalls-${event._id}`);
+            if (stallsButton) {
+              stallsButton.addEventListener('click', () => {
+                console.log('Event stall button clicked, setting ID:', event._id);
+                setSelectedEventId(event._id);
+              });
+            }
+          }, 100);
+        });
+
+        // Store the marker by ID in the permanent collection
+        markersRef.current.eventMarkers[event._id] = marker;
       });
 
-      // Add the marker to the debug markers array for tracking
-      if (!markersRef.current.debug) markersRef.current.debug = [];
-      markersRef.current.debug.push(directMarker);
+      // Focus on first event once
+      if (events.length > 0 && initialFocusOnEvent && !hasInitiallyFocused) {
+        const firstEvent = events[0];
+        if (firstEvent.location && firstEvent.location.coordinates) {
+          const [firstLng, firstLat] = firstEvent.location.coordinates;
+          if (!isNaN(parseFloat(firstLng)) && !isNaN(parseFloat(firstLat))) {
+            // Only focus on initial render
+            setTimeout(() => {
+              map.setView([parseFloat(firstLat), parseFloat(firstLng)], 15);
+              setHasInitiallyFocused(true);
+            }, 1000);
+          }
+        }
+      }
 
-      // Focus map on the event location
-      setTimeout(() => {
-        map.setView([eventLat, eventLng], 15);
-        setEventDebugInfo(`EVENT FOUND at [${eventLat.toFixed(6)}, ${eventLng.toFixed(6)}]`);
-      }, 1000);
+      // Mark events as rendered to prevent re-rendering
+      setHaveEventsBeenRendered(true);
 
-      // No cleanup to ensure the marker stays visible
-    }, [map]);
+    }, [map, initialFocusOnEvent, hasInitiallyFocused, haveEventsBeenRendered]);
 
-    // Use refs for state that doesn't need to trigger re-renders
-    const lastEventRef = useRef<{ time: number, type: string }>({ time: 0, type: '' });
+    // ADD EVENTS WHEN NEW ONES ARRIVE (works with existing ones too)
+    useEffect(() => {
+      // Skip if we haven't initialized the map yet
+      if (!map) return;
+
+      const existingEventIds = Object.keys(markersRef.current.eventMarkers);
+      const newEvents = events.filter(event => !existingEventIds.includes(event._id));
+
+      if (newEvents.length > 0) {
+        debugEvent(`Adding ${newEvents.length} NEW EVENTS to map`, newEvents);
+
+        newEvents.forEach((event, index) => {
+          if (!event.location || !event.location.coordinates) return;
+
+          const [lng, lat] = event.location.coordinates;
+          const eventLng = parseFloat(lng);
+          const eventLat = parseFloat(lat);
+
+          if (isNaN(eventLat) || isNaN(eventLng)) return;
+
+          // Skip if we already have this marker
+          if (markersRef.current.eventMarkers[event._id]) return;
+
+          // Create a new marker
+          const marker = L.marker([eventLat, eventLng], {
+            icon: L.divIcon({
+              html: `
+                <div class="super-debug-marker">
+                  <div class="super-debug-pulse"></div>
+                  <div class="super-debug-inner">EVENT</div>
+                </div>
+              `,
+              className: '',
+              iconSize: [100, 100],
+              iconAnchor: [50, 50]
+            }),
+            zIndexOffset: 9999
+          }).addTo(map);
+
+          // Add popup
+          marker.bindPopup(`
+            <div style="padding: 10px; min-width: 200px;">
+              <h3 style="font-weight: bold; margin-bottom: 5px;">${event.name || `Event ${index + 1}`}</h3>
+              <p style="font-size: 12px; margin-bottom: 5px;">ID: ${event._id}</p>
+              <p style="font-size: 12px; margin-bottom: 10px;">Coordinates: [${eventLat}, ${eventLng}]</p>
+              <button id="fetch-stalls-${event._id}" style="background: #FF4081; color: white; border: none; 
+                padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%;">
+                Show Event Stalls
+              </button>
+            </div>
+          `);
+
+          // Add event listener
+          marker.on('popupopen', () => {
+            setTimeout(() => {
+              const stallsButton = document.getElementById(`fetch-stalls-${event._id}`);
+              if (stallsButton) {
+                stallsButton.addEventListener('click', () => {
+                  setSelectedEventId(event._id);
+                });
+              }
+            }, 100);
+          });
+
+          // Store the marker
+          markersRef.current.eventMarkers[event._id] = marker;
+        });
+      }
+    }, [map, events]);
 
     // GraphQL queries
     const { data: clustersData, refetch: refetchClusters, loading: clustersLoading } = useQuery(GET_RESTAURANT_CLUSTERS, {
@@ -207,15 +290,12 @@ const HomeMapController: React.FC<{
             : [0, 0],
         distance: currentRadius,
         limit: 200,
-        showEvents: activeFilters?.events || true // Always show events in debug mode
+        showEvents: activeFilters?.events || true
       },
       skip: !isInitialized || !currentCenter || currentRadius > 3,
       fetchPolicy: 'network-only',
       onCompleted: (data) => {
         setIsLoading(false);
-        if (debug && data?.allRestaurants?.events) {
-          debugEvent(`Data response received with ${data.allRestaurants.events.length} events`, data.allRestaurants.events);
-        }
       },
     });
 
@@ -240,117 +320,9 @@ const HomeMapController: React.FC<{
       }
     });
 
-    // Debug: Add dynamic markers for events from API response
-    useEffect(() => {
-      if (debug && restaurantsData?.allRestaurants?.events) {
-        debugEvent(`Found ${restaurantsData.allRestaurants.events.length} events in response`, restaurantsData.allRestaurants.events);
-
-        // Remove any existing debug markers (except our direct marker)
-        if (markersRef.current.debug.length > 1) {
-          // Keep the first marker (direct marker) and remove the rest
-          for (let i = 1; i < markersRef.current.debug.length; i++) {
-            if (markersRef.current.debug[i]) map.removeLayer(markersRef.current.debug[i]);
-          }
-          markersRef.current.debug = [markersRef.current.debug[0]];
-        }
-
-        // Process each event in the array
-        restaurantsData.allRestaurants.events.forEach((event, index) => {
-          debugEvent(`Processing event ${index}:`, event);
-
-          try {
-            if (!event.location || !event.location.coordinates) {
-              debugEvent(`Event ${index} missing coordinates`);
-              return;
-            }
-
-            // IMPORTANT: Events use [lng, lat] format, but Leaflet needs [lat, lng]
-            const [lng, lat] = event.location.coordinates;
-            debugEvent(`Raw coordinates: [${lng}, ${lat}]`);
-
-            // Parse coordinates as numbers
-            const eventLng = parseFloat(lng);
-            const eventLat = parseFloat(lat);
-
-            if (isNaN(eventLat) || isNaN(eventLng)) {
-              debugEvent(`Invalid coordinates for event ${index}`);
-              return;
-            }
-
-            debugEvent(`Creating marker at position: [${eventLat}, ${eventLng}]`);
-
-            // Create a visible debug marker (not as visible as the direct marker)
-            const marker = L.marker([eventLat, eventLng], {
-              icon: L.divIcon({
-                html: `
-                  <div class="event-marker-debug">
-                    <span>EVENT ${index}</span>
-                  </div>
-                `,
-                className: '',
-                iconSize: [80, 30],
-                iconAnchor: [40, 15]
-              }),
-              zIndexOffset: 5000
-            }).addTo(map);
-
-            marker.bindPopup(`
-              <div style="padding: 10px;">
-                <h3 style="font-weight: bold;">${event.name || 'Event'}</h3>
-                <p>ID: ${event._id}</p>
-                <p>Coordinates: [${eventLat}, ${eventLng}]</p>
-                <button id="zoom-to-event-${index}" style="background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Zoom Here</button>
-                <button id="fetch-stalls-${index}" style="background: #FF4081; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 5px;">Fetch Stalls</button>
-              </div>
-            `);
-
-            marker.on('popupopen', () => {
-              setTimeout(() => {
-                const zoomButton = document.getElementById(`zoom-to-event-${index}`);
-                if (zoomButton) {
-                  zoomButton.addEventListener('click', () => {
-                    map.setView([eventLat, eventLng], 18);
-                  });
-                }
-
-                const stallsButton = document.getElementById(`fetch-stalls-${index}`);
-                if (stallsButton) {
-                  stallsButton.addEventListener('click', () => {
-                    setSelectedEventId(event._id);
-                  });
-                }
-              }, 100);
-            });
-
-            markersRef.current.debug.push(marker);
-          } catch (error) {
-            debugEvent(`Error processing event ${index}:`, error);
-          }
-        });
-      }
-    }, [restaurantsData, debug, map]);
-
     // Helper functions
     const calculateDistance = (point1: L.LatLng, point2: L.LatLng): number => {
       return point1.distanceTo(point2) / 1000;
-    };
-
-    const fitMapToBounds = () => {
-      if (userLocation) {
-        const radiusInMeters = radius * 1000;
-        const earthCircumference = 40075016.686;
-        const latChange = (radiusInMeters / earthCircumference) * 360;
-        const lngChange = latChange / Math.cos((Math.PI / 180) * userLocation.lat);
-
-        const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
-        const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
-        const bounds = L.latLngBounds(southWest, northEast);
-
-
-        map.fitBounds(bounds, {
-          padding: [50, 50] // Increased padding to ensure the circle fits within the screen
-        });
-      }
     };
 
     const calculateEffectiveRadius = () => {
@@ -378,15 +350,9 @@ const HomeMapController: React.FC<{
       }
     };
 
-    // Reliable cleanup function that removes markers directly from the map
+    // Reliable cleanup function that removes only regular markers, NOT event markers
     const cleanupAllMarkers = useCallback(() => {
-      console.log("Cleaning up markers:",
-        markersRef.current.clusters.length,
-        markersRef.current.restaurants.length,
-        markersRef.current.events.length
-      );
-
-      // Remove all markers from the map first
+      // Remove all normal markers from the map first (not event markers)
       [...markersRef.current.clusters, ...markersRef.current.restaurants, ...markersRef.current.events].forEach(({ marker }) => {
         if (marker) {
           try {
@@ -402,7 +368,7 @@ const HomeMapController: React.FC<{
       markersRef.current.restaurants = [];
       markersRef.current.events = [];
 
-      // Don't clear debug markers during normal cleanup
+      // NOTE: We DO NOT clear eventMarkers here - they are permanent!
     }, [map]);
 
     // Setup user location marker
@@ -431,7 +397,7 @@ const HomeMapController: React.FC<{
     // Debounced fetch function
     const debouncedFetch = useCallback(
       debounce((center: L.LatLng, effectiveRadius: number) => {
-        // Clean up markers before making new API calls
+        // Clean up only regular markers before making new API calls
         cleanupAllMarkers();
 
         // Set loading state
@@ -442,18 +408,16 @@ const HomeMapController: React.FC<{
         } else {
           refetchRestaurants();
         }
-      }, 500), // Match your existing debounce delay
+      }, 500),
       [refetchClusters, refetchRestaurants, cleanupAllMarkers]
     );
 
     // Initialize map
     useEffect(() => {
-      // fitMapToBounds();
       const center = map.getCenter();
       const effectiveRadius = calculateEffectiveRadius();
       setCurrentCenter(center);
       setIsInitialized(true);
-      // onMapMove(center, effectiveRadius);
       setupUserMarker();
 
       if (map.getZoom() > MAX_ZOOM_LEVEL) {
@@ -463,17 +427,11 @@ const HomeMapController: React.FC<{
       // Initial cleanup to clear any stale markers
       cleanupAllMarkers();
 
-      // Cleanup on unmount
+      // Cleanup on unmount - KEEP EVENT MARKERS!
       return () => {
         cleanupAllMarkers();
         if (markersRef.current.user) {
           map.removeLayer(markersRef.current.user);
-        }
-        // Only clean up dynamic debug markers, leave the direct marker
-        if (markersRef.current.debug.length > 1) {
-          for (let i = 1; i < markersRef.current.debug.length; i++) {
-            if (markersRef.current.debug[i]) map.removeLayer(markersRef.current.debug[i]);
-          }
         }
       };
     }, [map, userLocation, radius, setupUserMarker, cleanupAllMarkers]);
@@ -487,11 +445,11 @@ const HomeMapController: React.FC<{
           debouncedFetch(currentCenter, radius);
         }
       }
-    }, [radius, currentCenter, cleanupAllMarkers, debouncedFetch]);
+    }, [radius, currentCenter, cleanupAllMarkers, debouncedFetch, currentRadius]);
 
-    // Consolidated map event handler with debouncing
+    // Map events handler - only clean up regular markers, not event markers
     const handleMapEvent = useCallback((eventType: string) => {
-      // Clear markers immediately for responsive UI
+      // Clear regular markers immediately for responsive UI
       cleanupAllMarkers();
 
       const center = map.getCenter();
@@ -515,7 +473,7 @@ const HomeMapController: React.FC<{
       }
     }, [map, currentRadius, debouncedFetch, onMapMove, cleanupAllMarkers, isLoading, clustersLoading, restaurantsLoading]);
 
-    // Map events binding with separate handlers
+    // Map events binding
     useMapEvents({
       moveend: () => handleMapEvent('moveend'),
       zoomend: () => handleMapEvent('zoomend')
@@ -531,7 +489,7 @@ const HomeMapController: React.FC<{
       }
     }, [currentRadius, prevRadiusAbove3km, currentCenter, cleanupAllMarkers, debouncedFetch]);
 
-    const createCustomIcon = (mapType, user, distance, isAvailable, onboarded, gif, count, __typename) => {
+    const createCustomIcon = (mapType, isAvailable, onboarded, gif, count, __typename) => {
       if (__typename === "RestaurantCluster") {
         return L.divIcon({
           html: `
@@ -545,7 +503,6 @@ const HomeMapController: React.FC<{
           iconSize: L.point(40, 24)
         });
       } else if (__typename === "Event") {
-        // Custom icon for events - made larger and more visible
         return L.divIcon({
           html: `
             <div class="event-marker">
@@ -571,7 +528,7 @@ const HomeMapController: React.FC<{
             </div>
           `,
           className: 'custom-distance-marker',
-          iconSize: L.point(distance ? 80 : 40, 24)
+          iconSize: L.point(40, 24)
         });
       }
     };
@@ -600,8 +557,6 @@ const HomeMapController: React.FC<{
               "HOME",
               false,
               false,
-              false,
-              false,
               null,
               cluster.count,
               "RestaurantCluster"
@@ -619,9 +574,9 @@ const HomeMapController: React.FC<{
         // Update ref
         markersRef.current.clusters = newMarkers;
       }
-    }, [clustersData, map, currentRadius, currentCenter, isLoading]);
+    }, [clustersData, map, currentRadius, currentCenter]);
 
-    // Handle restaurants and events rendering
+    // Handle restaurants rendering
     useEffect(() => {
       if (currentRadius <= 3 && restaurantsData?.allRestaurants && currentCenter) {
         setIsLoading(false);
@@ -639,7 +594,6 @@ const HomeMapController: React.FC<{
         markersRef.current.events = [];
 
         // Create new restaurant markers if restaurants exist
-        // FIX: Removed the !activeFilters?.events condition to show restaurants always
         if (restaurantsData?.allRestaurants?.restaurants) {
           const matchCampaignsWithRestaurants = (restaurants, campaigns) => {
             const campaignsByRestaurant = campaigns?.reduce((acc, campaign) => {
@@ -673,8 +627,6 @@ const HomeMapController: React.FC<{
 
               const customIcon = createCustomIcon(
                 "HOME",
-                false,
-                false,
                 restaurant.isAvailable,
                 restaurant.onboarded,
                 restaurant.gif,
@@ -697,74 +649,8 @@ const HomeMapController: React.FC<{
           // Update ref
           markersRef.current.restaurants = restaurantMarkers;
         }
-
-        // Create new event markers if events exist - directly accessing the events array
-        if (restaurantsData?.allRestaurants?.events) {
-          debugEvent("Creating standard event markers for", restaurantsData.allRestaurants.events.length, "events");
-
-          const eventMarkers: MarkerInfo[] = [];
-
-          restaurantsData.allRestaurants.events.forEach((event, index) => {
-            debugEvent(`Processing standard event ${index}:`, event);
-
-            if (!event.location || !event.location.coordinates) {
-              debugEvent(`Event ${index} has no location or coordinates`);
-              return;
-            }
-
-            // IMPORTANT: Convert from [lng, lat] to [lat, lng] format
-            const [lng, lat] = event.location.coordinates;
-            debugEvent(`Raw coordinates: [${lng}, ${lat}]`);
-
-            // Ensure coordinates are parsed as numbers
-            const eventLng = parseFloat(lng);
-            const eventLat = parseFloat(lat);
-
-            if (isNaN(eventLat) || isNaN(eventLng)) {
-              debugEvent(`Invalid coordinates for event ${index}`);
-              return;
-            }
-
-            debugEvent(`Creating regular marker at position: [${eventLat}, ${eventLng}]`);
-
-            // Always show events regardless of distance
-            const position: L.LatLngExpression = [eventLat, eventLng];
-
-            const customIcon = createCustomIcon(
-              "HOME",
-              false,
-              false,
-              event.isAvailable,
-              false,
-              null,
-              null,
-              "Event"
-            );
-
-            // Create and add marker with larger size for visibility
-            const marker = L.marker(position, {
-              icon: customIcon,
-              zIndexOffset: 1000 // Ensure events appear above other markers
-            })
-              .addTo(map)
-              .bindPopup(`Event: ${event.name || 'Unknown Event'}`)
-              .on('click', () => {
-                debugEvent(`Event ${event._id} clicked, fetching stalls data`);
-                console.log(`Setting selectedEventId to: ${event._id}`);
-                setSelectedEventId(event._id);
-              });
-
-            eventMarkers.push({ marker, id: event._id });
-            debugEvent(`Added regular event marker for event ${index}`);
-          });
-
-          debugEvent(`Created ${eventMarkers.length} regular event markers`);
-
-          // Update event markers ref
-          markersRef.current.events = eventMarkers;
-        }
       }
-    }, [restaurantsData, map, currentRadius, currentCenter, isLoading, activeFilters, handleRestaurant, debug]);
+    }, [restaurantsData, map, currentRadius, currentCenter, handleRestaurant]);
 
     // Modal for displaying stalls data
     const StallsModal = () => {
@@ -823,11 +709,44 @@ const HomeMapController: React.FC<{
           </div>
         )}
 
+        {/* Debug info for events */}
+        {debug && Object.keys(markersRef.current.eventMarkers).length > 0 && (
+          <div className="absolute top-24 left-4 z-[1000] bg-white p-2 rounded shadow-lg text-xs">
+            <div className="font-bold text-green-600">✓ {Object.keys(markersRef.current.eventMarkers).length} events on map</div>
+          </div>
+        )}
+
         {/* Event Stalls Data Modal */}
         {showStallsModal && stallsData && <StallsModal />}
       </>
     );
   };
+
+// FitMapToBounds Component
+const FitMapToBounds = ({ userLocation, radius }) => {
+  const map = useMap();
+
+  function fitBounds() {
+    const radiusInMeters = radius * 1000;
+    const earthCircumference = 40075016.686;
+    const latChange = (radiusInMeters / earthCircumference) * 360;
+    const lngChange = latChange / Math.cos((Math.PI / 180) * userLocation.lat);
+
+    const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
+    const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
+    const bounds = L.latLngBounds(southWest, northEast);
+
+    map.fitBounds(bounds, {
+      padding: [50, 50]
+    });
+  }
+
+  useEffect(() => {
+    fitBounds();
+  }, [userLocation, radius]);
+
+  return null;
+};
 
 // HOME Map Component
 interface HomeMapProps {
@@ -841,31 +760,8 @@ interface HomeMapProps {
   handleRestaurant?: (restaurant: any) => void;
   activeFilters?: any;
   debug?: boolean;
+  events?: any[];
 }
-
-const FitMapToBounds = ({ userLocation, radius }) => {
-
-  const map = useMap()
-  function fitBounds() {
-    const radiusInMeters = radius * 1000;
-    const earthCircumference = 40075016.686;
-    const latChange = (radiusInMeters / earthCircumference) * 360;
-    const lngChange = latChange / Math.cos((Math.PI / 180) * userLocation.lat);
-
-    const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
-    const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
-    const bounds = L.latLngBounds(southWest, northEast);
-
-
-    map.fitBounds(bounds, {
-      padding: [50, 50] // Increased padding to ensure the circle fits within the screen
-    });
-  }
-  useEffect(() => {
-    fitBounds()
-  }, [userLocation, radius])
-  return null
-};
 
 export const HomeMap: React.FC<HomeMapProps> = ({
   height = '100%',
@@ -874,31 +770,47 @@ export const HomeMap: React.FC<HomeMapProps> = ({
   onMapMove = () => { },
   handleRestaurant,
   activeFilters,
-  debug = true // Default to true for testing
+  debug = true,
+  events = []
 }) => {
-
   const [mapCenter, setMapCenter] = useState<L.LatLng>(
     L.latLng(userLocation?.lat || 52.516267, userLocation?.lng || 13.322455)
   );
   const [currentRadius, setCurrentRadius] = useState(radius);
   const [updateRadius, setUpdateRadius] = useState(radius);
-  const [showMap, setShowMap] = useState(false);
-  const [restaurantData, setRestaurantData] = useState({});
+  const eventsRef = useRef(events);
+
+  // Keep events ref updated
+  useEffect(() => {
+    eventsRef.current = events;
+  }, [events]);
 
   useEffect(() => {
     setCurrentRadius(radius);
     setUpdateRadius(radius);
   }, [radius]);
 
-  const handleMapMove = (center: L.LatLng, newRadius: number) => {
-    if (updateRadius > currentRadius) {
-      return
-    }
+  const handleMapMove = useCallback((center: L.LatLng, newRadius: number) => {
+    if (updateRadius > currentRadius) return;
     setMapCenter(center);
     setUpdateRadius(newRadius);
     onMapMove(center, newRadius);
-  };
+  }, [updateRadius, currentRadius, onMapMove]);
 
+  // Create controller with stable memoization
+  const controller = useMemo(() => (
+    <HomeMapController
+      maxCurrentRadius={radius}
+      userLocation={userLocation}
+      radius={updateRadius}
+      onMapMove={handleMapMove}
+      handleRestaurant={handleRestaurant}
+      activeFilters={activeFilters}
+      debug={debug}
+      events={eventsRef.current}
+      initialFocusOnEvent={true}
+    />
+  ), [radius, userLocation, updateRadius, handleMapMove, activeFilters, debug]);
 
   return (
     <div style={{ height, width: '100%' }}>
@@ -910,24 +822,14 @@ export const HomeMap: React.FC<HomeMapProps> = ({
         minZoom={3}
         maxZoom={MAX_ZOOM_LEVEL}
         zoomControl={true}
+        key="map-container"
       >
         <TileLayer url={config.api.maps.tiles} />
         <TileErrorHandler />
-        {
-          useMemo(() => (
-            <FitMapToBounds userLocation={userLocation} radius={radius} />
-          ), [radius, userLocation])}
-        {useMemo(() => (
-          <HomeMapController
-            maxCurrentRadius={radius}
-            userLocation={userLocation}
-            radius={updateRadius}
-            onMapMove={handleMapMove}
-            handleRestaurant={handleRestaurant}
-            activeFilters={activeFilters}
-            debug={debug}
-          />
-        ), [radius, userLocation, updateRadius, handleMapMove, activeFilters, debug])}
+
+        <FitMapToBounds userLocation={userLocation} radius={radius} />
+
+        {controller}
 
         <Circle
           center={mapCenter}
@@ -1018,7 +920,6 @@ export const LocationSelectorMap: React.FC<LocationSelectorMapProps> = ({
     : [52.516267, 13.322455]; // Default center if no initial location
 
   const handleLocationSelect = useCallback((location: { lat: number; lng: number }) => {
-    console.log('Location selected:', location);
     onLocationSelected(location);
   }, [onLocationSelected]);
 
@@ -1028,7 +929,6 @@ export const LocationSelectorMap: React.FC<LocationSelectorMapProps> = ({
         center={center as L.LatLngExpression}
         zoom={16}
         style={{ height: '100%', width: '100%' }}
-        // className="rounded-lg"
         minZoom={3}
         maxZoom={MAX_ZOOM_LEVEL}
         zoomControl={true}
@@ -1072,13 +972,12 @@ const RestaurantDetailController: React.FC<{
       restaurantMarker?: L.Marker;
     }>({});
 
-
     const createCurvedPolyline = (startPoint: L.LatLng, endPoint: L.LatLng, map: L.Map): L.Polyline => {
       // Midpoint for basic quadratic curve
       const midLat = (startPoint.lat + endPoint.lat) / 2;
       const midLng = (startPoint.lng + endPoint.lng) / 2;
 
-      // Create a control point for the curve (adjust these values to control the curve shape)
+      // Create a control point for the curve
       const controlPoint = L.latLng(
         midLat + Math.abs(startPoint.lat - endPoint.lat) * 0.5,
         midLng + Math.abs(startPoint.lng - endPoint.lng) * 0.2
@@ -1087,14 +986,8 @@ const RestaurantDetailController: React.FC<{
       // Generate curve points
       const curvePoints = [];
       for (let t = 0; t <= 1; t += 0.01) {
-        const lat =
-          Math.pow(1 - t, 2) * startPoint.lat +
-          2 * (1 - t) * t * controlPoint.lat +
-          Math.pow(t, 2) * endPoint.lat;
-        const lng =
-          Math.pow(1 - t, 2) * startPoint.lng +
-          2 * (1 - t) * t * controlPoint.lng +
-          Math.pow(t, 2) * endPoint.lng;
+        const lat = Math.pow(1 - t, 2) * startPoint.lat + 2 * (1 - t) * t * controlPoint.lat + Math.pow(t, 2) * endPoint.lat;
+        const lng = Math.pow(1 - t, 2) * startPoint.lng + 2 * (1 - t) * t * controlPoint.lng + Math.pow(t, 2) * endPoint.lng;
         curvePoints.push([lat, lng]);
       }
 
@@ -1116,28 +1009,23 @@ const RestaurantDetailController: React.FC<{
       if (routeElements.restaurantMarker) routeElements.restaurantMarker.remove();
 
       if (userLocation && restaurantLocation) {
-
         const startPoint = L.latLng(userLocation.lat, userLocation.lng);
         const endPoint = L.latLng(restaurantLocation.lat, restaurantLocation.lng);
         const polyline = createCurvedPolyline(startPoint, endPoint, map);
+
         // Add user marker
         const userMarker = L.marker([userLocation.lat, userLocation.lng]).addTo(map);
 
         // Add restaurant marker
-        const restaurantMarker = L.marker([restaurantLocation.lat, restaurantLocation.lng],
-          {
-            icon: L.icon({
-
-              iconUrl: MarketSvg, // Replace with your icon path
-              // shadowUrl: MarkerShadow, // Optional shadow
-              iconSize: [25, 41], // Size of the icon
-              iconAnchor: [12, 30], // Point of the icon which corresponds to marker's location
-              popupAnchor: [1, -34], // Point from which the popup should open relative to the iconAnchor
-              shadowSize: [41, 41] // Size of the shadow
-
-            })
-          }
-        ).addTo(map);
+        const restaurantMarker = L.marker([restaurantLocation.lat, restaurantLocation.lng], {
+          icon: L.icon({
+            iconUrl: MarketSvg,
+            iconSize: [25, 41],
+            iconAnchor: [12, 30],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+          })
+        }).addTo(map);
 
         // Fit bounds to show both markers
         const bounds = L.latLngBounds([
