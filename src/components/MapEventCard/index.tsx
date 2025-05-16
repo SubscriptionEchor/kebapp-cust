@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useQuery } from '@apollo/client';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import HorizontalCard from '../RestaurantCard/HorizontalCard';
+import { GET_STALLS_BY_EVENT_ID } from '../../graphql/queries';
 import './style.css';
 
 // SVG icons as React components for better styling control
@@ -60,83 +62,75 @@ const StatusIcon = () => (
     </svg>
 );
 
-// Mock data
-const MOCK_STALLS = [
-    {
-        "_id": "681b61d62ee6803e5e0b7fcc",
-        "name": "Test Stall 1",
-        "address": "Lindenstraße 37a",
-        "reviewAverage": 4.1,
-        "reviewCount": 0,
-        "favoriteCount": 0,
-        "cuisines": ["Kebapp"],
-        "onboarded": true
-    },
-    {
-        "_id": "6821a072a57dd15e247ed333",
-        "name": "Test Stall 2",
-        "address": "Lindenstraße 37a",
-        "reviewAverage": 4.1,
-        "reviewCount": 0,
-        "favoriteCount": 0,
-        "cuisines": ["Kebapp"],
-        "onboarded": true
-    }
-];
-
 // Stalls Flyout component
-const StallsFlyout = ({ stalls, onClose, isLoading }) => {
-    // Fix: Explicit handler with stopPropagation
-    const handleCloseClick = (e) => {
+const StallsFlyout = ({ stalls, onClose, isLoading, error }) => {
+    const handleCloseBtnClick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (onClose) onClose();
+        onClose();
+    };
+
+    const handleBackdropClick = (e) => {
+        // Only close if clicking on the flyout backdrop itself
+        if (e.target.classList.contains('stalls-flyout')) {
+            onClose();
+        }
+    };
+
+    const handleContentClick = (e) => {
+        e.stopPropagation();
     };
 
     return (
-        <div className="stalls-flyout">
-            <div className="stalls-flyout-header">
-                <h3>Event Stalls ({stalls.length})</h3>
-                <button
-                    className="stalls-close-btn"
-                    onClick={handleCloseClick}
-                    type="button"
-                >
-                    <CloseIcon />
-                </button>
-            </div>
+        <div className="stalls-flyout" onClick={handleBackdropClick}>
+            <div onClick={handleContentClick}>
+                <div className="stalls-flyout-header">
+                    <h3>Event Stalls ({stalls?.length || 0})</h3>
+                    <button
+                        className="stalls-close-btn"
+                        onClick={handleCloseBtnClick}
+                        type="button"
+                    >
+                        <CloseIcon />
+                    </button>
+                </div>
 
-            <div className="stalls-flyout-content">
-                {isLoading ? (
-                    <div className="stalls-loading">
-                        <div className="spinner"></div>
-                        <p>Loading stalls...</p>
-                    </div>
-                ) : stalls?.length > 0 ? (
-                    <div className="stalls-list">
-                        {stalls.map((stall) => (
-                            <div className="stall-card-wrapper" key={stall._id}>
-                                <HorizontalCard
-                                    id={stall._id}
-                                    name={stall.name || "Stall"}
-                                    image={stall.image || null}
-                                    rating={stall.reviewAverage || 4.0}
-                                    cuisine={stall.cuisines?.[0] || "Food"}
-                                    distance={"At event"}
-                                    description={stall.address || "Food stall"}
-                                    likes={stall.favoriteCount || 0}
-                                    reviews={stall.reviewCount || 0}
-                                    onboarded={stall.onboarded || false}
-                                    campaigns={[]}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="stalls-empty">
-                        <p>No stalls found for this event.</p>
-                    </div>
-                )}
+                <div className="stalls-flyout-content">
+                    {isLoading ? (
+                        <div className="stalls-loading">
+                            <div className="spinner"></div>
+                            <p>Loading stalls...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="stalls-empty">
+                            <p>Error loading stalls: {error.message}</p>
+                        </div>
+                    ) : stalls?.length > 0 ? (
+                        <div className="stalls-list">
+                            {stalls.map((stall) => (
+                                <div className="stall-card-wrapper" key={stall._id}>
+                                    <HorizontalCard
+                                        id={stall._id}
+                                        name={stall.name || "Stall"}
+                                        image={stall.image || null}
+                                        rating={stall.reviewAverage || 4.0}
+                                        cuisine={stall.cuisines?.[0] || "Food"}
+                                        distance={"At event"}
+                                        description={stall.address || "Food stall"}
+                                        likes={stall.favoriteCount || 0}
+                                        reviews={stall.reviewCount || 0}
+                                        onboarded={stall.onboarded || false}
+                                        campaigns={[]}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="stalls-empty">
+                            <p>No stalls found for this event.</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -145,7 +139,15 @@ const StallsFlyout = ({ stalls, onClose, isLoading }) => {
 const MapEventCard = ({ data, onClose, onVisitStalls }) => {
     const { t } = useTranslation();
     const [showStallsFlyout, setShowStallsFlyout] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+
+    // GraphQL query to fetch stalls data
+    const { data: stallsData, loading: stallsLoading, error: stallsError } = useQuery(GET_STALLS_BY_EVENT_ID, {
+        variables: {
+            eventId: data?._id
+        },
+        skip: !showStallsFlyout || !data?._id,
+        fetchPolicy: 'network-only'
+    });
 
     // Format date from timestamp
     const formatEventDate = (timestamp) => {
@@ -182,11 +184,15 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
         }
     };
 
-    // Fix: Enhanced close handler with preventDefault
+    // Handle close - stop propagation to prevent interference
     const handleClose = (e) => {
-        e.preventDefault();
         e.stopPropagation();
-        if (onClose) onClose();
+        onClose();
+    };
+
+    // Prevent closing when clicking inside the card
+    const handleCardClick = (e) => {
+        e.stopPropagation();
     };
 
     const onClickViewDirections = () => {
@@ -209,19 +215,13 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
         }
     };
 
-    // Simple stalls handler with mock data
+    // Handle visit stalls - show flyout and trigger query
     const handleVisitStalls = () => {
-        setIsLoading(true);
         setShowStallsFlyout(true);
-
-        // Simulate API delay
-        setTimeout(() => {
-            setIsLoading(false);
-            if (onVisitStalls) onVisitStalls(data?._id);
-        }, 1000);
+        if (onVisitStalls) onVisitStalls(data?._id);
     };
 
-    // Fix: Added explicit function for closing stalls flyout
+    // Handle close stalls flyout
     const handleCloseStallsFlyout = () => {
         setShowStallsFlyout(false);
     };
@@ -231,14 +231,17 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
     // Calculate active status
     const isEventActive = data?.isActive && data?.isAvailable;
 
+    // Get stalls from query result
+    const stalls = stallsData?.getStallsByEventId || [];
+
     return (
-        <div className="event-card-container">
-            <div className="event-card">
+        <div className="event-card-container" onClick={handleClose}>
+            <div className="event-card" onClick={handleCardClick}>
                 {/* Header with yellow background */}
                 <div className="event-card-header">
                     <div className="event-badge">EVENT</div>
 
-                    {/* Close button - Fixed with type and clear handler */}
+                    {/* Close button */}
                     <button
                         className="event-close-btn"
                         onClick={handleClose}
@@ -342,23 +345,24 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                     <button
                         className="action-btn stalls-btn"
                         onClick={handleVisitStalls}
-                        disabled={isLoading}
+                        disabled={stallsLoading}
                         type="button"
                     >
                         <StallsIcon />
                         <span>
-                            {isLoading ? 'Loading...' : (t('events.visitStalls') || 'Visit Stalls')}
+                            {stallsLoading ? 'Loading...' : ('Visit Stalls')}
                         </span>
                     </button>
                 </div>
             </div>
 
-            {/* Stalls Flyout with mock data - Fixed callback */}
+            {/* Stalls Flyout with real data */}
             {showStallsFlyout && (
                 <StallsFlyout
-                    stalls={MOCK_STALLS}
+                    stalls={stalls}
                     onClose={handleCloseStallsFlyout}
-                    isLoading={isLoading}
+                    isLoading={stallsLoading}
+                    error={stallsError}
                 />
             )}
         </div>

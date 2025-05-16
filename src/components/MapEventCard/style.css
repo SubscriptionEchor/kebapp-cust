@@ -45,7 +45,7 @@
     justify-content: center;
     border: none;
     cursor: pointer;
-    z-index: 10;
+    z-index: 1000;
     transition: background-color 0.2s;
 }
 
@@ -345,13 +345,13 @@
 }
 
 .super-debug-inner {
-    background: #FFCD38 !important;
+    background: #09907c !important;
     /* Change to yellow to match the card */
     color: #000000 !important;
     transition: all 0.2s ease;
 }
 
 .super-debug-pulse {
-    background: rgba(255, 205, 56, 0.4) !important;
+    background: rgba(65, 24, 0, 0.4) !important;
     /* Change to yellow to match the card */
 }
