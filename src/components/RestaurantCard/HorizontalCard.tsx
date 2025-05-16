@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Heart, Loader2, Users, MapPin, MessageCircleCode, Sparkles, BadgePercent } from 'lucide-react';
+import { Star, Heart, Loader2, Users, MapPin, MessageCircleCode, Sparkles, BadgePercent, AlertTriangle } from 'lucide-react';
 import { useFavorite } from '../../hooks/useFavorite';
 import { useRestaurantNotifications } from '../../hooks/useRestaurantNotifications';
 import { useBootstrap } from '../../context/BootstrapContext';

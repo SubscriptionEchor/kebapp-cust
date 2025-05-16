@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import HorizontalCard from '../RestaurantCard/HorizontalCard';
 import './style.css';
 
 // SVG icons as React components for better styling control
@@ -59,8 +60,92 @@ const StatusIcon = () => (
     </svg>
 );
 
+// Mock data
+const MOCK_STALLS = [
+    {
+        "_id": "681b61d62ee6803e5e0b7fcc",
+        "name": "Test Stall 1",
+        "address": "Lindenstraße 37a",
+        "reviewAverage": 4.1,
+        "reviewCount": 0,
+        "favoriteCount": 0,
+        "cuisines": ["Kebapp"],
+        "onboarded": true
+    },
+    {
+        "_id": "6821a072a57dd15e247ed333",
+        "name": "Test Stall 2",
+        "address": "Lindenstraße 37a",
+        "reviewAverage": 4.1,
+        "reviewCount": 0,
+        "favoriteCount": 0,
+        "cuisines": ["Kebapp"],
+        "onboarded": true
+    }
+];
+
+// Stalls Flyout component
+const StallsFlyout = ({ stalls, onClose, isLoading }) => {
+    // Fix: Explicit handler with stopPropagation
+    const handleCloseClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onClose) onClose();
+    };
+
+    return (
+        <div className="stalls-flyout">
+            <div className="stalls-flyout-header">
+                <h3>Event Stalls ({stalls.length})</h3>
+                <button
+                    className="stalls-close-btn"
+                    onClick={handleCloseClick}
+                    type="button"
+                >
+                    <CloseIcon />
+                </button>
+            </div>
+
+            <div className="stalls-flyout-content">
+                {isLoading ? (
+                    <div className="stalls-loading">
+                        <div className="spinner"></div>
+                        <p>Loading stalls...</p>
+                    </div>
+                ) : stalls?.length > 0 ? (
+                    <div className="stalls-list">
+                        {stalls.map((stall) => (
+                            <div className="stall-card-wrapper" key={stall._id}>
+                                <HorizontalCard
+                                    id={stall._id}
+                                    name={stall.name || "Stall"}
+                                    image={stall.image || null}
+                                    rating={stall.reviewAverage || 4.0}
+                                    cuisine={stall.cuisines?.[0] || "Food"}
+                                    distance={"At event"}
+                                    description={stall.address || "Food stall"}
+                                    likes={stall.favoriteCount || 0}
+                                    reviews={stall.reviewCount || 0}
+                                    onboarded={stall.onboarded || false}
+                                    campaigns={[]}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="stalls-empty">
+                        <p>No stalls found for this event.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const MapEventCard = ({ data, onClose, onVisitStalls }) => {
     const { t } = useTranslation();
+    const [showStallsFlyout, setShowStallsFlyout] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Format date from timestamp
     const formatEventDate = (timestamp) => {
@@ -73,46 +158,33 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
         }
     };
 
-    // Format short date (May 5)
-    const formatShortDate = (timestamp) => {
-        if (!timestamp) return '';
-        try {
-            const date = new Date(parseInt(timestamp));
-            return format(date, 'MMMM d');
-        } catch (e) {
-            return timestamp;
-        }
-    };
-
     // Format date range
     const formatDateRange = () => {
         if (!data?.startDate) return '';
 
         try {
             const startDate = new Date(parseInt(data.startDate));
+            const endDate = data?.endDate ? new Date(parseInt(data.endDate)) : null;
 
-            if (!data?.endDate) return formatShortDate(data.startDate) + ', ' + format(startDate, 'yyyy');
+            if (!endDate) return format(startDate, 'MMMM d, yyyy');
 
-            const endDate = new Date(parseInt(data.endDate));
-
-            if (startDate.getFullYear() === endDate.getFullYear() &&
-                startDate.getMonth() === endDate.getMonth()) {
-                // Same month and year
-                return `${format(startDate, 'MMMM d')} - ${format(endDate, 'd')}, ${format(startDate, 'yyyy')}`;
-            } else if (startDate.getFullYear() === endDate.getFullYear()) {
-                // Same year
+            if (startDate.getFullYear() === endDate.getFullYear()) {
+                if (startDate.getMonth() === endDate.getMonth()) {
+                    return `${format(startDate, 'MMMM d')} - ${format(endDate, 'd')}, ${format(startDate, 'yyyy')}`;
+                }
                 return `${format(startDate, 'MMMM d')} - ${format(endDate, 'MMMM d')}, ${format(startDate, 'yyyy')}`;
-            } else {
-                // Different years
-                return `${format(startDate, 'MMMM d, yyyy')} - ${format(endDate, 'MMMM d, yyyy')}`;
             }
+
+            return `${format(startDate, 'MMMM d, yyyy')} - ${format(endDate, 'MMMM d, yyyy')}`;
         } catch (e) {
             console.error("Error formatting date range", e);
             return '';
         }
     };
 
+    // Fix: Enhanced close handler with preventDefault
     const handleClose = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         if (onClose) onClose();
     };
@@ -137,8 +209,21 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
         }
     };
 
+    // Simple stalls handler with mock data
     const handleVisitStalls = () => {
-        if (onVisitStalls) onVisitStalls(data?._id);
+        setIsLoading(true);
+        setShowStallsFlyout(true);
+
+        // Simulate API delay
+        setTimeout(() => {
+            setIsLoading(false);
+            if (onVisitStalls) onVisitStalls(data?._id);
+        }, 1000);
+    };
+
+    // Fix: Added explicit function for closing stalls flyout
+    const handleCloseStallsFlyout = () => {
+        setShowStallsFlyout(false);
     };
 
     if (!data) return null;
@@ -153,8 +238,12 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                 <div className="event-card-header">
                     <div className="event-badge">EVENT</div>
 
-                    {/* Close button */}
-                    <button className="event-close-btn" onClick={handleClose}>
+                    {/* Close button - Fixed with type and clear handler */}
+                    <button
+                        className="event-close-btn"
+                        onClick={handleClose}
+                        type="button"
+                    >
                         <CloseIcon />
                     </button>
                 </div>
@@ -244,6 +333,7 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                     <button
                         className="action-btn directions-btn"
                         onClick={onClickViewDirections}
+                        type="button"
                     >
                         <DirectionsIcon />
                         <span>{t('mapfilters.getdirections') || 'Get Directions'}</span>
@@ -252,12 +342,25 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                     <button
                         className="action-btn stalls-btn"
                         onClick={handleVisitStalls}
+                        disabled={isLoading}
+                        type="button"
                     >
                         <StallsIcon />
-                        <span>{'Visit Stalls'}</span>
+                        <span>
+                            {isLoading ? 'Loading...' : (t('events.visitStalls') || 'Visit Stalls')}
+                        </span>
                     </button>
                 </div>
             </div>
+
+            {/* Stalls Flyout with mock data - Fixed callback */}
+            {showStallsFlyout && (
+                <StallsFlyout
+                    stalls={MOCK_STALLS}
+                    onClose={handleCloseStallsFlyout}
+                    isLoading={isLoading}
+                />
+            )}
         </div>
     );
 };

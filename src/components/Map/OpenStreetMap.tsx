@@ -285,7 +285,6 @@ const HomeMapController: React.FC<{
       fetchPolicy: 'network-only',
       onCompleted: (data) => {
         if (data && data.getStallsByEventId) {
-          alert(JSON.stringify(data))
           setShowStallsModal(true);
           debugEvent("Stalls data received:", data.getStallsByEventId);
         } else {
@@ -791,7 +790,7 @@ export const HomeMap: React.FC<HomeMapProps> = ({
   const handleVisitStalls = useCallback((eventId) => {
     console.log('Visit stalls clicked for event:', eventId);
     // Will implement actual routing later
-    alert(`Redirecting to stalls for event ${eventId}. This will be implemented later.`);
+    //alert(`Redirecting to stalls for event ${eventId}. This will be implemented later.`);
   }, []);
 
   // Create controller with stable memoization
