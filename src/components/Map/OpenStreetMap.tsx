@@ -8,6 +8,7 @@ import { GET_RESTAURANT_CLUSTERS, GET_RESTAURANTS_MAP_API, GET_STALLS_BY_EVENT_I
 import { config } from '../../config';
 import MarketSvg from '../../assets/svg/KebappLogo.svg';
 import Kebab from "../../assets/svg/kebabBlack.svg";
+import MapEventCard from '../MapEventCard';
 import "./style.css"
 
 // Debug helper function
@@ -56,6 +57,7 @@ const HomeMapController: React.FC<{
   maxCurrentRadius: number;
   onMapMove: (center: L.LatLng, radius: number) => void;
   handleRestaurant?: (restaurant: any) => void;
+  handleEvent?: (event: any) => void;
   activeFilters?: any;
   debug?: boolean;
   events?: any[];
@@ -66,6 +68,7 @@ const HomeMapController: React.FC<{
   radius,
   onMapMove,
   handleRestaurant = () => { },
+  handleEvent = () => { },
   activeFilters = {},
   debug = true,
   events = [],
@@ -96,10 +99,22 @@ const HomeMapController: React.FC<{
     const [showStallsModal, setShowStallsModal] = useState(false);
     const [hasInitiallyFocused, setHasInitiallyFocused] = useState(false);
     const [haveEventsBeenRendered, setHaveEventsBeenRendered] = useState(false);
+    const [eventDataMap, setEventDataMap] = useState({});
 
-    // Keep events ref updated
+    // Keep events ref updated and build event data map
     useEffect(() => {
       eventsRef.current = events;
+
+      // Build a map of event ID to event data for quick lookup
+      const newEventDataMap = {};
+      if (events && events.length > 0) {
+        events.forEach(event => {
+          if (event && event._id) {
+            newEventDataMap[event._id] = event;
+          }
+        });
+      }
+      setEventDataMap(newEventDataMap);
     }, [events]);
 
     // Handle events - THIS SHOULD ONLY RUN ONCE
@@ -144,29 +159,10 @@ const HomeMapController: React.FC<{
         }).addTo(map);
 
         // Add popup
-        marker.bindPopup(`
-          <div style="padding: 10px; min-width: 200px;">
-            <h3 style="font-weight: bold; margin-bottom: 5px;">${event.name || `Event ${index + 1}`}</h3>
-            <p style="font-size: 12px; margin-bottom: 5px;">ID: ${event._id}</p>
-            <p style="font-size: 12px; margin-bottom: 10px;">Coordinates: [${eventLat}, ${eventLng}]</p>
-            <button id="fetch-stalls-${event._id}" style="background: #FF4081; color: white; border: none; 
-              padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%;">
-              Show Event Stalls
-            </button>
-          </div>
-        `);
 
-        // Add event listener
-        marker.on('popupopen', () => {
-          setTimeout(() => {
-            const stallsButton = document.getElementById(`fetch-stalls-${event._id}`);
-            if (stallsButton) {
-              stallsButton.addEventListener('click', () => {
-                console.log('Event stall button clicked, setting ID:', event._id);
-                setSelectedEventId(event._id);
-              });
-            }
-          }, 100);
+        // Add click handler to show event card
+        marker.on('click', () => {
+          handleEvent(event);
         });
 
         // Store the marker by ID in the permanent collection
@@ -191,7 +187,7 @@ const HomeMapController: React.FC<{
       // Mark events as rendered to prevent re-rendering
       setHaveEventsBeenRendered(true);
 
-    }, [map, initialFocusOnEvent, hasInitiallyFocused, haveEventsBeenRendered]);
+    }, [map, initialFocusOnEvent, hasInitiallyFocused, haveEventsBeenRendered, handleEvent]);
 
     // ADD EVENTS WHEN NEW ONES ARRIVE (works with existing ones too)
     useEffect(() => {
@@ -222,7 +218,7 @@ const HomeMapController: React.FC<{
               html: `
                 <div class="super-debug-marker">
                   <div class="super-debug-pulse"></div>
-                  <div class="super-debug-inner">EVENT</div>
+                  <div class="super-debug-inner"></div>
                 </div>
               `,
               className: '',
@@ -232,36 +228,17 @@ const HomeMapController: React.FC<{
             zIndexOffset: 9999
           }).addTo(map);
 
-          // Add popup
-          marker.bindPopup(`
-            <div style="padding: 10px; min-width: 200px;">
-              <h3 style="font-weight: bold; margin-bottom: 5px;">${event.name || `Event ${index + 1}`}</h3>
-              <p style="font-size: 12px; margin-bottom: 5px;">ID: ${event._id}</p>
-              <p style="font-size: 12px; margin-bottom: 10px;">Coordinates: [${eventLat}, ${eventLng}]</p>
-              <button id="fetch-stalls-${event._id}" style="background: #FF4081; color: white; border: none; 
-                padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%;">
-                Show Event Stalls
-              </button>
-            </div>
-          `);
 
-          // Add event listener
-          marker.on('popupopen', () => {
-            setTimeout(() => {
-              const stallsButton = document.getElementById(`fetch-stalls-${event._id}`);
-              if (stallsButton) {
-                stallsButton.addEventListener('click', () => {
-                  setSelectedEventId(event._id);
-                });
-              }
-            }, 100);
+          // Add click handler to show event card
+          marker.on('click', () => {
+            handleEvent(event);
           });
 
           // Store the marker
           markersRef.current.eventMarkers[event._id] = marker;
         });
       }
-    }, [map, events]);
+    }, [map, events, handleEvent]);
 
     // GraphQL queries
     const { data: clustersData, refetch: refetchClusters, loading: clustersLoading } = useQuery(GET_RESTAURANT_CLUSTERS, {
@@ -308,6 +285,7 @@ const HomeMapController: React.FC<{
       fetchPolicy: 'network-only',
       onCompleted: (data) => {
         if (data && data.getStallsByEventId) {
+          alert(JSON.stringify(data))
           setShowStallsModal(true);
           debugEvent("Stalls data received:", data.getStallsByEventId);
         } else {
@@ -779,6 +757,7 @@ export const HomeMap: React.FC<HomeMapProps> = ({
   const [currentRadius, setCurrentRadius] = useState(radius);
   const [updateRadius, setUpdateRadius] = useState(radius);
   const eventsRef = useRef(events);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   // Keep events ref updated
   useEffect(() => {
@@ -797,6 +776,24 @@ export const HomeMap: React.FC<HomeMapProps> = ({
     onMapMove(center, newRadius);
   }, [updateRadius, currentRadius, onMapMove]);
 
+  // Handle event click
+  const handleEvent = useCallback((event) => {
+    console.log('Event clicked:', event);
+    setSelectedEvent(event);
+  }, []);
+
+  // Handle close event card
+  const handleCloseEventCard = useCallback(() => {
+    setSelectedEvent(null);
+  }, []);
+
+  // Handle visit stalls
+  const handleVisitStalls = useCallback((eventId) => {
+    console.log('Visit stalls clicked for event:', eventId);
+    // Will implement actual routing later
+    alert(`Redirecting to stalls for event ${eventId}. This will be implemented later.`);
+  }, []);
+
   // Create controller with stable memoization
   const controller = useMemo(() => (
     <HomeMapController
@@ -805,12 +802,13 @@ export const HomeMap: React.FC<HomeMapProps> = ({
       radius={updateRadius}
       onMapMove={handleMapMove}
       handleRestaurant={handleRestaurant}
+      handleEvent={handleEvent}
       activeFilters={activeFilters}
       debug={debug}
       events={eventsRef.current}
       initialFocusOnEvent={true}
     />
-  ), [radius, userLocation, updateRadius, handleMapMove, activeFilters, debug]);
+  ), [radius, userLocation, updateRadius, handleMapMove, handleRestaurant, handleEvent, activeFilters, debug]);
 
   return (
     <div style={{ height, width: '100%' }}>
@@ -849,6 +847,15 @@ export const HomeMap: React.FC<HomeMapProps> = ({
           </div>
         </div>
       </MapContainer>
+
+      {/* Event Card */}
+      {selectedEvent && (
+        <MapEventCard
+          data={selectedEvent}
+          onClose={handleCloseEventCard}
+          onVisitStalls={handleVisitStalls}
+        />
+      )}
     </div>
   );
 };
