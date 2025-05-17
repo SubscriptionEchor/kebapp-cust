@@ -6,51 +6,64 @@
     right: 0;
     z-index: 1000;
     padding: 0 16px 16px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .event-card {
     background-color: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
     pointer-events: auto;
     transform: translateY(0);
     animation: slideUp 0.3s ease;
+    border: 1px solid #E5E7EB;
 }
 
 @keyframes slideUp {
     from {
         transform: translateY(100%);
-        opacity: 0;
     }
 
     to {
         transform: translateY(0);
-        opacity: 1;
     }
 }
 
 .event-close-btn,
 .stalls-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
     z-index: 10;
-    transition: background-color 0.2s;
 }
 
 .event-close-btn:hover,
 .stalls-close-btn:hover {
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.8);
+    transform: scale(1.05);
+}
+
+.event-close-btn:active,
+.stalls-close-btn:active {
+    transform: scale(0.95);
 }
 
 .event-card-header {
@@ -182,7 +195,7 @@
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: transform 0.2s, opacity 0.2s;
+    transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
 }
 
 .action-btn:active {
@@ -196,6 +209,7 @@
 
 .directions-btn:hover {
     background-color: #E5E7EB;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .stalls-btn {
@@ -205,9 +219,21 @@
 
 .stalls-btn:hover {
     background-color: #1F2937;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Stalls Flyout Styles */
+/* Improved Stalls Flyout Styles */
+.stalls-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    animation: fadeIn 0.3s ease;
+}
+
 .stalls-flyout {
     position: fixed;
     top: 0;
@@ -217,15 +243,12 @@
     max-width: 480px;
     background-color: white;
     box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
-    z-index: 1100;
+    z-index: 1101;
     display: flex;
     flex-direction: column;
     animation: slideInRight 0.3s ease;
     overflow: hidden;
-}
-
-.stalls-flyout-content-wrapper {
-    /* Remove this class - not needed anymore */
+    border-radius: 12px 0 0 12px;
 }
 
 @keyframes slideInRight {
@@ -239,20 +262,27 @@
 }
 
 .stalls-flyout-header {
-    padding: 16px;
-    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 20px;
+    background-color: #FFCD38;
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #FFCD38;
     color: black;
-    position: relative;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.stalls-flyout-header h3 {
+.stalls-flyout-title {
     margin: 0;
     font-size: 18px;
     font-weight: 700;
+    line-height: 1.3;
+}
+
+.stalls-close-btn {
+    position: relative;
+    top: 0;
+    right: 0;
 }
 
 .stalls-flyout-content {
@@ -261,32 +291,26 @@
     overflow-y: auto;
 }
 
-/* Changed from grid to list for vertical layout */
+/* Improved list styling */
 .stalls-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
     width: 100%;
+    padding-bottom: 70px;
+    /* Space for footer */
 }
 
-/* Wrapper class to ensure cards take full width */
 .stall-card-wrapper {
     width: 100%;
+    transition: transform 0.2s;
 }
 
-/* Make sure the HorizontalCard components take full width */
-.stall-card-wrapper>div {
-    width: 100% !important;
+.stall-card-wrapper:hover {
+    transform: translateY(-2px);
 }
 
-/* Keep original grid class for backwards compatibility but make it vertical */
-.stalls-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-}
-
+/* Loading state styling */
 .stalls-loading {
     display: flex;
     flex-direction: column;
@@ -312,13 +336,91 @@
     }
 }
 
-.stalls-empty {
+/* Error state styling */
+.stalls-error {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 200px;
     color: #6B7280;
     text-align: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.stalls-error-btn {
+    background-color: #EF4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.stalls-error-btn:hover {
+    background-color: #DC2626;
+}
+
+/* Empty state styling */
+.stalls-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6B7280;
+    text-align: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.stalls-empty-btn {
+    background-color: #6B7280;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.stalls-empty-btn:hover {
+    background-color: #4B5563;
+}
+
+/* Footer with home button */
+.stalls-flyout-footer {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+.stalls-home-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #FFCD38;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.stalls-home-btn:hover {
+    transform: scale(1.05);
+    background-color: #ffd659;
+}
+
+.stalls-home-btn:active {
+    transform: scale(0.95);
 }
 
 /* Media query for smaller screens */
@@ -335,31 +437,6 @@
     .stalls-flyout {
         width: 100%;
         max-width: none;
+        border-radius: 0;
     }
-}
-
-/* Make event icon on map more visually attractive */
-.super-debug-marker {
-    transition: transform 0.2s ease;
-}
-
-.super-debug-marker:hover {
-    transform: scale(1.1);
-    cursor: pointer;
-}
-
-.super-debug-inner {
-    background: #09907c !important;
-    /* Change to yellow to match the card */
-    color: #000000 !important;
-    transition: all 0.2s ease;
-}
-
-.super-debug-pulse {
-    background: rgba(65, 11, 0, 0.4) !important;
-    /* Change to yellow to match the card */
-}
-
-.card-width {
-    width: auto !important;
 }

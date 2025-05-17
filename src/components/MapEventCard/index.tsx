@@ -62,112 +62,72 @@ const StatusIcon = () => (
     </svg>
 );
 
-// ULTRA SIMPLE Stalls Flyout component - removing all complex event handling
-const StallsFlyout = ({ stalls, onClose, isLoading, error }) => {
+// Improved Stalls Flyout component with animations and better UX
+const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
+    const handleBackdropClick = (e) => {
+        e.stopPropagation();
+        onClose();
+    };
+
+    const handleContentClick = (e) => {
+        e.stopPropagation();
+    };
+
     return (
         <>
-            {/* Simple backdrop */}
+            {/* Animated backdrop */}
             <div
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    zIndex: 1100
-                }}
-                onClick={onClose}
+                className="stalls-backdrop"
+                onClick={handleBackdropClick}
             />
 
-            {/* Simple flyout */}
+            {/* Animated flyout */}
             <div
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    width: '90%',
-                    maxWidth: '480px',
-                    backgroundColor: 'white',
-                    zIndex: 1101,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    boxShadow: '-5px 0 25px rgba(0, 0, 0, 0.2)'
-                }}
-                onClick={(e) => e.stopPropagation()}
+                className="stalls-flyout"
+                onClick={handleContentClick}
             >
-                {/* Header with inline close button */}
-                <div style={{
-                    padding: '16px',
-                    backgroundColor: '#FFCD38',
-                    position: 'relative',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
-                        Event Stalls ({stalls?.length || 0})
+                {/* Header with improved styling */}
+                <div className="stalls-flyout-header">
+                    <h3 className="stalls-flyout-title">
+                        {eventName ? `${eventName} (${stalls?.length || 0})` : `Event Stalls (${stalls?.length || 0})`}
                     </h3>
 
-                    {/* ULTRA SIMPLE CLOSE BUTTON */}
-                    <div
+                    {/* Close button with improved hit area */}
+                    <button
                         onClick={onClose}
-                        style={{
-                            width: '40px',
-                            height: '40px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            border: 'none'
-                        }}
+                        className="stalls-close-btn"
+                        aria-label="Close stalls panel"
                     >
                         <CloseIcon />
-                    </div>
+                    </button>
                 </div>
 
                 {/* Content area */}
-                <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
+                <div className="stalls-flyout-content">
                     {isLoading ? (
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            height: '200px',
-                            gap: '16px'
-                        }}>
-                            <div style={{
-                                width: '40px',
-                                height: '40px',
-                                border: '4px solid rgba(0, 0, 0, 0.1)',
-                                borderLeftColor: '#FFCD38',
-                                borderRadius: '50%',
-                                animation: 'spin 1s linear infinite'
-                            }}></div>
+                        <div className="stalls-loading">
+                            <div className="spinner"></div>
                             <p>Loading stalls...</p>
                         </div>
                     ) : error ? (
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            height: '200px',
-                            textAlign: 'center'
-                        }}>
+                        <div className="stalls-error">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="#EF4444" strokeWidth="2" />
+                                <path d="M12 7V13" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" />
+                                <circle cx="12" cy="16" r="1" fill="#EF4444" />
+                            </svg>
                             <p>Error loading stalls: {error.message}</p>
+                            <button
+                                onClick={onClose}
+                                className="stalls-error-btn"
+                            >
+                                Close
+                            </button>
                         </div>
                     ) : stalls?.length > 0 ? (
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '16px'
-                        }}>
+                        <div className="stalls-list">
                             {stalls.map((stall) => (
-                                <div key={stall._id} style={{ width: '100%' }}>
+                                <div key={stall._id} className="stall-card-wrapper">
                                     <HorizontalCard
                                         id={stall._id}
                                         name={stall.name || "Stall"}
@@ -185,16 +145,35 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error }) => {
                             ))}
                         </div>
                     ) : (
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            height: '200px',
-                            textAlign: 'center'
-                        }}>
+                        <div className="stalls-empty">
+                            <svg width="50" height="50" viewBox="0 0 24 24" fill="none">
+                                <path d="M3 6L21 6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M3 12L21 12" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M3 18L21 18" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
                             <p>No stalls found for this event.</p>
+                            <button
+                                onClick={onClose}
+                                className="stalls-empty-btn"
+                            >
+                                Close
+                            </button>
                         </div>
                     )}
+                </div>
+
+                {/* Footer with home button */}
+                <div className="stalls-flyout-footer">
+                    <button
+                        onClick={onClose}
+                        className="stalls-home-btn"
+                        aria-label="Return to map"
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M9 22V12H15V22" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         </>
@@ -286,9 +265,8 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
         if (onVisitStalls) onVisitStalls(data?._id);
     };
 
-    // ULTRA SIMPLE close handler
+    // Close handler for stalls flyout
     const handleCloseStallsFlyout = () => {
-        console.log('Closing stalls flyout');
         setShowStallsFlyout(false);
     };
 
@@ -312,6 +290,7 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                         className="event-close-btn"
                         onClick={handleClose}
                         type="button"
+                        aria-label="Close event card"
                     >
                         <CloseIcon />
                     </button>
@@ -422,13 +401,14 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                 </div>
             </div>
 
-            {/* ULTRA SIMPLE Stalls Flyout */}
+            {/* Improved Stalls Flyout with animations */}
             {showStallsFlyout && (
                 <StallsFlyout
                     stalls={stalls}
                     onClose={handleCloseStallsFlyout}
                     isLoading={stallsLoading}
                     error={stallsError}
+                    eventName={data?.name}
                 />
             )}
         </div>

@@ -1,216 +1,334 @@
+/* OpenStreetMap Styles */
 .custom-cluster {
-    background-color: #EFF1F5;
-    width: fit-content;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    border-radius: 15px;
-    padding: 2px 4px;
-    border: 1px solid rgba(229, 231, 235, 1);
+  background-color: #EFF1F5;
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 15px;
+  padding: 2px 4px;
+  border: 1px solid rgba(229, 231, 235, 1);
 }
 
-.distance-cluster {
-    background-color: #EFF1F5;
-    width: fit-content;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    border-radius: 15px;
-    padding: 2px 4px;
-    border: 1px solid rgba(229, 231, 235, 1);
+/* AirBnB-style clusters */
+.airbnb-cluster {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFF;
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  z-index: 800;
 }
 
-.cluster-count {
-    margin-left: 3px;
-    font-weight: 700;
-    font-size: 14px;
-    font-family: var(--primaryfont);
+.airbnb-cluster:hover {
+  transform: scale(1.1);
 }
 
-.distance-text {
-    margin-left: 3px;
-    font-weight: 700;
-    font-size: 14px;
-    font-family: var(--primaryfont);
+.airbnb-cluster-inner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #FF385C;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 15px;
 }
 
-.icons {
-    background: #E5E7EB;
-    width: 25px;
-    height: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 15px;
-}
-
-/* Cluster wrapper */
-.restaurant-group {
-    display: flex;
-    width: 30px;
-    height: 30px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50px;
-    background: #FFF;
-    opacity: 0.9;
-    box-shadow: -5px 3.75px 1.25px 0px rgba(0, 0, 0, 0.00),
-        -2.5px 2.5px 1.25px 0px rgba(0, 0, 0, 0.01),
-        -1.25px 1.25px 1.25px 0px rgba(0, 0, 0, 0.05),
-        -1.25px 0px 1.25px 0px rgba(0, 0, 0, 0.09);
-}
-
-.restaurant-group-indicator {
-    width: 19px;
-    height: 19px;
-    border-radius: 50px;
-    background: #FDE272;
-}
-
-/* Single restaurant marker wrapper */
+/* Single restaurant marker */
 .restaurant {
-    position: relative;
-    /* This ensures the absolutely positioned .filter-icon-style is contained */
-    width: 40px;
-    height: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50px;
-    background: #FFF;
-    box-shadow: -5px 3.75px 1.25px 0px rgba(0, 0, 0, 0.00),
-        -2.5px 2.5px 1.25px 0px rgba(0, 0, 0, 0.01),
-        -1.25px 1.25px 1.25px 0px rgba(0, 0, 0, 0.05),
-        -1.25px 0px 1.25px 0px rgba(0, 0, 0, 0.09);
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #FFF;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  z-index: 700;
+}
+
+.restaurant:hover {
+  transform: scale(1.05);
+}
+
+/* Highlighted restaurant */
+.restaurant.highlighted {
+  width: 50px;
+  height: 50px;
+  z-index: 750;
+}
+
+.highlight-ring {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid #FFCD38;
+  animation: pulse 1.5s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+
+  70% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
 }
 
 .restaurant-indicator {
-    width: 31px;
-    height: 31px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50px;
-    background: #FDE272;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #FDE272;
 }
 
 .restaurant-indicator-dull {
-    width: 31px;
-    height: 31px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50px;
-    background: #F5F5F5;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #F5F5F5;
 }
 
-/* The GIF container */
+/* Improved User Location Marker */
+.user-location-marker {
+  z-index: 1000;
+}
+
+.user-location-dot {
+  width: 24px;
+  height: 24px;
+  background-color: #4285F4;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: grab;
+}
+
+.user-location-dot:active {
+  cursor: grabbing;
+}
+
+.user-location-pulse {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(66, 133, 244, 0.4);
+  border-radius: 50%;
+  z-index: -1;
+  animation: pulse-blue 1.5s infinite;
+}
+
+@keyframes pulse-blue {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* The offer icon container */
 .filter-icon-style {
-    position: absolute;
-    z-index: 9999;
-    /* Important: ensure this is above other elements */
-    width: 24px;
-    height: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    left: -5px;
-    bottom: -8px;
-    border-radius: 50px;
-    background: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  z-index: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  left: -5px;
+  bottom: -8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .map-loader {
-    position: absolute;
-    top: 45%;
-    left: 45%;
-    z-index: 100;
+  position: absolute;
+  top: 45%;
+  left: 45%;
+  z-index: 100;
 }
-/* Event marker styling */
+
+/* Improved Event marker styling */
 .event-marker {
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: #FFF;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 900;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.event-marker:hover {
+  transform: scale(1.1);
+}
+
+.event-marker-inner {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #FFCD38;
+  color: black;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border: 3px solid white;
+}
+
+.event-marker-pulse {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255, 205, 56, 0.4);
+  animation: pulse-event 2s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse-event {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
   }
-  
-  .event-marker-inner {
-    width: 52px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: #FF4081; /* Pink color for events */
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
+
+  70% {
+    transform: scale(1.2);
+    opacity: 0;
   }
-  
-  /* Debug markers */
-  .event-marker-debug {
-    background: #FF4081;
-    color: white;
-    font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    border: 2px solid white;
+
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
   }
-  
-  /* Super-visible debug marker */
-  .super-debug-marker {
-    width: 100px;
-    height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-  
-  .super-debug-inner {
-    width: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #FF4081;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 50%;
-    border: 4px solid white;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    z-index: 10;
-    text-align: center;
-  }
-  
-  .super-debug-pulse {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: rgba(255, 64, 129, 0.4);
-    animation: super-pulse 1.5s infinite;
-  }
-  
-  @keyframes super-pulse {
-    0% {
-      transform: scale(0.5);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1.5);
-      opacity: 0;
-    }
-  }
+}
+
+/* Location Selector Pin */
+.location-selector-map-container {
+  position: relative;
+}
+
+.location-pin {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.location-pin-inner {
+  width: 30px;
+  height: 30px;
+  background-color: #FFCD38;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  border: 3px solid white;
+  position: relative;
+  z-index: 1000;
+}
+
+.location-pin-shadow {
+  width: 20px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  margin-top: 5px;
+  filter: blur(2px);
+}
+
+/* Radius indicator styling */
+.radius-indicator {
+  font-family: system-ui, -apple-system, sans-serif;
+  transition: all 0.3s ease;
+}
+
+/* Map container */
+.map-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* Override Leaflet's default styles for better markers */
+.leaflet-marker-icon {
+  background: transparent;
+  border: none;
+}
+
+.leaflet-tooltip {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 6px 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Fix for better interactive areas */
+.leaflet-interactive {
+  cursor: pointer;
+}
+
+/* Restaurant details container */
+.restaurant-detail-map-container {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
