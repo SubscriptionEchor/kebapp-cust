@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import './RestaurantDetailCard.css';
+import { useTranslation } from 'react-i18next';
 
 // SVG icons as React components for better styling control
 const CloseIcon = () => (
@@ -47,7 +48,28 @@ const LocationIcon = () => (
     </svg>
 );
 
-const RestaurantDetailCard = ({ data, onClose, userLocation }) => {
+const OfferIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 14L15 8M9.5 8.5H9.51M14.5 13.5H14.51M19 21L12 17L5 21V5C5 4.46957 5.21071 3.96086 5.58579 3.58579C5.96086 3.21071 6.46957 3 7 3H17C17.5304 3 18.0391 3.21071 18.4142 3.58579C18.7893 3.96086 19 4.46957 19 5V21Z" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const ClockIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="#6B7280" strokeWidth="2" />
+        <path d="M12 7V12L15 15" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+/**
+ * Enhanced RestaurantDetailCard component
+ * Displays restaurant information from map view with extended functionality
+ */
+const RestaurantDetailCard = ({ data, onClose, userLocation, onOrderNow, onLoadMore }) => {
+    const { t } = useTranslation();
+    const [activeTab, setActiveTab] = useState('details'); // 'details' or 'offers'
+    const [showOpeningHours, setShowOpeningHours] = useState(false);
+
     if (!data) return null;
 
     // Handle close - stop propagation to prevent interference
@@ -64,7 +86,7 @@ const RestaurantDetailCard = ({ data, onClose, userLocation }) => {
     // Format distance in a user-friendly way
     const formatDistance = (distance) => {
         if (!distance) return 'Unknown distance';
-        
+
         if (distance < 1) {
             return `${Math.round(distance * 1000)}m away`;
         }
@@ -97,28 +119,56 @@ const RestaurantDetailCard = ({ data, onClose, userLocation }) => {
         if (!userLocation || !data.location || !data.location.coordinates) {
             return 'N/A';
         }
-        
+
         const [lng, lat] = data.location.coordinates;
         const userLat = userLocation.lat;
         const userLng = userLocation.lng;
-        
+
         // Simple distance calculation using Haversine formula
         const R = 6371; // Radius of the earth in km
         const dLat = deg2rad(lat - userLat);
         const dLon = deg2rad(lng - userLng);
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(deg2rad(userLat)) * Math.cos(deg2rad(lat)) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2); 
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(userLat)) * Math.cos(deg2rad(lat)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distance = R * c; // Distance in km
-        
+
         return formatDistance(distance);
     };
 
     const deg2rad = (deg) => {
-        return deg * (Math.PI/180);
+        return deg * (Math.PI / 180);
     };
+
+    // Handle opening hours display
+    const toggleOpeningHours = (e) => {
+        e.stopPropagation();
+        setShowOpeningHours(!showOpeningHours);
+    };
+
+    // Format opening hours
+    const formatOpeningHours = () => {
+        if (!data.openingTimes) return [];
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+        return days.map(day => {
+            const dayData = data.openingTimes.find(t => t.day.toLowerCase() === day.toLowerCase());
+            if (!dayData) return { day, hours: "Closed" };
+
+            if (!dayData.isOpen) return { day, hours: "Closed" };
+
+            return {
+                day,
+                hours: `${dayData.openTime || '00:00'} - ${dayData.closeTime || '00:00'}`
+            };
+        });
+    };
+
+    // Check if restaurant has any active offers
+    const hasOffers = data.campaigns && data.campaigns.length > 0;
 
     return (
         <div className="restaurant-card-container" onClick={handleClose}>
@@ -130,12 +180,12 @@ const RestaurantDetailCard = ({ data, onClose, userLocation }) => {
                     ) : (
                         <div className="restaurant-image-placeholder">
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                                <path d="M4 18L14 18M9 14L9 6M4 6L14 6M4 10L14 10M17 6L20 12L17 18" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M4 18L14 18M9 14L9 6M4 6L14 6M4 10L14 10M17 6L20 12L17 18" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             <span>No Image Available</span>
                         </div>
                     )}
-                    
+
                     {/* Close button */}
                     <button
                         className="restaurant-close-btn"
@@ -147,62 +197,156 @@ const RestaurantDetailCard = ({ data, onClose, userLocation }) => {
                     </button>
                 </div>
 
-                {/* Restaurant details */}
-                <div className="restaurant-content">
-                    <div className="restaurant-header">
-                        <h2 className="restaurant-title">{data.name || "Restaurant"}</h2>
-                        
-                        {/* Available badge */}
-                        {data.isAvailable && (
-                            <div className="restaurant-badge-container">
-                                <div className="restaurant-badge available">Open</div>
+                {/* Tab Navigation */}
+                {hasOffers && (
+                    <div className="restaurant-tab-nav">
+                        <button
+                            className={`tab-btn ${activeTab === 'details' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('details')}
+                        >
+                            {t('restaurant.details') || 'Details'}
+                        </button>
+                        <button
+                            className={`tab-btn ${activeTab === 'offers' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('offers')}
+                        >
+                            {t('restaurant.offers') || 'Offers'}
+                            <span className="offer-count">{data.campaigns.length}</span>
+                        </button>
+                    </div>
+                )}
+
+                {/* Restaurant details - Main tab */}
+                {activeTab === 'details' && (
+                    <div className="restaurant-content">
+                        <div className="restaurant-header">
+                            <h2 className="restaurant-title">{data.name || "Restaurant"}</h2>
+
+                            {/* Available badge */}
+                            {data.isAvailable && (
+                                <div className="restaurant-badge-container">
+                                    <div className="restaurant-badge available">
+                                        {t('restaurant.open') || 'Open'}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Rating and info */}
+                        <div className="restaurant-stats-container">
+                            {/* Rating */}
+                            <div className="restaurant-stat">
+                                <StarIcon />
+                                <span>{data.reviewAverage || "4.0"}</span>
+                            </div>
+
+                            {/* Likes */}
+                            <div className="restaurant-stat">
+                                <LikeIcon />
+                                <span>{data.favoriteCount || 0}</span>
+                            </div>
+
+                            {/* Reviews */}
+                            <div className="restaurant-stat">
+                                <ReviewIcon />
+                                <span>{data.reviewCount || 0}</span>
+                            </div>
+
+                            {/* Opening hours toggle */}
+                            {data.openingTimes && data.openingTimes.length > 0 && (
+                                <div className="restaurant-stat clickable" onClick={toggleOpeningHours}>
+                                    <ClockIcon />
+                                    <span>{t('restaurant.hours') || 'Hours'}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Opening Hours popover */}
+                        {showOpeningHours && (
+                            <div className="opening-hours-container">
+                                <h4 className="opening-hours-title">
+                                    {t('restaurant.openingHours') || 'Opening Hours'}
+                                </h4>
+                                <div className="opening-hours-list">
+                                    {formatOpeningHours().map((item, index) => (
+                                        <div key={index} className="opening-hours-item">
+                                            <span className="day">{item.day}</span>
+                                            <span className="hours">{item.hours}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
-                    </div>
 
-                    {/* Rating and info */}
-                    <div className="restaurant-stats-container">
-                        {/* Rating */}
-                        <div className="restaurant-stat">
-                            <StarIcon />
-                            <span>{data.reviewAverage || "4.0"}</span>
-                        </div>
-                        
-                        {/* Likes */}
-                        <div className="restaurant-stat">
-                            <LikeIcon />
-                            <span>{data.favoriteCount || 0}</span>
-                        </div>
-                        
-                        {/* Reviews */}
-                        <div className="restaurant-stat">
-                            <ReviewIcon />
-                            <span>{data.reviewCount || 0}</span>
-                        </div>
-                    </div>
+                        {/* Cuisine and distance */}
+                        <div className="restaurant-info-container">
+                            {data.cuisines && data.cuisines.length > 0 && (
+                                <div className="restaurant-cuisine">
+                                    {data.cuisines.slice(0, 3).join(', ')}
+                                </div>
+                            )}
 
-                    {/* Cuisine and distance */}
-                    <div className="restaurant-info-container">
-                        {data.cuisines && data.cuisines.length > 0 && (
-                            <div className="restaurant-cuisine">
-                                {data.cuisines.slice(0, 3).join(', ')}
+                            {/* Distance from user */}
+                            <div className="restaurant-distance">
+                                <LocationIcon />
+                                <span>{calculateDistance()}</span>
+                            </div>
+                        </div>
+
+                        {/* Restaurant address */}
+                        {data.address && (
+                            <div className="restaurant-address">
+                                {data.address}
                             </div>
                         )}
-                        
-                        {/* Distance from user */}
-                        <div className="restaurant-distance">
-                            <LocationIcon />
-                            <span>{calculateDistance()}</span>
+
+                        {/* Load more details button - shown only if onLoadMore is provided */}
+                        {onLoadMore && (
+                            <button
+                                className="load-more-btn"
+                                onClick={onLoadMore}
+                                type="button"
+                            >
+                                {t('restaurant.loadMoreDetails') || 'Load More Details'}
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {/* Offers tab */}
+                {activeTab === 'offers' && (
+                    <div className="restaurant-offers-content">
+                        <h3 className="offers-heading">
+                            {t('restaurant.currentOffers') || 'Current Offers'}
+                        </h3>
+
+                        <div className="offers-list">
+                            {data.campaigns.map((campaign, index) => (
+                                <div key={index} className="offer-item">
+                                    <div className="offer-icon">
+                                        <OfferIcon />
+                                    </div>
+                                    <div className="offer-content">
+                                        <h4 className="offer-title">
+                                            {campaign.displayName || "Special Offer"}
+                                        </h4>
+                                        <p className="offer-description">
+                                            {campaign.promotionType === 'PERCENTAGE'
+                                                ? `${campaign.minPercentageDiscount}% off your order`
+                                                : `${campaign.minFlatDiscount} off your order`}
+                                        </p>
+                                        {campaign.code && (
+                                            <div className="offer-code">
+                                                <span className="code-label">Code:</span>
+                                                <span className="code-value">{campaign.code}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-
-                    {/* Restaurant address */}
-                    {data.address && (
-                        <div className="restaurant-address">
-                            {data.address}
-                        </div>
-                    )}
-                </div>
+                )}
 
                 {/* Action buttons */}
                 <div className="restaurant-card-actions">
@@ -212,15 +356,16 @@ const RestaurantDetailCard = ({ data, onClose, userLocation }) => {
                         type="button"
                     >
                         <DirectionsIcon />
-                        <span>Get Directions</span>
+                        <span>{t('restaurant.getDirections') || 'Get Directions'}</span>
                     </button>
 
                     <button
                         className="restaurant-action-btn order-btn"
+                        onClick={onOrderNow}
                         type="button"
                     >
                         <OrderNowIcon />
-                        <span>Order Now</span>
+                        <span>{t('restaurant.orderNow') || 'Order Now'}</span>
                     </button>
                 </div>
             </div>

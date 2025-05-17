@@ -1,155 +1,1819 @@
-import React, { useContext, useEffect, useState } from 'react'
-import "./style.css"
-import Star from "../../assets/svg/rating.svg"
-import Fire from "../../assets/gif/fire.gif"
-import Hat from "../../assets/gif/hat.gif"
-import StarGif from "../../assets/gif/star.gif"
-import Offer from "../../assets/gif/offer.gif"
-import Followers from "../../assets/svg/followersgrey.svg"
-import Dot from "../../assets/svg/dot.svg"
-import Close from "../../assets/svg/crossWhite.svg"
-import Verified from "../../assets/svg/verified.svg"
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { routeName } from '../../Router/RouteName'
-import { Context } from '../../Context/Context'
-import { LOCALSTORAGE_NAME, MAP_CAMPAIGN_TYPE } from '../../constants/enums'
-// import { CurrentLocationStorage, metersToKilometers, numberToK, ratingStructure } from '../../Utils'
-import Placeholder from '../../assets/PNG/dishPlaceholder.webp'
-import { OfferCarousel } from '../../Pages/Restaurant'
-import ImagePlaceholder from "../../assets/svg/kebabPlaceholder.svg"
-import { UseLocationDetails } from '../../context/LocationContext'
-import { AppRoutes } from '../../routeenums'
-import { metersToKilometers, numberToK, ratingStructure } from '../../utils/utils'
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { MapContainer, TileLayer, Circle, useMap } from 'react-leaflet';
+import { useApolloClient } from '@apollo/client';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { GET_RESTAURANT_CLUSTERS, GET_RESTAURANTS_MAP_API } from '../../graphql/queries';
+import { config } from '../../config';
+import Kebab from "../../assets/svg/kebabBlack.svg";
+import MapEventCard from '../MapEventCard';
+import RestaurantDetailCard from '../RestaurantDetailCard/RestaurantDetailCard';
+import "./style.css";
 
-const MapRestaurantCard = ({ data }) => {
-    // console.log(props);
-    const navigate = useNavigate();
-    const { t } = useTranslation();
-    const { temporaryLocation } = UseLocationDetails()
-    // const [symbol, setSymbol] = useState('');
+// Constants
+const MAX_ZOOM_LEVEL = 18;
+const MAP_THROTTLE_MS = 500; // Reduced throttle time for better responsiveness
+const DEBOUNCE_MS = 300; // Reduced debounce time
+const DEBUG_MODE = true; // Enable debug logging
+const MAX_REQUESTS_PER_MINUTE = 30; // Increased circuit breaker limit for better experience
 
-    // useEffect(() => {
-    //     (async () => {
-    //         const response = await CurrentLocationStorage.getCurrentLocation();
-    //         setSelectedLocation(response)
-    //     })();
-    // }, []);
+// Global request tracking for circuit breaker - IMPROVED
+const globalRequestTracker = {
+  recentRequests: [],
+  isCircuitOpen: false,
+  lastRequestKey: null,
+  lastSuccess: Date.now(),
 
-    // useEffect(() => {
-    //     let symbol = localStorage.getItem(LOCALSTORAGE_NAME.CURRENCY_SYMBOL);
-    //     setSymbol(symbol);
-    // }, []);
+  // Add a request timestamp to the tracker
+  addRequest: () => {
+    const now = Date.now();
+    // Remove requests older than 60 seconds
+    globalRequestTracker.recentRequests = globalRequestTracker.recentRequests
+      .filter(time => now - time < 60000);
+      
+    // Add current request
+    globalRequestTracker.recentRequests.push(now);
 
-    const handleClose = (e) => {
-        e.stopPropagation();
-        // props?.setIsModalVisible(false);
-    };
+    // Check if circuit should be opened
+    if (globalRequestTracker.recentRequests.length > MAX_REQUESTS_PER_MINUTE) {
+      console.warn(`Circuit breaker activated: ${globalRequestTracker.recentRequests.length} requests in last minute - limiting for 3 seconds`);
+      globalRequestTracker.isCircuitOpen = true;
 
-    const navigateToSingleRestaurant = () => {
-        localStorage.setItem("restaurant", data?._id);
-        navigate(AppRoutes.RESTAURANT, {
-            state: {
-                id: data?._id
-            }
-        });
-    };
+      // Auto-reset after 3 seconds instead of 5 - faster recovery
+      setTimeout(() => {
+        console.log("Circuit breaker reset");
+        globalRequestTracker.isCircuitOpen = false;
+        globalRequestTracker.recentRequests = globalRequestTracker.recentRequests.slice(-10); // Keep only the most recent 10
+      }, 3000);
+    }
+  },
 
-    const onClickViewDirections = () => {
-        let cords = {
-            user_lat: Number(temporaryLocation?.latitude),
-            user_lng: Number(temporaryLocation?.longitude),
-            rest_lat: Number(data?.location?.coordinates[1]),
-            rest_lng: Number(data?.location?.coordinates[0])
-        }
-        let url = `https://www.google.com/maps/dir/?api=1&origin=${cords?.user_lat},${cords?.user_lng}&destination=${cords?.rest_lat},${cords?.rest_lng}`
-        if (window.Telegram && window.Telegram.WebApp) {
-            const webApp = window.Telegram.WebApp;
-            webApp.openLink(url, { try_instant_view: false });
-        } else {
-            window.open(url, '_blank');
-        }
+  // Check if a request can proceed - MUCH LESS AGGRESSIVE
+  canProceed: (requestKey) => {
+    // Never block forced updates
+    const now = Date.now();
+    
+    // Reset circuit breaker if it's been open too long
+    if (globalRequestTracker.isCircuitOpen && now - globalRequestTracker.lastSuccess > 5000) {
+      console.log("Circuit breaker was open too long - resetting");
+      globalRequestTracker.isCircuitOpen = false;
+    }
+    
+    // If circuit is open, only block exact duplicates of the last request
+    if (globalRequestTracker.isCircuitOpen) {
+      const isDuplicate = requestKey === globalRequestTracker.lastRequestKey &&
+                         now - globalRequestTracker.lastSuccess < 500; // Only block very recent duplicates
+      
+      if (isDuplicate) {
+        return false;
+      }
     }
 
-    // const getGif = () => {
-    //     if (offerData?.baseCode == MAP_CAMPAIGN_TYPE.HAPPYHOURS) {
-    //         return Fire;
-    //     } else if (offerData?.baseCode == MAP_CAMPAIGN_TYPE.SPECIALDAY) {
-    //         return StarGif;
-    //     } else if (offerData?.baseCode == MAP_CAMPAIGN_TYPE.CHEFSPECIAL) {
-    //         return Hat;
-    //     }
-    // };
+    // Update tracking
+    globalRequestTracker.lastRequestKey = requestKey;
+    globalRequestTracker.lastSuccess = now;
+    return true;
+  }
+};
 
-    // let offerData = {};
-    // if (props?.data?.campaigns && props?.data?.campaigns?.length == 1) {
-    //     let offer = props?.data?.campaigns[0];
-    //     if (offer?.promotion) {
-    //         let res = props?.promotionsData?.find(promotion => promotion?._id == offer?.promotion);
-    //         offerData['description'] = res?.description;
-    //         offerData['baseCode'] = res?.baseCode;
-    //     }
-    //     offerData['description'] = offer?.description;
-    // }
+// Helper function for logging debug information
+const debugLog = (...args) => {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+};
+
+// Helper function for position comparison with precision
+const isSamePosition = (pos1, pos2) => {
+  if (!pos1 || !pos2) return false;
+  const precision = 6; // 6 decimal places ≈ 10cm precision
+  return (
+    pos1.lat.toFixed(precision) === pos2.lat.toFixed(precision) &&
+    pos1.lng.toFixed(precision) === pos2.lng.toFixed(precision)
+  );
+};
+
+// IMPROVED: Function to fetch restaurants in chunks to handle large clusters
+const fetchRestaurantsInChunks = async (client, position, restaurantIds, userLocation, onSuccess) => {
+  const chunkSize = 20;
+  const chunks = [];
+  
+  for (let i = 0; i < restaurantIds.length; i += chunkSize) {
+    chunks.push(restaurantIds.slice(i, i + chunkSize));
+  }
+  
+  let allRestaurants = [];
+  let allCampaigns = [];
+  
+  console.log(`Fetching ${restaurantIds.length} restaurants in ${chunks.length} chunks`);
+  
+  for (let i = 0; i < chunks.length; i++) {
+    try {
+      const chunk = chunks[i];
+      console.log(`Fetching chunk ${i+1}/${chunks.length} with ${chunk.length} restaurants`);
+      
+      const { data } = await client.query({
+        query: GET_RESTAURANTS_MAP_API,
+        variables: {
+          userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
+          location: [position.lng, position.lat],
+          distance: 2, // Use a reasonable distance
+          restaurantIds: chunk,
+          showEvents: false
+        },
+        fetchPolicy: 'network-only'
+      });
+      
+      if (data?.allRestaurants?.restaurants) {
+        allRestaurants = [...allRestaurants, ...data.allRestaurants.restaurants];
+        
+        if (data.allRestaurants.campaigns) {
+          allCampaigns = [...allCampaigns, ...data.allRestaurants.campaigns];
+        }
+      }
+    } catch (err) {
+      console.error(`Error fetching chunk ${i+1}:`, err);
+    }
+  }
+  
+  if (allRestaurants.length > 0) {
+    console.log(`Successfully fetched ${allRestaurants.length} restaurants from chunks`);
+    onSuccess(allRestaurants, allCampaigns);
+    return true;
+  }
+  
+  return false;
+};
+
+// IMPROVED: Function to fetch with expanding radius for large clusters
+const fetchWithExpandingRadius = async (client, position, userLocation, radii, onSuccess) => {
+  // Default radii if not provided
+  const radiusValues = radii || [0.2, 0.4, 0.6];
+  
+  for (let i = 0; i < radiusValues.length; i++) {
+    const radius = radiusValues[i];
+    console.log(`Trying with radius ${radius}km`);
+    
+    try {
+      const { data } = await client.query({
+        query: GET_RESTAURANTS_MAP_API,
+        variables: {
+          userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
+          location: [position.lng, position.lat],
+          distance: radius,
+          limit: 100,
+          showEvents: false
+        },
+        fetchPolicy: 'network-only'
+      });
+      
+      if (data?.allRestaurants?.restaurants && data.allRestaurants.restaurants.length > 0) {
+        console.log(`Found ${data.allRestaurants.restaurants.length} restaurants with radius ${radius}km`);
+        onSuccess(data.allRestaurants.restaurants, data.allRestaurants.campaigns);
+        return true;
+      }
+    } catch (err) {
+      console.error(`Error with radius ${radius}:`, err);
+    }
+  }
+  
+  console.log("Failed to find restaurants with all attempted radii");
+  return false;
+};
+
+// Tile Error Handler Component
+const TileErrorHandler = () => {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleTileError = (e) => {
+      if (map.getZoom() > MAX_ZOOM_LEVEL) {
+        map.setZoom(MAX_ZOOM_LEVEL);
+      }
+    };
+
+    map.on('tileerror', handleTileError);
+    return () => {
+      map.off('tileerror', handleTileError);
+    };
+  }, [map]);
+
+  return null;
+};
+
+// Main Map Controller Component
+const HomeMapController = ({
+  userLocation,
+  radius,
+  maxCurrentRadius,
+  onMapMove,
+  onLocationChange,
+  handleRestaurant,
+  handleEvent,
+  activeFilters = {},
+  events = []
+}) => {
+  const map = useMap();
+  const client = useApolloClient();
+
+  // Use refs to maintain state without triggering re-renders
+  const markersRef = useRef({
+    clusters: [],
+    restaurants: [],
+    user: null,
+    eventMarkers: {},
+    selectedMarker: null
+  });
+
+  const stateRef = useRef({
+    isInitialized: false,
+    currentRadius: radius,
+    currentCenter: null,
+    isFetching: false,
+    lastFetchTime: 0,
+    lastRequestKey: "", // For deduplicating identical requests
+    moveEndCount: 0,
+    userLocationState: userLocation, // Store a local copy of userLocation
+    isUserInteraction: false, // Flag to track if movement is from user interaction
+    isEventFocused: false, // Flag to track if we're focused on an event
+    previousZoom: null, // Track previous zoom level
+    pendingFetch: null, // For debouncing
+    lastFetchSuccess: Date.now() // Track last successful fetch for better error handling
+  });
+
+  // Trigger for re-renders (used minimally)
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Update local user location in ref whenever prop changes
+  useEffect(() => {
+    stateRef.current.userLocationState = userLocation;
+  }, [userLocation]);
+
+  // Define calculateRadius function first since it's used by several other functions
+  const calculateRadius = (zoom) => {
+    // If zoom is not provided, get current zoom from map
+    if (zoom === undefined) {
+      zoom = map.getZoom();
+    }
+
+    // Base minimum distance requirement of 2 (to satisfy GraphQL validation)
+    const minDistance = 2;
+
+    // IMPROVED RADIUS CALCULATION:
+    // More dramatic scaling between zoom levels to ensure better cluster breakdown
+    if (zoom <= 5) return Math.max(100, minDistance);
+    if (zoom <= 8) return Math.max(50, minDistance);
+    if (zoom <= 10) return Math.max(25, minDistance);
+    if (zoom <= 12) return Math.max(10, minDistance);
+    if (zoom <= 13) return Math.max(5, minDistance);
+    if (zoom <= 14) return Math.max(3, minDistance);
+    if (zoom <= 16) return Math.max(2, minDistance);
+
+    // At maximum zoom, use minimum requirement
+    return minDistance;
+  };
+
+  // Clear all markers except user marker
+  const clearMarkers = useCallback(() => {
+    // Remove cluster markers
+    markersRef.current.clusters.forEach(marker => {
+      if (marker) map.removeLayer(marker);
+    });
+    markersRef.current.clusters = [];
+
+    // Remove restaurant markers
+    markersRef.current.restaurants.forEach(marker => {
+      if (marker) map.removeLayer(marker);
+    });
+    markersRef.current.restaurants = [];
+
+    // Clear selected marker
+    markersRef.current.selectedMarker = null;
+  }, [map]);
+
+  // Create cluster icon with improved visibility
+  const createClusterIcon = (count) => {
+    // Scale size based on count for better visibility
+    const size = Math.min(68, Math.max(48, 48 + Math.floor(Math.log10(count)) * 8));
+    
+    return L.divIcon({
+      html: `
+        <div class="airbnb-cluster">
+          <div class="airbnb-cluster-inner">
+            <span>${count}</span>
+          </div>
+        </div>
+      `,
+      className: 'custom-cluster-marker',
+      iconSize: L.point(size, size),
+      iconAnchor: [size/2, size/2]
+    });
+  };
+
+  // Create restaurant icon
+  const createRestaurantIcon = (isAvailable, onboarded, gif) => {
+    return L.divIcon({
+      html: `
+        <div class="restaurant" style="opacity: ${isAvailable ? 1 : 0.5}">
+          <div class="${onboarded ? "restaurant-indicator" : "restaurant-indicator-dull"}">
+            <img src="${Kebab}" style="height:20px" alt="restaurant"/>
+          </div>
+          ${gif ? `
+            <div class="filter-icon-style">
+              <img src="${gif}" style="height:20px" alt="offer"/>
+            </div>
+          ` : ''}
+        </div>
+      `,
+      className: 'custom-restaurant-marker',
+      iconSize: L.point(44, 44),
+      iconAnchor: [22, 22]
+    });
+  };
+
+  // Create highlighted restaurant icon
+  const createRestaurantHighlightedIcon = (isAvailable, onboarded, gif) => {
+    return L.divIcon({
+      html: `
+        <div class="restaurant highlighted" style="opacity: ${isAvailable ? 1 : 0.5}">
+          <div class="${onboarded ? "restaurant-indicator" : "restaurant-indicator-dull"}">
+            <img src="${Kebab}" style="height:22px" alt="restaurant"/>
+          </div>
+          ${gif ? `
+            <div class="filter-icon-style">
+              <img src="${gif}" style="height:20px" alt="offer"/>
+            </div>
+          ` : ''}
+          <div class="highlight-ring"></div>
+        </div>
+      `,
+      className: 'custom-restaurant-marker',
+      iconSize: L.point(50, 50),
+      iconAnchor: [25, 25]
+    });
+  };
+
+  // Create event icon
+  const createEventIcon = () => {
+    return L.divIcon({
+      html: `
+        <div class="event-marker">
+          <div class="event-marker-pulse"></div>
+          <div class="event-marker-inner">EVENT</div>
+        </div>
+      `,
+      className: '',
+      iconSize: [60, 60],
+      iconAnchor: [30, 30]
+    });
+  };
+
+  // Function to highlight a selected marker
+  const highlightMarker = (marker, restaurant) => {
+    // Remove previous highlight
+    if (markersRef.current.selectedMarker && markersRef.current.selectedMarker !== marker) {
+      // Reset previous marker
+      const prevMarker = markersRef.current.selectedMarker;
+      prevMarker.setZIndexOffset(800);
+
+      // Find the restaurant associated with this marker
+      if (prevMarker.restaurant) {
+        prevMarker.setIcon(createRestaurantIcon(
+          prevMarker.restaurant.isAvailable,
+          prevMarker.restaurant.onboarded,
+          prevMarker.restaurant.campaigns?.length > 0 ? prevMarker.restaurant.gif : null
+        ));
+      }
+    }
+
+    // Set new highlighted marker
+    markersRef.current.selectedMarker = marker;
+    marker.setZIndexOffset(1000);
+
+    // Store restaurant data in marker for easy access
+    marker.restaurant = restaurant;
+
+    // Set highlighted icon
+    marker.setIcon(createRestaurantHighlightedIcon(
+      restaurant.isAvailable,
+      restaurant.onboarded,
+      restaurant.campaigns?.length > 0 ? restaurant.gif : null
+    ));
+  };
+
+  // Function to render restaurants on map - IMPROVED
+  const renderRestaurants = useCallback((restaurants, campaigns, center, radius) => {
+    // Clear any existing markers to prevent overlaps
+    clearMarkers();
+
+    // Match campaigns with restaurants
+    const campaignsByRestaurant = campaigns?.reduce((acc, campaign) => {
+      const restaurantId = campaign.restaurant;
+      if (!acc[restaurantId]) {
+        acc[restaurantId] = [];
+      }
+      acc[restaurantId].push(campaign);
+      return acc;
+    }, {}) || {};
+
+    // FIX: Filter restaurants based on active filters - IMPROVED
+    let filteredRestaurants = [...restaurants]; // Create a copy to avoid mutation
+    
+    // Apply offers filter if enabled
+    if (activeFilters?.offers) {
+      console.log("Applying offers filter, starting with", filteredRestaurants.length, "restaurants");
+      filteredRestaurants = filteredRestaurants.filter(restaurant => {
+        const hasCampaigns = campaignsByRestaurant[restaurant._id]?.length > 0;
+        return hasCampaigns && restaurant.isAvailable;
+      });
+      console.log("After offers filter:", filteredRestaurants.length, "restaurants remain");
+    }
+
+    let renderedCount = 0;
+    filteredRestaurants.forEach(restaurant => {
+      if (!restaurant.location || !restaurant.location.coordinates) return;
+
+      const [lng, lat] = restaurant.location.coordinates;
+      const position = L.latLng(parseFloat(lat), parseFloat(lng));
+
+      // Check if within radius - use a more generous radius check for clusters
+      const distance = center.distanceTo(position) / 1000;
+      if (distance > radius * 1.5) return;
+
+      const restaurantWithCampaigns = {
+        ...restaurant,
+        campaigns: campaignsByRestaurant[restaurant._id] || []
+      };
+
+      const marker = L.marker([lat, lng], {
+        icon: createRestaurantIcon(
+          restaurant.isAvailable,
+          restaurant.onboarded,
+          campaignsByRestaurant[restaurant._id]?.length > 0 ? restaurant.gif : null
+        ),
+        interactive: true,
+        zIndexOffset: 800
+      })
+        .addTo(map)
+        .bindTooltip(restaurant.name || "Restaurant", {
+          direction: 'top',
+          offset: [0, -15]
+        });
+
+      // Store restaurant data in marker for easy access
+      marker.restaurant = restaurantWithCampaigns;
+
+      // Add click handler to show restaurant details
+      marker.on('click', () => {
+        // Highlight this marker
+        highlightMarker(marker, restaurantWithCampaigns);
+
+        // Center map on restaurant
+        map.setView([lat, lng], map.getZoom());
+
+        // Show restaurant details
+        handleRestaurant(restaurantWithCampaigns);
+      });
+
+      markersRef.current.restaurants.push(marker);
+      renderedCount++;
+    });
+
+    console.log(`Rendered ${renderedCount} restaurants out of ${filteredRestaurants.length}`);
+    
+    // Important: Update last successful fetch time
+    stateRef.current.lastFetchSuccess = Date.now();
+
+  }, [map, activeFilters, handleRestaurant, clearMarkers]);
+
+  // Function to render clusters on map - IMPROVED
+  const renderClusters = useCallback((clusters, center, radius) => {
+    clearMarkers();
+
+    // Filter clusters based on active filters before rendering
+    let filteredClusters = [...clusters];
+    
+    // If offers filter is enabled, only show clusters with offers
+    // Note: This is an approximation as we don't know which restaurants in the cluster have offers
+    if (activeFilters?.offers) {
+      console.log("Filtering clusters for offers");
+      // We can only approximate this by keeping clusters that mention offers in metadata
+      // The real filtering happens when the cluster is clicked
+    }
+
+    let renderedCount = 0;
+    filteredClusters.forEach(cluster => {
+      if (!cluster.location || !cluster.location.coordinates) return;
+
+      const [lng, lat] = cluster.location.coordinates;
+      const clusterPosition = L.latLng(lat, lng);
+
+      // Check if within radius
+      const distance = center.distanceTo(clusterPosition) / 1000;
+      if (distance > radius) return;
+
+      const marker = L.marker([lat, lng], {
+        icon: createClusterIcon(cluster.count),
+        interactive: true,
+        zIndexOffset: 900
+      })
+        .addTo(map)
+        .bindTooltip(`${cluster.count} restaurants in this area`, {
+          direction: 'top',
+          offset: [0, -20]
+        });
+
+      // MAJOR FIX FOR CLUSTER CLICK HANDLING
+  // MAJOR FIX FOR CLUSTER CLICK HANDLING
+      marker.on('click', () => {
+        // Track this as a user interaction to ensure state updates properly
+        stateRef.current.isUserInteraction = true;
+        stateRef.current.viewingCluster = true;
+
+        console.log(`Cluster clicked: ${cluster.count} restaurants, zoom level: ${map.getZoom()}`);
+
+        // Get current zoom info
+        const currentZoom = map.getZoom();
+        const isMaxZoom = currentZoom >= MAX_ZOOM_LEVEL - 1;
+
+        // Store the cluster's position for preventing map resets
+        stateRef.current.lastClusterPosition = clusterPosition;
+        
+        // IMPROVED: DON'T clear all markers
+        // Just store which cluster was clicked so we can handle it specially
+        stateRef.current.clickedCluster = {
+          position: clusterPosition, 
+          count: cluster.count,
+          id: cluster._id || `cluster-${lat}-${lng}`
+        };
+
+        // FIXED: Handle cluster clicking based on size and zoom level
+        if (cluster.count === 1) {
+          // For single restaurant clusters, fetch that restaurant only
+          // No need to clear other markers
+          fetchSingleRestaurant(clusterPosition, cluster);
+        }
+        else if (isMaxZoom || cluster.count <= 20) {
+          // At max zoom or for small clusters, fetch restaurants directly
+          console.log(`${isMaxZoom ? 'Max zoom' : 'Small cluster'}: Fetching ${cluster.count} restaurants directly`);
+          
+          // IMPORTANT: Don't clear all markers, just around this area
+          const clusterArea = markersRef.current.clusters.filter(m => {
+            const mPos = m.getLatLng();
+            const distance = mPos.distanceTo(clusterPosition) / 1000;
+            return distance < 1; // Clear only clusters within 1km
+          });
+          
+          clusterArea.forEach(m => {
+            if (m) map.removeLayer(m);
+            markersRef.current.clusters = markersRef.current.clusters.filter(existing => existing !== m);
+          });
+          
+          if (cluster.restaurants && Array.isArray(cluster.restaurants) && cluster.restaurants.length > 0) {
+            // Use restaurant IDs if available
+            fetchRestaurantsInChunks(
+              client,
+              clusterPosition, 
+              cluster.restaurants,
+              stateRef.current.userLocationState,
+              (restaurants, campaigns) => {
+                // Only render in this area, don't clear everything
+                renderRestaurantsInArea(restaurants, campaigns, clusterPosition, 0.5);
+              }
+            );
+          } else {
+            // Otherwise use area-based fetch
+            fetchWithExpandingRadius(
+              client,
+              clusterPosition,
+              stateRef.current.userLocationState,
+              [0.3, 0.5, 0.8],
+              (restaurants, campaigns) => {
+                // Only render in this area, don't clear everything
+                renderRestaurantsInArea(restaurants, campaigns, clusterPosition, 0.8);
+              }
+            );
+          }
+        }
+        else {
+          // For larger clusters, just zoom in - don't try to fetch/render yet
+          console.log(`Medium/large cluster (${cluster.count}): Zooming in`);
+          // Calculate zoom increment based on cluster size
+          const zoomIncrement = cluster.count > 100 ? 3 : (cluster.count > 50 ? 2 : 1);
+          const newZoom = Math.min(currentZoom + zoomIncrement, MAX_ZOOM_LEVEL);
+          map.setView([lat, lng], newZoom);
+          
+          // Let the normal zoom handlers take care of updating the map
+          // This will properly break down clusters based on new zoom level
+        }
+
+        // Reset user interaction flag after delay but keep viewingCluster true
+        setTimeout(() => {
+          stateRef.current.isUserInteraction = false;
+        }, 500);
+      });
+
+      markersRef.current.clusters.push(marker);
+      renderedCount++;
+    });
+
+    console.log(`Rendered ${renderedCount} clusters out of ${filteredClusters.length}`);
+    
+    // Important: Update last successful fetch time
+    stateRef.current.lastFetchSuccess = Date.now();
+    
+  }, [map, activeFilters, clearMarkers, client]);
+
+  // Fetch single restaurant in a cluster - IMPROVED
+  const fetchSingleRestaurant = useCallback(async (position, cluster) => {
+    try {
+      setIsLoading(true);
+      console.log("Fetching single restaurant:", cluster);
+
+      // Get restaurant ID - try all possible formats from the API
+      const restaurantId = cluster.restaurantId ||
+        (cluster.restaurants && cluster.restaurants[0]) ||
+        (typeof cluster.restaurants === 'string' ? cluster.restaurants : null);
+
+      // Build query variables
+      const queryVariables = {
+        userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
+        location: [position.lng, position.lat],
+        distance: 2, // Use a standard distance
+        limit: 1,
+        showEvents: false
+      };
+
+      // Add restaurantIds parameter ONLY if we have an ID
+      if (restaurantId) {
+        queryVariables.restaurantIds = [restaurantId];
+        console.log("Using restaurant ID:", restaurantId);
+      }
+
+      // Run the query
+      const { data } = await client.query({
+        query: GET_RESTAURANTS_MAP_API,
+        variables: queryVariables,
+        fetchPolicy: 'network-only'
+      });
+
+      // Check if we got any restaurant data
+      if (data?.allRestaurants?.restaurants?.[0]) {
+        // If restaurant found, show details
+        const restaurant = data.allRestaurants.restaurants[0];
+        console.log("Found restaurant:", restaurant.name);
+
+        const restaurantWithCampaigns = {
+          ...restaurant,
+          campaigns: data.allRestaurants.campaigns?.filter(c => c.restaurant === restaurant._id) || []
+        };
+
+        // Center map on restaurant
+        map.setView([position.lat, position.lng], map.getZoom());
+
+        // Show restaurant details
+        handleRestaurant(restaurantWithCampaigns);
+      } else {
+        console.log("No restaurant found, trying area fetch as fallback");
+        // If no restaurant found, try area fetch as fallback
+        fetchRestaurantsInArea(position, 0.3);
+      }
+    } catch (error) {
+      console.error("Error fetching single restaurant:", error);
+      // Fallback to area fetch
+      fetchRestaurantsInArea(position, 0.3);
+    } finally {
+      setTimeout(() => setIsLoading(false), 100);
+    }
+  }, [map, userLocation, client, handleRestaurant]);
+
+  // Fetch and render restaurants in a specific area - IMPROVED
+  const fetchRestaurantsInArea = useCallback(async (position, radius) => {
+    try {
+      setIsLoading(true);
+
+      // Generate a unique request key
+      const requestKey = `area-${position.lat.toFixed(6)}-${position.lng.toFixed(6)}-${radius}`;
+
+      // Prevent duplicate requests but with improved logic
+      // Don't block if we're past a certain time since last fetch success
+      const now = Date.now();
+      const timeSinceLastSuccess = now - stateRef.current.lastFetchSuccess;
+      
+      if (requestKey === stateRef.current.lastRequestKey && 
+          !stateRef.current.isUserInteraction && 
+          timeSinceLastSuccess < 2000) {
+        console.log("Skipping duplicate area request:", requestKey);
+        setIsLoading(false);
+        return;
+      }
+
+      stateRef.current.lastRequestKey = requestKey;
+      console.log(`Fetching restaurants in area: ${position.lat.toFixed(5)},${position.lng.toFixed(5)} radius=${radius}`);
+
+      // Always use a slightly larger radius to ensure we get all restaurants
+      const safeRadius = Math.max(2, radius * 1.2);
+
+      const { data } = await client.query({
+        query: GET_RESTAURANTS_MAP_API,
+        variables: {
+          userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
+          location: [position.lng, position.lat],
+          distance: safeRadius,
+          limit: 200,
+          showEvents: activeFilters?.events ?? true,
+          showOffers: activeFilters?.offers ?? false
+        },
+        fetchPolicy: 'network-only'
+      });
+
+      if (data?.allRestaurants?.restaurants) {
+        console.log(`Found ${data.allRestaurants.restaurants.length} restaurants in area`);
+        // Clear any existing markers before rendering new ones
+        clearMarkers();
+        // Render the fetched restaurants
+        renderRestaurants(data.allRestaurants.restaurants, data.allRestaurants.campaigns, position, safeRadius);
+      } else {
+        console.log("No restaurants found in area");
+      }
+      
+      // Update last successful fetch time
+      stateRef.current.lastFetchSuccess = Date.now();
+      
+    } catch (error) {
+      console.error("Error fetching restaurants in area:", error);
+    } finally {
+      setTimeout(() => setIsLoading(false), 100);
+    }
+  }, [map, userLocation, client, activeFilters, renderRestaurants, clearMarkers]);
+
+  // Fetch map data - IMPROVED
+  const fetchMapData = useCallback(async (center, radius, forceUpdate = false) => {
+    // IMPROVED CIRCUIT BREAKER LOGIC
+    // Only block if circuit is definitely open and it's been less than 3 seconds
+    const timeSinceLastSuccess = Date.now() - stateRef.current.lastFetchSuccess;
+    if (globalRequestTracker.isCircuitOpen && timeSinceLastSuccess < 3000 && !forceUpdate) {
+      console.warn("Circuit breaker open - skipping fetch");
+      return;
+    }
+
+    // Ensure minimum radius of 2km for API requirements
+    const safeRadius = Math.max(2, radius);
+
+    // Generate a unique request key
+    const requestKey = `${center.lat.toFixed(6)}-${center.lng.toFixed(6)}-${safeRadius}-${activeFilters?.offers ? 1 : 0}-${activeFilters?.events ? 1 : 0}`;
+
+    // Skip duplicate requests unless forced or it's been a while
+    const now = Date.now();
+    const timeSinceLastRequest = now - stateRef.current.lastFetchTime;
+    if (!forceUpdate && 
+        requestKey === stateRef.current.lastRequestKey && 
+        timeSinceLastRequest < 2000) {
+      console.log("Skipping duplicate request:", requestKey);
+      return;
+    }
+
+    // Prevent fetching too frequently unless forced or it's been a while
+    if (!forceUpdate && 
+        timeSinceLastRequest < MAP_THROTTLE_MS && 
+        timeSinceLastSuccess < 5000) {
+      
+      // If we have a pending timeout, clear it
+      if (stateRef.current.pendingFetch) {
+        clearTimeout(stateRef.current.pendingFetch);
+      }
+
+      // Set up a new timeout to ensure this request eventually happens
+      stateRef.current.pendingFetch = setTimeout(() => {
+        stateRef.current.pendingFetch = null;
+        fetchMapData(center, safeRadius, true);
+      }, DEBOUNCE_MS);
+      return;
+    }
+
+    // Prevent concurrent fetches but with improved logic
+    if (stateRef.current.isFetching) {
+      const timeSinceLastFetch = now - stateRef.current.lastFetchTime;
+      
+      // Only keep blocking if the last fetch started recently 
+      // This fixes stuck states from failed network requests
+      if (timeSinceLastFetch < 5000) {
+        console.log("BLOCKED: Already fetching data");
+        return;
+      }
+      
+      // If it's been too long, force the fetch to proceed
+      console.log("Fetch has been running too long - resetting status and trying again");
+      stateRef.current.isFetching = false;
+    }
+
+    try {
+      // Set fetching state
+      stateRef.current.isFetching = true;
+      stateRef.current.lastFetchTime = now;
+      stateRef.current.lastRequestKey = requestKey;
+      setIsLoading(true);
+
+      // Clear existing markers before fetching
+      clearMarkers();
+
+      console.log(`Fetching data for radius: ${safeRadius} at center: ${center.lat.toFixed(5)},${center.lng.toFixed(5)} zoom: ${map.getZoom()} forceUpdate: ${forceUpdate}`);
+
+      // IMPROVED: Decide whether to fetch clusters or restaurants based on zoom level
+      const currentZoom = map.getZoom();
+      
+      // Fetch clusters for lower zoom levels, individual restaurants for higher zoom
+      if (currentZoom < 14) {
+        // FETCH CLUSTERS for lower zoom levels
+        console.log("Fetching clusters");
+        const { data } = await client.query({
+          query: GET_RESTAURANT_CLUSTERS,
+          variables: {
+            input: {
+              location: [center.lng, center.lat],
+              maxDistance: safeRadius
+            }
+          },
+          fetchPolicy: 'network-only'
+        });
+
+        console.log("Cluster response:", data?.restaurantClusters?.clusters?.length || 0, "clusters");
+        
+        if (data?.restaurantClusters?.clusters) {
+          renderClusters(data.restaurantClusters.clusters, center, safeRadius);
+        } else {
+          console.log("No clusters returned");
+        }
+      } else {
+        // FETCH INDIVIDUAL RESTAURANTS for higher zoom levels
+        console.log("Fetching individual restaurants");
+        const { data } = await client.query({
+          query: GET_RESTAURANTS_MAP_API,
+          variables: {
+            userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
+            location: [center.lng, center.lat],
+            distance: safeRadius,
+            limit: 200,
+            showEvents: activeFilters?.events ?? true,
+            showOffers: activeFilters?.offers ?? false
+          },
+          fetchPolicy: 'network-only'
+        });
+
+        if (data?.allRestaurants?.restaurants) {
+          console.log("Restaurant response:", data.allRestaurants.restaurants.length, "restaurants");
+          renderRestaurants(data.allRestaurants.restaurants, data.allRestaurants.campaigns, center, safeRadius);
+        } else {
+          console.log("No restaurants returned");
+        }
+      }
+      
+      // Update last successful fetch time
+      stateRef.current.lastFetchSuccess = Date.now();
+      // Reset circuit breaker status after successful fetch
+      globalRequestTracker.isCircuitOpen = false;
+      
+    } catch (error) {
+      console.error("Error fetching map data:", error);
+    } finally {
+      // Add a small delay before allowing more fetches
+      setTimeout(() => {
+        stateRef.current.isFetching = false;
+        setIsLoading(false);
+      }, 100);
+    }
+  }, [map, userLocation, client, clearMarkers, activeFilters, renderClusters, renderRestaurants]);
+
+  // Improved setup user location marker with better consistency
+  const setupUserMarker = useCallback(() => {
+    // Always remove previous marker first to prevent duplicates
+    if (markersRef.current.user) {
+      map.removeLayer(markersRef.current.user);
+      markersRef.current.user = null;
+    }
+
+    // Use the most up-to-date location from state ref
+    const currentLocation = stateRef.current.userLocationState || userLocation;
+
+    if (!currentLocation) return;
+
+    // Create draggable user location marker with the current location
+    const marker = L.marker([currentLocation.lat, currentLocation.lng], {
+      icon: L.divIcon({
+        className: 'user-location-marker',
+        html: `
+          <div class="user-location-dot">
+            <div class="user-location-pulse"></div>
+          </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+      }),
+      draggable: true,
+      zIndexOffset: 1000
+    }).addTo(map);
+
+    // Add tooltip
+    marker.bindTooltip("Drag to move your location", {
+      permanent: false,
+      direction: 'top'
+    });
+
+    // Handle drag
+    let isDragging = false;
+
+    marker.on('dragstart', function () {
+      isDragging = true;
+      stateRef.current.isUserInteraction = true;
+    });
+
+    // Handle drag end
+    marker.on('dragend', function (e) {
+      if (!isDragging) return;
+      isDragging = false;
+
+      const newLocation = {
+        lat: e.target.getLatLng().lat,
+        lng: e.target.getLatLng().lng
+      };
+
+      // Update local state before view changes
+      stateRef.current.currentCenter = e.target.getLatLng();
+      stateRef.current.userLocationState = newLocation;
+
+      // Notify parent component about the location change
+      onLocationChange(newLocation);
+
+      // Update map center FIRST which triggers the circle update
+      onMapMove(e.target.getLatLng(), stateRef.current.currentRadius);
+
+      // Set the map view to the new location
+      map.setView([newLocation.lat, newLocation.lng], map.getZoom());
+
+      // Fetch data for the new location with force update
+      fetchMapData(e.target.getLatLng(), stateRef.current.currentRadius, true);
+
+      // Reset user interaction flag after a short delay
+      setTimeout(() => {
+        stateRef.current.isUserInteraction = false;
+      }, 300);
+    });
+
+    // Store the marker
+    markersRef.current.user = marker;
+
+  }, [map, userLocation, onLocationChange, onMapMove, fetchMapData]);
+
+  // Update event markers - IMPROVED
+  const updateEventMarkers = useCallback((events) => {
+    if (!map) return;
+
+    // Store current markers in a temporary object
+    const currentMarkers = { ...markersRef.current.eventMarkers };
+    const newMarkers = {};
+
+    // Skip if events filter is explicitly disabled
+    if (activeFilters?.events === false) {
+      // Clear all event markers
+      Object.entries(currentMarkers).forEach(([id, marker]) => {
+        if (marker) map.removeLayer(marker);
+      });
+      markersRef.current.eventMarkers = {};
+      return;
+    }
+
+    // Add/update needed markers
+    if (events && events.length > 0) {
+      events.forEach((event) => {
+        if (!event.location || !event.location.coordinates) return;
+
+        const [lng, lat] = event.location.coordinates;
+        const eventLng = parseFloat(lng);
+        const eventLat = parseFloat(lat);
+
+        if (isNaN(eventLat) || isNaN(eventLng)) return;
+
+        // Reuse existing marker if available
+        if (currentMarkers[event._id]) {
+          newMarkers[event._id] = currentMarkers[event._id];
+          delete currentMarkers[event._id]; // Remove from the temporary object
+        } else {
+          // Create new marker only if needed
+          const marker = L.marker([eventLat, eventLng], {
+            icon: createEventIcon(),
+            zIndexOffset: 900,
+            interactive: true
+          })
+            .addTo(map)
+            .bindTooltip(event.name || "Event", {
+              direction: 'top',
+              offset: [0, -20]
+            })
+            .on('click', () => {
+              // Set flags to preserve user location when clicking events
+              stateRef.current.isUserInteraction = true;
+              stateRef.current.isEventFocused = true;
+
+              // Center map on event
+              map.setView([eventLat, eventLng], map.getZoom());
+
+              // Show event details
+              handleEvent(event);
+
+              // Reset the user interaction flag after a delay
+              setTimeout(() => {
+                stateRef.current.isUserInteraction = false;
+              }, 300);
+            });
+
+          newMarkers[event._id] = marker;
+        }
+      });
+    }
+
+    // Remove markers that are no longer needed
+    Object.entries(currentMarkers).forEach(([id, marker]) => {
+      if (marker) map.removeLayer(marker);
+    });
+
+    // Update reference
+    markersRef.current.eventMarkers = newMarkers;
+  }, [map, handleEvent, activeFilters]);
+
+  // Initialize map and setup event handlers
+  useEffect(() => {
+    if (!map || stateRef.current.isInitialized) return;
+
+    // Initialize state
+    const center = map.getCenter();
+    stateRef.current.currentCenter = center;
+    stateRef.current.currentRadius = radius;
+    stateRef.current.isInitialized = true;
+    stateRef.current.previousZoom = map.getZoom();
+    stateRef.current.lastFiltersKey = JSON.stringify(activeFilters || {});
+    stateRef.current.hadInitialUserLocationUpdate = false;
+    stateRef.current.viewingCluster = false;
+    stateRef.current.triedClusters = {};
+    stateRef.current.lastClusterPosition = null;
+    stateRef.current.previousUserLocation = null;
+
+    // Setup user marker
+    setupUserMarker();
+
+    // Initial data fetch
+    console.log("INITIAL DATA FETCH ON MAP INITIALIZATION");
+    fetchMapData(center, Math.max(2, radius), true);
+
+    // Create a debounced handler for map events
+    let mapUpdateTimeout = null;
+    const debouncedMapUpdate = (forceUpdate = false) => {
+      if (mapUpdateTimeout) {
+        clearTimeout(mapUpdateTimeout);
+      }
+
+      mapUpdateTimeout = setTimeout(() => {
+        // Skip if currently fetching unless forced
+        if (stateRef.current.isFetching && !forceUpdate) {
+          console.log("Skipping map update due to active fetch");
+          return;
+        }
+
+        // Check if we're viewing a cluster
+        if (stateRef.current.viewingCluster && !forceUpdate) {
+          console.log("Viewing cluster, not refreshing map on move/zoom");
+          return;
+        }
+
+        // Get current map state
+        const currentZoom = map.getZoom();
+        const center = map.getCenter();
+
+        console.log(`Map update: zoom=${currentZoom} center=${center.lat.toFixed(5)},${center.lng.toFixed(5)} userInteraction=${stateRef.current.isUserInteraction}`);
+
+        // Check for changes
+        const centerChanged = !isSamePosition(center, stateRef.current.currentCenter);
+        const zoomChanged = currentZoom !== stateRef.current.previousZoom;
+
+        // Exit if nothing changed and not user interaction
+        if (!centerChanged && !zoomChanged && !forceUpdate && !stateRef.current.isUserInteraction) {
+          console.log("No significant changes, skipping update");
+          return;
+        }
+
+        // Update state BEFORE triggering the fetch
+        if (centerChanged) {
+          stateRef.current.currentCenter = center;
+          console.log("Center changed, updating state");
+        }
+
+        // Calculate radius based on zoom
+        let effectiveRadius = stateRef.current.currentRadius;
+        if (zoomChanged) {
+          effectiveRadius = calculateRadius(currentZoom);
+          stateRef.current.currentRadius = effectiveRadius;
+          stateRef.current.previousZoom = currentZoom;
+          console.log(`Zoom changed to ${currentZoom}, new radius: ${effectiveRadius}`);
+        }
+
+        // Update parent component
+        onMapMove(center, effectiveRadius);
+
+        // Only fetch if something actually changed
+        const shouldFetch = centerChanged || zoomChanged || forceUpdate || stateRef.current.isUserInteraction;
+        if (shouldFetch) {
+          // Use forceUpdate for zoom changes or user interactions
+          const shouldForceUpdate = zoomChanged || stateRef.current.isUserInteraction || forceUpdate;
+          console.log(`Fetching due to: center=${centerChanged} zoom=${zoomChanged} userInteraction=${stateRef.current.isUserInteraction} force=${shouldForceUpdate}`);
+          fetchMapData(center, effectiveRadius, shouldForceUpdate);
+        }
+
+        // Reset user interaction flag
+        stateRef.current.isUserInteraction = false;
+      }, DEBOUNCE_MS);
+    };
+
+    // Add map event listeners
+    const handleMapChange = () => {
+      if (!stateRef.current.isInitialized) return;
+      debouncedMapUpdate();
+    };
+
+    // Attach handlers
+    map.on('moveend', handleMapChange);
+    map.on('zoomend', handleMapChange);
+
+    // Handle click to place user location
+    map.on('click', (e) => {
+      if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
+        // Set user interaction flag
+        stateRef.current.isUserInteraction = true;
+
+        // Reset flags when user explicitly sets location
+        stateRef.current.isEventFocused = false;
+        stateRef.current.viewingCluster = false;
+
+        // Update user location
+        const newLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
+
+        // Update state FIRST before any map operations
+        stateRef.current.currentCenter = e.latlng;
+        stateRef.current.userLocationState = newLocation;
+        stateRef.current.previousUserLocation = newLocation;
+
+        // Notify parent component
+        onLocationChange(newLocation);
+
+        // Update the Circle position
+        if (onMapMove) {
+          onMapMove(e.latlng, stateRef.current.currentRadius);
+        }
+
+        // Update user marker position
+        setupUserMarker();
+
+        // Set view to new location
+        map.setView([newLocation.lat, newLocation.lng], map.getZoom());
+
+        // Force an update
+        debouncedMapUpdate(true);
+      }
+    });
+
+    // Setup events
+    updateEventMarkers(events);
+
+    // Cleanup function
+    return () => {
+      map.off('moveend', handleMapChange);
+      map.off('zoomend', handleMapChange);
+
+      if (mapUpdateTimeout) {
+        clearTimeout(mapUpdateTimeout);
+      }
+
+      // Clean up markers
+      clearMarkers();
+
+      if (markersRef.current.user) {
+        map.removeLayer(markersRef.current.user);
+      }
+
+      Object.values(markersRef.current.eventMarkers).forEach(marker => {
+        if (marker) map.removeLayer(marker);
+      });
+      markersRef.current.eventMarkers = {};
+
+      // Clear any pending fetch
+      if (stateRef.current.pendingFetch) {
+        clearTimeout(stateRef.current.pendingFetch);
+      }
+    };
+  }, [
+    map, radius, userLocation, events,
+    setupUserMarker, clearMarkers, onMapMove, onLocationChange,
+    handleEvent, fetchMapData, updateEventMarkers, activeFilters
+  ]);
+
+  // Update user marker when location changes
+  useEffect(() => {
+    if (!map || !stateRef.current.isInitialized) return;
+
+    // Update state ref with the latest userLocation
+    if (userLocation) {
+      stateRef.current.userLocationState = userLocation;
+    }
+
+    // Make sure user marker reflects the current location
+    setupUserMarker();
+
+    // Only update view on initial load or explicit user location changes
+    const isInitialLoad = !stateRef.current.hadInitialUserLocationUpdate;
+
+    if (isInitialLoad && userLocation) {
+      stateRef.current.hadInitialUserLocationUpdate = true;
+
+      console.log("INITIAL USER LOCATION UPDATE - setting view to user location");
+      const userLatLng = L.latLng(userLocation.lat, userLocation.lng);
+
+      // Set the map view to user location
+      map.setView([userLocation.lat, userLocation.lng], map.getZoom());
+      stateRef.current.currentCenter = userLatLng;
+
+      // Update the Circle position for user location
+      onMapMove(userLatLng, stateRef.current.currentRadius);
+
+      // Fetch map data for initial view
+      fetchMapData(userLatLng, stateRef.current.currentRadius, true);
+
+      return; // Exit early after handling initial load
+    }
+
+    // For subsequent updates, only move the map if explicitly triggered or needed
+    if (!stateRef.current.isUserInteraction &&
+      !stateRef.current.isEventFocused &&
+      !stateRef.current.viewingCluster &&
+      userLocation &&
+      userLocation !== stateRef.current.previousUserLocation) {
+
+      console.log("Explicit user location change - updating map");
+      stateRef.current.previousUserLocation = userLocation;
+
+      const userLatLng = L.latLng(userLocation.lat, userLocation.lng);
+
+      // Move the map for explicit location changes
+      map.setView([userLocation.lat, userLocation.lng], map.getZoom());
+      stateRef.current.currentCenter = userLatLng;
+
+      // Update the Circle position
+      onMapMove(userLatLng, stateRef.current.currentRadius);
+
+      // Fetch map data with the new center
+      fetchMapData(userLatLng, stateRef.current.currentRadius, true);
+    }
+  }, [map, userLocation, setupUserMarker, onMapMove, fetchMapData]);
+
+  // Handle filter changes with force update
+  useEffect(() => {
+    if (!map || !stateRef.current.isInitialized || !stateRef.current.currentCenter) return;
+
+    // Skip if circuit breaker is active
+    if (globalRequestTracker.isCircuitOpen) {
+      console.warn("Circuit breaker open - skipping filter update");
+      return;
+    }
+
+    // Create a key to detect actual filter changes
+    const filtersKey = JSON.stringify(activeFilters);
+
+    // Only process if filters actually changed
+    if (filtersKey === stateRef.current.lastFiltersKey) {
+      console.log("Filters unchanged, skipping update");
+      return;
+    }
+
+    console.log(`Filters CHANGED from "${stateRef.current.lastFiltersKey}" to "${filtersKey}"`);
+    stateRef.current.lastFiltersKey = filtersKey;
+
+    // Use deferred update with higher priority
+    if (stateRef.current.pendingFetch) {
+      clearTimeout(stateRef.current.pendingFetch);
+    }
+
+    stateRef.current.pendingFetch = setTimeout(() => {
+      stateRef.current.pendingFetch = null;
+      // Only fetch if not already fetching
+      if (!stateRef.current.isFetching) {
+        console.log("Processing filter update");
+        fetchMapData(stateRef.current.currentCenter, stateRef.current.currentRadius, true);
+      }
+    }, DEBOUNCE_MS);
+
+  }, [map, activeFilters, fetchMapData]);
+
+  // Handle radius changes from props
+  useEffect(() => {
+    if (!map || !stateRef.current.isInitialized) return;
+
+    // Skip if circuit breaker is active
+    if (globalRequestTracker.isCircuitOpen) {
+      console.warn("Circuit breaker open - skipping radius update");
+      return;
+    }
+
+    // Only update if the radius actually changed
+    if (Math.abs(radius - stateRef.current.currentRadius) > 0.1) {
+      console.log(`Radius changed from ${stateRef.current.currentRadius} to ${radius}`);
+      stateRef.current.currentRadius = radius;
+
+      if (stateRef.current.currentCenter) {
+        // Use deferred update to prevent cascade
+        if (stateRef.current.pendingFetch) {
+          clearTimeout(stateRef.current.pendingFetch);
+        }
+
+        stateRef.current.pendingFetch = setTimeout(() => {
+          stateRef.current.pendingFetch = null;
+          // Only fetch if not already fetching
+          if (!stateRef.current.isFetching) {
+            console.log("Processing radius update");
+            fetchMapData(stateRef.current.currentCenter, radius, true);
+          }
+        }, DEBOUNCE_MS);
+      }
+    }
+  }, [map, radius, fetchMapData]);
+
+  // Re-render events when they change
+  useEffect(() => {
+    if (!map || !stateRef.current.isInitialized) return;
+    updateEventMarkers(events);
+  }, [map, events, updateEventMarkers]);
+
+  return (
+    <>
+      {isLoading && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000]">
+          <div className="bg-white px-4 py-2 rounded-full shadow-lg flex items-center space-x-2">
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+            <span className="text-sm font-medium text-gray-600">Loading</span>
+          </div>
+        </div>
+      )}
+
+      <div className="absolute top-4 left-4 z-[1000] bg-white p-2 rounded shadow-lg text-sm">
+        <div className="font-medium text-gray-700">
+          <span>Ctrl+Click to place location pin</span>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Fit map to bounds based on user location and radius
+const FitMapToBounds = ({ userLocation, radius }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!userLocation) return;
+
+    const radiusInMeters = radius * 1000;
+    const earthCircumference = 40075016.686;
+    const latChange = (radiusInMeters / earthCircumference) * 360;
+    const lngChange = latChange / Math.cos((Math.PI / 180) * userLocation.lat);
+
+    const southWest = L.latLng(userLocation.lat - latChange, userLocation.lng - lngChange);
+    const northEast = L.latLng(userLocation.lat + latChange, userLocation.lng + lngChange);
+    const bounds = L.latLngBounds(southWest, northEast);
+
+    map.fitBounds(bounds, {
+      padding: [50, 50]
+    });
+  }, [map, userLocation, radius]);
+
+  return null;
+};
+
+// Main map component
+export const HomeMap = ({
+  height = '100%',
+  userLocation,
+  radius = 50,
+  onMapMove = () => { },
+  onLocationChange = () => { },
+  handleRestaurant,
+  activeFilters,
+  events = [],
+  debug = false
+}) => {
+  // Store location and circle details in state 
+  const [mapCenter, setMapCenter] = useState({
+    lat: userLocation?.lat || 52.516267,
+    lng: userLocation?.lng || 13.322455
+  });
+  const [currentRadius, setCurrentRadius] = useState(radius);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+
+  // For tracking state changes
+  const lastLocationUpdateRef = useRef(null);
+
+  // Update radius from filters if available
+  useEffect(() => {
+    if (activeFilters?.radius && !isNaN(parseFloat(activeFilters.radius))) {
+      setCurrentRadius(parseFloat(activeFilters.radius));
+    } else {
+      setCurrentRadius(radius);
+    }
+  }, [radius, activeFilters]);
+
+  // Update map center when userLocation changes
+  useEffect(() => {
+    if (userLocation) {
+      // Store update timestamp to track changes
+      lastLocationUpdateRef.current = Date.now();
+
+      setMapCenter({
+        lat: userLocation.lat,
+        lng: userLocation.lng
+      });
+    }
+  }, [userLocation]);
+
+  const handleMapMove = useCallback((center, newRadius) => {
+    // Update local state for the circle display
+    setMapCenter({ lat: center.lat, lng: center.lng });
+    setCurrentRadius(newRadius);
+
+    // Call parent component's handler
+    if (onMapMove) {
+      onMapMove(center, newRadius);
+    }
+  }, [onMapMove]);
+
+  // Handle location change callback
+  const handleLocationChange = useCallback((newLocation) => {
+    // Update parent component
+    onLocationChange(newLocation);
+
+    // Update local map center state
+    setMapCenter(newLocation);
+
+    // Store update timestamp
+    lastLocationUpdateRef.current = Date.now();
+  }, [onLocationChange]);
+
+  // Handle event click
+  const handleEvent = useCallback((event) => {
+    // Clear restaurant selection
+    setSelectedRestaurant(null);
+
+    // Set event selection
+    setSelectedEvent(event);
+  }, []);
+
+  // Handle restaurant click
+  const handleRestaurantClick = useCallback((restaurant) => {
+    // Clear event selection
+    setSelectedEvent(null);
+
+    // Set restaurant selection
+    setSelectedRestaurant(restaurant);
+    
+    // Call parent handler if provided
+    if (handleRestaurant) {
+      handleRestaurant(restaurant);
+    }
+  }, [handleRestaurant]);
+
+  // Handle close event card
+  const handleCloseEventCard = useCallback(() => {
+    setSelectedEvent(null);
+  }, []);
+
+  // Handle close restaurant card
+  const handleCloseRestaurantCard = useCallback(() => {
+    setSelectedRestaurant(null);
+    
+    // Also call parent handler with null
+    if (handleRestaurant) {
+      handleRestaurant(null);
+    }
+  }, [handleRestaurant]);
+
+  // Handle visit stalls
+  const handleVisitStalls = useCallback((eventId) => {
+    console.log('Visit stalls clicked for event:', eventId);
+  }, []);
+
+  // Unique key to prevent remounting
+  const mapKey = useRef(`map-${Date.now()}`).current;
+
+  return (
+    <div style={{ height, width: '100%' }} className="map-container">
+      <MapContainer
+        key={mapKey}
+        center={[mapCenter.lat, mapCenter.lng]}
+        zoom={14}
+        style={{ height: '100%', width: '100%' }}
+        className="rounded-lg"
+        minZoom={3}
+        maxZoom={MAX_ZOOM_LEVEL}
+        zoomControl={true}
+        attributionControl={false}
+        preferCanvas={true}
+      >
+        <TileLayer
+          url={config.api.maps.tiles}
+          attribution={false}
+        />
+        <TileErrorHandler />
+
+        {userLocation && <FitMapToBounds userLocation={userLocation} radius={radius} />}
+
+        <HomeMapController
+          maxCurrentRadius={radius}
+          userLocation={userLocation}
+          radius={currentRadius}
+          onMapMove={handleMapMove}
+          onLocationChange={handleLocationChange}
+          handleRestaurant={handleRestaurantClick}
+          handleEvent={handleEvent}
+          activeFilters={activeFilters}
+          events={events}
+        />
+
+        <Circle
+          center={[mapCenter.lat, mapCenter.lng]}
+          radius={currentRadius * 1000}
+          pathOptions={{
+            color: '#93c5fd',
+            fillColor: '#93c5fd',
+            fillOpacity: 0.1,
+            weight: 3,
+          }}
+        />
+
+        <div className="absolute bottom-4 right-4 bg-white px-4 py-3 rounded-lg shadow-md z-[1000] radius-indicator">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-[#93c5fd]"></div>
+            <p className="text-sm font-medium">Radius: {currentRadius.toFixed(1)}km</p>
+          </div>
+        </div>
+      </MapContainer>
+
+      {/* Event Card */}
+      {selectedEvent && (
+        <MapEventCard
+          data={selectedEvent}
+          onClose={handleCloseEventCard}
+          onVisitStalls={handleVisitStalls}
+        />
+      )}
+
+      {/* Restaurant Detail Card */}
+      {selectedRestaurant && (
+        <RestaurantDetailCard
+          data={selectedRestaurant}
+          onClose={handleCloseRestaurantCard}
+          userLocation={userLocation}
+          onOrderNow={() => {
+            // Navigate to restaurant detail page
+            // This will be handled in the MapRestaurantCard component
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// Restaurant Detail Map Component
+export const RestaurantDetailMap = ({
+  height = '300px',
+  userLocation,
+  restaurantLocation
+}) => {
+  const RestaurantDetailController = () => {
+    const map = useMap();
+    const [routeElements, setRouteElements] = useState({
+      polyline: null,
+      userMarker: null,
+      restaurantMarker: null
+    });
+
+    // Create a curved line between user and restaurant
+    const createCurvedPolyline = (startPoint, endPoint, map) => {
+      // Midpoint for basic quadratic curve
+      const midLat = (startPoint.lat + endPoint.lat) / 2;
+      const midLng = (startPoint.lng + endPoint.lng) / 2;
+
+      // Create a control point for the curve
+      const controlPoint = L.latLng(
+        midLat + Math.abs(startPoint.lat - endPoint.lat) * 0.5,
+        midLng + Math.abs(startPoint.lng - endPoint.lng) * 0.2
+      );
+
+      // Generate curve points
+      const curvePoints = [];
+      for (let t = 0; t <= 1; t += 0.01) {
+        const lat = Math.pow(1 - t, 2) * startPoint.lat + 2 * (1 - t) * t * controlPoint.lat + Math.pow(t, 2) * endPoint.lat;
+        const lng = Math.pow(1 - t, 2) * startPoint.lng + 2 * (1 - t) * t * controlPoint.lng + Math.pow(t, 2) * endPoint.lng;
+        curvePoints.push([lat, lng]);
+      }
+
+      // Create and return the polyline
+      return L.polyline(curvePoints, {
+        color: '#000000',
+        weight: 3,
+        dashArray: '10, 10',
+        opacity: 0.8,
+        lineCap: 'round'
+      }).addTo(map);
+    };
+
+    // Set up route and markers
+    useEffect(() => {
+      // Ensure we're waiting for map to be available
+      if (!map) return;
+
+      // Clean up previous elements
+      if (routeElements.polyline) routeElements.polyline.remove();
+      if (routeElements.userMarker) routeElements.userMarker.remove();
+      if (routeElements.restaurantMarker) routeElements.restaurantMarker.remove();
+
+      if (userLocation && restaurantLocation) {
+        const startPoint = L.latLng(userLocation.lat, userLocation.lng);
+        const endPoint = L.latLng(restaurantLocation.lat, restaurantLocation.lng);
+
+        // Create curved line
+        const polyline = createCurvedPolyline(startPoint, endPoint, map);
+
+        // Add user marker with improved design
+        const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+          icon: L.divIcon({
+            className: 'user-location-marker',
+            html: `
+              <div class="user-location-dot">
+                <div class="user-location-pulse"></div>
+              </div>
+            `,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
+          })
+        }).addTo(map);
+
+        // Add restaurant marker
+        const restaurantMarker = L.marker([restaurantLocation.lat, restaurantLocation.lng], {
+          icon: L.divIcon({
+            className: 'restaurant-destination-marker',
+            html: `
+              <div class="restaurant highlighted">
+                <div class="restaurant-indicator">
+                  <img src="${Kebab}" style="height:22px" alt="restaurant"/>
+                </div>
+                <div class="highlight-ring"></div>
+              </div>
+            `,
+            iconSize: [50, 50],
+            iconAnchor: [25, 25]
+          })
+        }).addTo(map);
+
+        // Fit bounds to show both markers
+        const bounds = L.latLngBounds([
+          [userLocation.lat, userLocation.lng],
+          [restaurantLocation.lat, restaurantLocation.lng]
+        ]);
+        map.fitBounds(bounds, { padding: [70, 70] });
+
+        // Store elements for cleanup
+        setRouteElements({ polyline, userMarker, restaurantMarker });
+
+        // Ensure zoom level doesn't exceed max supported
+        if (map.getZoom() > MAX_ZOOM_LEVEL) {
+          map.setZoom(MAX_ZOOM_LEVEL);
+        }
+      }
+
+      return () => {
+        if (routeElements.polyline) routeElements.polyline.remove();
+        if (routeElements.userMarker) routeElements.userMarker.remove();
+        if (routeElements.restaurantMarker) routeElements.restaurantMarker.remove();
+      };
+    }, [map, userLocation, restaurantLocation]);
+
+    return null;
+  };
+
+  // Calculate the initial center point between user and restaurant
+  const initialCenter = userLocation && restaurantLocation ? [
+    (userLocation.lat + restaurantLocation.lat) / 2,
+    (userLocation.lng + restaurantLocation.lng) / 2
+  ] : [52.516267, 13.322455];
+
+  // Use stable key to prevent remounting
+  const mapKey = useRef(`detail-map-${Date.now()}`).current;
+
+  return (
+    <div style={{ height, width: '100%' }} className="restaurant-detail-map-container">
+      <MapContainer
+        key={mapKey}
+        center={initialCenter}
+        zoom={13}
+        style={{ height: '100%', width: '100%' }}
+        className="rounded-lg"
+        minZoom={3}
+        maxZoom={MAX_ZOOM_LEVEL}
+        zoomControl={true}
+        attributionControl={false}
+        preferCanvas={true}
+      >
+        <TileLayer
+          url={config.api.maps.tiles}
+          attribution={false}
+        />
+        <TileErrorHandler />
+        <RestaurantDetailController />
+      </MapContainer>
+    </div>
+  );
+};
+
+// Location selector map
+export const LocationSelectorMap = ({
+  height = '55vh',
+  initialLocation,
+  onLocationSelected
+}) => {
+  const center = initialLocation
+    ? [initialLocation.lat, initialLocation.lng]
+    : [52.516267, 13.322455];
+
+  const LocationSelectorController = ({ onLocationSelect }) => {
+    const map = useMap();
+
+    // Map events binding
+    const handleMoveEnd = () => {
+      const center = map.getCenter();
+      onLocationSelect({ lat: center.lat, lng: center.lng });
+    };
+
+    useEffect(() => {
+      // Add event listener
+      map.on('moveend', handleMoveEnd);
+
+      // Initial call
+      handleMoveEnd();
+
+      // Cleanup
+      return () => {
+        map.off('moveend', handleMoveEnd);
+      };
+    }, [map]);
 
     return (
-        <div className='map-restaurant-card'>
-            <div className='map-close-container' onClick={handleClose}>
-                <img width={10} height={10} src={Close} alt="close" />
-            </div>
-            <div className='d-flex justify-content-between pd-horizontal' style={{ width: "100%", marginTop: 25 }}>
-                {data?.image ? <img className='restaurant-card-img' style={{ objectFit: 'contain' }} src={data?.image} alt="star" /> :
-                    <div className='p-2 me-2 d-flex justify-content-center align-items-center' style={{ background: 'rgba(229, 229, 229, 0.5)' }}>
-                        <img src={ImagePlaceholder} />
-                    </div>}
-                <div style={{ width: "61%" }}>
-                    <div className='d-flex align-items-center'>
-                        <p className='l-fs bold-fw black-text text-ellipsis me-1' style={{ maxWidth: "75%" }}>{data?.name}</p>
-                        {data?.onboarded && <img className='icon-size' src={Verified} alt="star" />}
-                    </div>
-                    <div className='d-flex align-items-center mt-1'>
-                        <div className='d-flex align-items-center'>
-                            <img className='star' src={Star} alt="star" />
-                            {data?.reviewAverage && data?.reviewAverage > 0 ?
-                                <div className='d-flex align-items-center ps-1'>
-                                    <p className='s-fs bold-fw black-text'>{ratingStructure(data?.reviewAverage) || 0}</p>
-                                    <p className='s-fs bold-fw black-text ms-1'>({numberToK(data?.reviewCount) || 0})</p>
-                                </div> :
-                                <div className='ps-1'>
-                                    <p className='s-fs bold-fw black-text'>{t("common.new")}</p>
-                                </div>
-                            }
-                            <img className='dot mx-1' src={Dot} alt="dot" />
-                            <p className='black-text bold-fw s-fs'>{metersToKilometers(data?.distanceInMeters)} {t("common.km")}</p>
-                        </div>
-                        {false && <div className='d-flex align-items-center ms-3'>
-                            <img className='star' src={Followers} alt="star" />
-                            <p className='s-fs bold-fw black-text ms-1'>{numberToK(data?.favoriteCount) || 0}</p>
-                        </div>}
-                    </div>
-                    <p className='heading s-fs normal-fw my-1 mt-2'>{data?.address}</p>
-                </div>
-            </div>
-            {/* {(props?.data?.campaigns && props?.data?.campaigns?.length > 0) && <div className='off-section mx-3 mt-3'>
-                <img className='icon-size' src={Object.keys(offerData).length > 0 ? getGif() : Offer} alt="star" />
-                <p className='m-fs medium-fw black-text ms-2'>{Object.keys(offerData).length > 0 ? offerData?.description : `${props?.data?.campaigns?.length} offers available`}</p>
-            </div>} */}
-            {/* {(props?.data?.campaigns && props?.data?.campaigns?.length > 0) && <OfferCarousel campaignsData={props?.data?.campaigns} icon={Offer} symbol={symbol} />} */}
-            {/* Action Buttons */}
-            <div className='my-3 d-flex justify-content-center align-items-center gap-2' style={{ width: "100%" }}>
-                {/* Get Directions */}
-                <div onClick={onClickViewDirections} className='visit-button' style={{ cursor: 'pointer' }}>
-                    <p className='l-fs semiBold-fw black-text'>{t('mapfilters.getdirections')}</p>
-                </div>
-
-                {/* Visit Shop */}
-                <div onClick={navigateToSingleRestaurant} className='visit-button' style={{ cursor: 'pointer', backgroundColor: 'black' }}>
-                    <p className='l-fs semiBold-fw white-text'>{t("restaurant.visit")}</p>
-                </div>
-            </div>
-
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1000] pointer-events-none">
+        <div className="location-pin">
+          <div className="location-pin-inner"></div>
+          <div className="location-pin-shadow"></div>
         </div>
-    )
-}
+      </div>
+    );
+  };
 
-export default MapRestaurantCard;
+  // Use stable key to prevent remounting
+  const mapKey = useRef(`location-map-${Date.now()}`).current;
+
+  return (
+    <div style={{ height, width: '100%' }} className="location-selector-map-container">
+      <MapContainer
+        key={mapKey}
+        center={center}
+        zoom={16}
+        style={{ height: '100%', width: '100%' }}
+        className="rounded-lg"
+        minZoom={3}
+        maxZoom={MAX_ZOOM_LEVEL}
+        zoomControl={true}
+        attributionControl={false}
+        preferCanvas={true}
+      >
+        <TileLayer
+          url={config.api.maps.tiles}
+          attribution={false}
+        />
+        <TileErrorHandler />
+        <LocationSelectorController onLocationSelect={onLocationSelected} />
+      </MapContainer>
+    </div>
+  );
+};
+
+export default {
+  HomeMap,
+  LocationSelectorMap,
+  RestaurantDetailMap
+};

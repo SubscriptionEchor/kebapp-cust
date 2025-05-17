@@ -33,7 +33,7 @@ const Home: React.FC = () => {
   const { bootstrapData, loading: bootstrapLoading } = useBootstrap();
   const { profile, loading: profileLoading } = useUser();
   const [showConsentPopup, setShowConsentPopup] = useState(false);
-  const [showMap, setShowMap] = useState(true);
+  const [showMap, setShowMap] = useState(true); // Default to map view
   const [showFilters, setShowFilters] = useState(false);
   const [selectedRadius, setSelectedRadius] = useState(50);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -43,11 +43,18 @@ const Home: React.FC = () => {
   const [pagination, setPagination] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Active filters for map - add filter state for offers and events
+  const [activeMapFilters, setActiveMapFilters] = useState({
+    radius: selectedRadius,
+    offers: false,
+    events: true
+  });
+
   const selectedLocation = temporaryLocation || {
     latitude: 52.516267, // Default fallback coordinates
     longitude: 13.322455
   };
-  
+
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -99,7 +106,7 @@ const Home: React.FC = () => {
             data.allRestaurants.restaurants,
             data.allRestaurants.campaigns
           );
-          
+
           const sectionData = data.allRestaurants.sections.map((section: any) => ({
             ...section,
             restaurants: section.restaurants
@@ -207,6 +214,28 @@ const Home: React.FC = () => {
 
   const handleFilterUpdate = (radius: number) => {
     setSelectedRadius(radius);
+
+    // Update map filters when radius changes
+    setActiveMapFilters(prev => ({
+      ...prev,
+      radius
+    }));
+  };
+
+  // New handler for toggling offer filter
+  const handleToggleOffers = (showOffers: boolean) => {
+    setActiveMapFilters(prev => ({
+      ...prev,
+      offers: showOffers
+    }));
+  };
+
+  // New handler for toggling events filter
+  const handleToggleEvents = (showEvents: boolean) => {
+    setActiveMapFilters(prev => ({
+      ...prev,
+      events: showEvents
+    }));
   };
 
   const formatDistance = (meters: number): string => {
@@ -227,6 +256,13 @@ const Home: React.FC = () => {
           }}
           events={events}
           debug={true}
+          activeFilters={activeMapFilters}
+          onMapMove={(center, radius) => {
+            // Update radius when it changes from map
+            if (Math.abs(radius - selectedRadius) > 0.1) {
+              setSelectedRadius(radius);
+            }
+          }}
         />
         <button
           style={{ zIndex: 10000 }}
@@ -246,10 +282,14 @@ const Home: React.FC = () => {
           isOpen={showFilters}
           onClose={() => setShowFilters(false)}
           onFilterUpdate={handleFilterUpdate}
+          onToggleOffers={handleToggleOffers}
+          onToggleEvents={handleToggleEvents}
+          activeFilters={activeMapFilters}
         />
         {showDetails &&
           <MapRestaurantCard
             data={showDetails}
+            onClose={() => setShowDetails(null)}
           />
         }
       </div>

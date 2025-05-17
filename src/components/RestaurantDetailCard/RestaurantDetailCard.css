@@ -13,6 +13,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -27,12 +28,16 @@
     transform: translateY(0);
     animation: slideUp 0.3s ease;
     border: 1px solid #E5E7EB;
+    max-height: 80vh;
+    overflow-y: auto;
+    width: auto;
 }
 
 @keyframes slideUp {
     from {
         transform: translateY(100%);
     }
+
     to {
         transform: translateY(0);
     }
@@ -89,7 +94,8 @@
     gap: 8px;
 }
 
-.restaurant-content {
+.restaurant-content,
+.restaurant-offers-content {
     padding: 16px;
 }
 
@@ -131,6 +137,7 @@
     display: flex;
     gap: 16px;
     margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
 .restaurant-stat {
@@ -139,6 +146,15 @@
     gap: 4px;
     color: #6B7280;
     font-size: 14px;
+}
+
+.restaurant-stat.clickable {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.restaurant-stat.clickable:hover {
+    color: #000000;
 }
 
 .restaurant-info-container {
@@ -179,6 +195,25 @@
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+}
+
+/* Load more button styling */
+.load-more-btn {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: #F3F4F6;
+    color: #4B5563;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 12px;
+}
+
+.load-more-btn:hover {
+    background-color: #E5E7EB;
 }
 
 .restaurant-card-actions {
@@ -227,19 +262,178 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+/* Tab navigation */
+.restaurant-tab-nav {
+    display: flex;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6B7280;
+    position: relative;
+    cursor: pointer;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.tab-btn.active {
+    color: #000000;
+}
+
+.tab-btn.active:after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #000000;
+}
+
+.offer-count {
+    background-color: #FFCD38;
+    color: #000000;
+    font-size: 12px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+/* Offers tab styling */
+.offers-heading {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+}
+
+.offers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.offer-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background-color: #F9FAFB;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+}
+
+.offer-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #FEF3C7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.offer-content {
+    flex: 1;
+}
+
+.offer-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+
+.offer-description {
+    font-size: 13px;
+    color: #6B7280;
+    margin: 0 0 8px 0;
+}
+
+.offer-code {
+    display: inline-flex;
+    align-items: center;
+    background-color: #FFCD38;
+    padding: 4px 8px;
+    border-radius: 4px;
+    gap: 4px;
+}
+
+.code-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.code-value {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Opening hours styling */
+.opening-hours-container {
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #F9FAFB;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+}
+
+.opening-hours-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.opening-hours-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.opening-hours-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.day {
+    font-weight: 500;
+    color: #4B5563;
+}
+
+.hours {
+    color: #6B7280;
+}
+
 /* Media query for smaller screens */
 @media (max-width: 480px) {
     .restaurant-stats-container {
         gap: 12px;
     }
-    
+
     .restaurant-stat {
         font-size: 12px;
     }
-    
-    .restaurant-cuisine, 
+
+    .restaurant-cuisine,
     .restaurant-distance,
     .restaurant-address {
         font-size: 13px;
     }
+}
+
+.card-width {
+    width: auto !important;
 }
