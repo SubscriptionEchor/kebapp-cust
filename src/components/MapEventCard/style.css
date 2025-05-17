@@ -6,7 +6,6 @@
     right: 0;
     z-index: 1000;
     padding: 0 16px 16px;
-    pointer-events: none;
 }
 
 .event-card {
@@ -45,7 +44,7 @@
     justify-content: center;
     border: none;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10;
     transition: background-color 0.2s;
 }
 
@@ -225,6 +224,10 @@
     overflow: hidden;
 }
 
+.stalls-flyout-content-wrapper {
+    /* Remove this class - not needed anymore */
+}
+
 @keyframes slideInRight {
     from {
         transform: translateX(100%);
@@ -243,6 +246,7 @@
     align-items: center;
     background-color: #FFCD38;
     color: black;
+    position: relative;
 }
 
 .stalls-flyout-header h3 {
@@ -352,6 +356,10 @@
 }
 
 .super-debug-pulse {
-    background: rgba(65, 24, 0, 0.4) !important;
+    background: rgba(65, 11, 0, 0.4) !important;
     /* Change to yellow to match the card */
+}
+
+.card-width {
+    width: auto !important;
 }

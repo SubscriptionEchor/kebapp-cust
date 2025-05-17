@@ -70,7 +70,7 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
     localStorage.setItem("restaurant", id)
   };
   return (
-    <div onClick={handleCardClick} className={`w-[180px] flex-shrink-0 shadow-sm bg-white rounded-xl overflow-hidden card-hover animate-scale-in`}>
+    <div onClick={handleCardClick} className={`w-[180px] flex-shrink-0 shadow-sm bg-white rounded-xl overflow-hidden card-hover animate-scale-in card-width`}>
       <div className="relative overflow-hidden">
         <img
           src={!image ? placeholderImage : image}
