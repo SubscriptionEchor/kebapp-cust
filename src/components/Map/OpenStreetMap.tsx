@@ -147,9 +147,8 @@ const fetchRestaurantsInChunks = async (client, position, restaurantIds, userLoc
 
 // IMPROVED: Function to fetch with expanding radius for large clusters
 const fetchWithExpandingRadius = async (client, position, userLocation, radii, onSuccess) => {
-  // Default radii if not provided
-  // CRITICAL FIX: Always use minimum 2km radius (API requirement)
-  const radiusValues = radii || [2, 3, 4];
+  // Default radii if not provided - ENSURING MINIMUM 2KM RADIUS
+  const radiusValues = radii || [2, 3, 4]; // Changed from [0.3, 0.5, 0.8] to always be >= 2
 
   for (let i = 0; i < radiusValues.length; i++) {
     const radius = Math.max(2, radiusValues[i]); // Ensure minimum 2km radius
@@ -259,50 +258,50 @@ const HomeMapController = ({
       zoom = map.getZoom();
     }
 
+    // Force clear cluster state on zoom calculation for more reliable updates
+    stateRef.current.clickedCluster = null;
+    stateRef.current.viewingCluster = false;
+
     // SIGNIFICANTLY IMPROVED RADIUS CALCULATION:
+    // More dramatic scaling between zoom levels
     // This will ensure clusters properly break down as zoom increases
-
-    // Base minimum distance requirement of 2km for API requirements
-    const minDistance = 2;
-
-    // Exponential scaling based on zoom level
-    // This creates a much more dramatic change between zoom levels
     switch (zoom) {
-      case 0:
-      case 1:
-      case 2:
-        return 500;
-      case 3:
-        return 300;
-      case 4:
-        return 200;
-      case 5:
-        return 150;
-      case 6:
-        return 100;
-      case 7:
-        return 75;
-      case 8:
-        return 50;
-      case 9:
-        return 30;
-      case 10:
-        return 20;
-      case 11:
-        return 15;
-      case 12:
-        return 10;
-      case 13:
-        return 7;
-      case 14:
-        return 5;
-      case 15:
-        return 3;
-      case 16:
-        return 2;
-      default:
-        return minDistance;
+      case 0: case 1: case 2: return 500;
+      case 3: return 300;
+      case 4: return 250;
+      case 5: return 200;
+      case 6: return 170;
+      case 7: return 140;
+      case 8: return 110;
+      case 9: return 80;
+      case 10: return 60;
+      case 11: return 45;
+      case 12: return 30;
+      case 13: return 20;
+      case 14: return 15;
+      case 15: return 10;
+      case 16: return 7;
+      case 17: return 5;
+      case 18: return 3;
+      default: return 2; // Minimum radius
     }
+  };
+
+  // Helper function to consolidate clusters at very low zoom levels
+  const consolidateClustersForLowZoom = (clusters, center) => {
+    if (!clusters || clusters.length === 0) return [];
+
+    // Calculate total count
+    const totalCount = clusters.reduce((sum, cluster) => sum + (cluster.count || 0), 0);
+
+    // Create a single consolidated cluster
+    return [{
+      _id: "consolidated-cluster",
+      count: totalCount,
+      location: {
+        coordinates: [center.lng, center.lat]
+      }
+    }];
   };
 
   // Clear all markers except user marker
@@ -398,6 +397,110 @@ const HomeMapController = ({
       iconSize: [60, 60],
       iconAnchor: [30, 30]
     });
+  };
+
+  // Helper function for calculating distance
+  const calculateDistance = (restaurant) => {
+    if (!userLocation || !restaurant || !restaurant.location || !restaurant.location.coordinates) {
+      return '';
+    }
+
+    const [lng, lat] = restaurant.location.coordinates;
+    const userLat = userLocation.lat;
+    const userLng = userLocation.lng;
+
+    // Simple distance calculation using Haversine formula
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat - userLat);
+    const dLon = deg2rad(lng - userLng);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(userLat)) * Math.cos(deg2rad(lat)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+
+    if (distance < 1) {
+      return `${Math.round(distance * 1000)}m away`;
+    }
+    return `${distance.toFixed(1)}km away`;
+  };
+
+  const deg2rad = (deg) => {
+    return deg * (Math.PI / 180);
+  };
+
+  // Create a custom popup for restaurant details - AIRBNB STYLE
+  const createRestaurantPopup = (restaurant, position) => {
+    // Create a custom popup for the restaurant
+    const popupContent = document.createElement('div');
+    popupContent.className = 'custom-restaurant-popup';
+
+    // Create the HTML content for the popup
+    popupContent.innerHTML = `
+      <div class="restaurant-popup-container">
+        <div class="restaurant-popup-header">
+          <h3 class="restaurant-popup-title">${restaurant.name || "Restaurant"}</h3>
+          <button class="restaurant-popup-close" aria-label="Close">×</button>
+        </div>
+        <div class="restaurant-popup-content">
+          <div class="restaurant-popup-info">
+            <div class="restaurant-popup-address">${restaurant.address || ""}</div>
+            <div class="restaurant-popup-distance">${calculateDistance(restaurant) || ""}</div>
+          </div>
+          <div class="restaurant-popup-actions">
+            <button class="restaurant-popup-button view-details">View Details</button>
+            <button class="restaurant-popup-button get-directions">Get Directions</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Create the popup with the content
+    const popup = L.popup({
+      className: 'restaurant-custom-popup',
+      closeButton: false,
+      offset: [0, -25],
+      maxWidth: 300
+    }).setLatLng(position).setContent(popupContent);
+
+    // Add event listeners after popup is added to map
+    setTimeout(() => {
+      // Close button
+      const closeBtn = popupContent.querySelector('.restaurant-popup-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          map.closePopup(popup);
+        });
+      }
+
+      // View details button
+      const viewDetailsBtn = popupContent.querySelector('.view-details');
+      if (viewDetailsBtn) {
+        viewDetailsBtn.addEventListener('click', () => {
+          handleRestaurant(restaurant);
+          map.closePopup(popup);
+        });
+      }
+
+      // Get directions button
+      const getDirectionsBtn = popupContent.querySelector('.get-directions');
+      if (getDirectionsBtn) {
+        getDirectionsBtn.addEventListener('click', () => {
+          // Get coordinates
+          let lat, lng;
+          if (restaurant.location && restaurant.location.coordinates) {
+            [lng, lat] = restaurant.location.coordinates.map(coord => parseFloat(coord));
+
+            // Open directions in Google Maps
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+            window.open(url, '_blank');
+          }
+        });
+      }
+    }, 100);
+
+    return popup;
   };
 
   // Function to highlight a selected marker
@@ -521,8 +624,9 @@ const HomeMapController = ({
         // Center map on restaurant
         map.setView([lat, lng], map.getZoom());
 
-        // Show restaurant details
-        handleRestaurant(restaurantWithCampaigns);
+        // MODIFIED: First show a popup for Airbnb style
+        const popup = createRestaurantPopup(restaurantWithCampaigns, [lat, lng]);
+        popup.openOn(map);
       });
 
       markersRef.current.restaurants.push(marker);
@@ -594,7 +698,7 @@ const HomeMapController = ({
     }
   }, [userLocation, client, activeFilters, renderRestaurantsInArea]);
 
-  // Fetch single restaurant in a cluster - IMPROVED
+  // Fetch single restaurant in a cluster - IMPROVED FOR AIRBNB STYLE
   const fetchSingleRestaurant = useCallback(async (position, cluster) => {
     try {
       setIsLoading(true);
@@ -627,7 +731,7 @@ const HomeMapController = ({
         fetchPolicy: 'network-only'
       });
 
-      // Check if we got any restaurant data and log the full response for debugging
+      // Log full response for debugging
       console.log("Single restaurant API response:", JSON.stringify(data, null, 2));
 
       // CRITICAL FIX: Handle both possible API response structures
@@ -639,9 +743,12 @@ const HomeMapController = ({
         const restaurant = restaurants[0];
         console.log("Found restaurant:", restaurant.name);
 
+        // ENSURE campaigns is always an array and correctly formatted
         const restaurantWithCampaigns = {
           ...restaurant,
-          campaigns: campaigns.filter(c => c.restaurant === restaurant._id) || []
+          campaigns: Array.isArray(campaigns)
+            ? campaigns.filter(c => c.restaurant === restaurant._id)
+            : []
         };
 
         // Make sure we're not in the middle of another state update
@@ -654,9 +761,11 @@ const HomeMapController = ({
             map.removeLayer(markersRef.current.selectedMarker);
           }
 
-          // Extract coordinates from the restaurant data
+          // Extract coordinates from the restaurant data safely
           let lat, lng;
-          if (restaurant.location && restaurant.location.coordinates) {
+          if (restaurant.location && restaurant.location.coordinates &&
+            Array.isArray(restaurant.location.coordinates) &&
+            restaurant.location.coordinates.length >= 2) {
             [lng, lat] = restaurant.location.coordinates.map(coord => parseFloat(coord));
           } else {
             // If no coordinates in restaurant, use cluster position
@@ -668,17 +777,19 @@ const HomeMapController = ({
             icon: createRestaurantHighlightedIcon(
               restaurant.isAvailable,
               restaurant.onboarded,
-              restaurant.campaigns?.length > 0 ? restaurant.gif : null
+              restaurantWithCampaigns.campaigns?.length > 0 ? restaurant.gif : null
             ),
             zIndexOffset: 1000
           }).addTo(map);
+
           markersRef.current.selectedMarker = marker;
 
-          // Important: Log restaurant data to make sure it's correct
+          // Important: Log restaurant data to make sure it's correctly formatted
           console.log("Restaurant data for detail card:", restaurantWithCampaigns);
 
-          // Show restaurant details
-          handleRestaurant(restaurantWithCampaigns);
+          // IMPORTANT: Create and show the popup instead of redirecting - AIRBNB STYLE
+          const popup = createRestaurantPopup(restaurantWithCampaigns, [lat, lng]);
+          popup.openOn(map);
         }, 100);
 
         return true;
@@ -766,8 +877,9 @@ const HomeMapController = ({
         // Center map on restaurant
         map.setView([lat, lng], map.getZoom());
 
-        // Show restaurant details
-        handleRestaurant(restaurantWithCampaigns);
+        // MODIFIED: First show a popup for Airbnb style
+        const popup = createRestaurantPopup(restaurantWithCampaigns, [lat, lng]);
+        popup.openOn(map);
       });
 
       markersRef.current.restaurants.push(marker);
@@ -818,7 +930,7 @@ const HomeMapController = ({
           offset: [0, -20]
         });
 
-      // MAJOR FIX FOR CLUSTER CLICK HANDLING
+      // IMPROVED CLUSTER CLICK HANDLING for better breakdown
       marker.on('click', () => {
         // Track this as a user interaction to ensure state updates properly
         stateRef.current.isUserInteraction = true;
@@ -833,8 +945,7 @@ const HomeMapController = ({
         // Store the cluster's position for preventing map resets
         stateRef.current.lastClusterPosition = clusterPosition;
 
-        // IMPROVED: DON'T clear all markers
-        // Just store which cluster was clicked so we can handle it specially
+        // Store which cluster was clicked
         stateRef.current.clickedCluster = {
           position: clusterPosition,
           count: cluster.count,
@@ -843,102 +954,57 @@ const HomeMapController = ({
 
         // FIXED: Handle cluster clicking based on size and zoom level
         if (cluster.count === 1) {
-          // For single restaurant clusters, fetch that restaurant only
-          // No need to clear other markers
+          // For single restaurant clusters, show popup - AIRBNB STYLE
           fetchSingleRestaurant(clusterPosition, cluster);
         }
-        else if (isMaxZoom || cluster.count <= 20) {
-          // At max zoom or for small clusters, fetch restaurants directly
-          console.log(`${isMaxZoom ? 'Max zoom' : 'Small cluster'}: Fetching ${cluster.count} restaurants directly`);
+        else if (isMaxZoom || cluster.count <= 15) {
+          // For small clusters at high zoom, fetch and show restaurants
+          console.log(`Small cluster: Fetching ${cluster.count} restaurants directly`);
 
-          // DON'T clear markers until after successful fetch
-          if (cluster.restaurants && Array.isArray(cluster.restaurants) && cluster.restaurants.length > 0) {
-            // Use restaurant IDs if available
-            client.query({
-              query: GET_RESTAURANTS_MAP_API,
-              variables: {
-                userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
-                location: [position.lng, position.lat],
-                distance: 2, // Use minimum 2km radius (API requirement)
-                restaurantIds: cluster.restaurants,
-                limit: 100,
-                showEvents: false
-              },
-              fetchPolicy: 'network-only'
-            }).then(response => {
-              if (response?.data?.allRestaurants?.restaurants) {
-                // Only clear clusters in this area AFTER successful fetch
-                const clusterArea = markersRef.current.clusters.filter(m => {
-                  const mPos = m.getLatLng();
-                  const distance = mPos.distanceTo(clusterPosition) / 1000;
-                  return distance < 1; // Clear only clusters within 1km
-                });
+          // IMPORTANT: Don't clear markers until after successful fetch
+          client.query({
+            query: GET_RESTAURANTS_MAP_API,
+            variables: {
+              userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
+              location: [clusterPosition.lng, clusterPosition.lat],
+              distance: 2, // Use minimum 2km radius
+              limit: 100,
+              showEvents: false
+            },
+            fetchPolicy: 'network-only'
+          }).then(response => {
+            if (response?.data?.allRestaurants?.restaurants) {
+              // Only clear this area AFTER successful fetch
+              const clusterArea = markersRef.current.clusters.filter(m => {
+                const mPos = m.getLatLng();
+                const distance = mPos.distanceTo(clusterPosition) / 1000;
+                return distance < 1;
+              });
 
-                clusterArea.forEach(m => {
-                  if (m) map.removeLayer(m);
-                  markersRef.current.clusters = markersRef.current.clusters.filter(existing => existing !== m);
-                });
+              clusterArea.forEach(m => {
+                if (m) map.removeLayer(m);
+                markersRef.current.clusters = markersRef.current.clusters.filter(existing => existing !== m);
+              });
 
-                // Only render in this area, don't clear everything
-                renderRestaurantsInArea(
-                  response.data.allRestaurants.restaurants,
-                  response.data.allRestaurants.campaigns,
-                  clusterPosition,
-                  2 // Use minimum 2km radius
-                );
-              }
-            }).catch(error => {
-              console.error("Error fetching cluster restaurants:", error);
-            });
-          } else {
-            // Otherwise use area-based fetch with minimum 2km radius
-            client.query({
-              query: GET_RESTAURANTS_MAP_API,
-              variables: {
-                userLocation: userLocation ? [userLocation.lng, userLocation.lat] : null,
-                location: [position.lng, position.lat],
-                distance: 2, // Use minimum 2km radius (API requirement)
-                limit: 100,
-                showEvents: false
-              },
-              fetchPolicy: 'network-only'
-            }).then(response => {
-              if (response?.data?.allRestaurants?.restaurants) {
-                // Only clear clusters in this area AFTER successful fetch  
-                const clusterArea = markersRef.current.clusters.filter(m => {
-                  const mPos = m.getLatLng();
-                  const distance = mPos.distanceTo(clusterPosition) / 1000;
-                  return distance < 1; // Clear only clusters within 1km
-                });
-
-                clusterArea.forEach(m => {
-                  if (m) map.removeLayer(m);
-                  markersRef.current.clusters = markersRef.current.clusters.filter(existing => existing !== m);
-                });
-
-                // Only render in this area, don't clear everything
-                renderRestaurantsInArea(
-                  response.data.allRestaurants.restaurants,
-                  response.data.allRestaurants.campaigns,
-                  clusterPosition,
-                  2 // Use minimum 2km radius
-                );
-              }
-            }).catch(error => {
-              console.error("Error fetching area restaurants:", error);
-            });
-          }
+              // Render restaurants
+              renderRestaurantsInArea(
+                response.data.allRestaurants.restaurants,
+                response.data.allRestaurants.campaigns,
+                clusterPosition,
+                2
+              );
+            }
+          }).catch(error => {
+            console.error("Error fetching cluster restaurants:", error);
+          });
         }
         else {
-          // For larger clusters, just zoom in - don't try to fetch/render yet
-          console.log(`Medium/large cluster (${cluster.count}): Zooming in`);
+          // For larger clusters, zoom in
+          console.log(`Large cluster (${cluster.count}): Zooming in`);
           // Calculate zoom increment based on cluster size
           const zoomIncrement = cluster.count > 100 ? 3 : (cluster.count > 50 ? 2 : 1);
           const newZoom = Math.min(currentZoom + zoomIncrement, MAX_ZOOM_LEVEL);
           map.setView([lat, lng], newZoom);
-
-          // Let the normal zoom handlers take care of updating the map
-          // This will properly break down clusters based on new zoom level
         }
 
         // Reset user interaction flag after delay but keep viewingCluster true
@@ -1042,8 +1108,7 @@ const HomeMapController = ({
           variables: {
             input: {
               location: [center.lng, center.lat],
-              maxDistance: safeRadius
-            }
+              maxDistance: safeRadius            }
           },
           fetchPolicy: 'network-only'
         });
@@ -1051,7 +1116,16 @@ const HomeMapController = ({
         console.log("Cluster response:", data?.restaurantClusters?.clusters?.length || 0, "clusters");
 
         if (data?.restaurantClusters?.clusters) {
-          renderClusters(data.restaurantClusters.clusters, center, safeRadius);
+          // At very low zoom levels (< 6), consolidate all clusters into one super-cluster
+          if (currentZoom < 6) {
+            const consolidatedClusters = consolidateClustersForLowZoom(
+              data.restaurantClusters.clusters,
+              center
+            );
+            renderClusters(consolidatedClusters, center, safeRadius);
+          } else {
+            renderClusters(data.restaurantClusters.clusters, center, safeRadius);
+          }
         } else {
           console.log("No clusters returned");
         }
@@ -1093,7 +1167,7 @@ const HomeMapController = ({
         setIsLoading(false);
       }, 100);
     }
-  }, [map, userLocation, client, clearMarkers, activeFilters, renderClusters, renderRestaurants]);
+  }, [map, userLocation, client, clearMarkers, activeFilters, renderClusters, renderRestaurants, consolidateClustersForLowZoom]);
 
   // Improved setup user location marker with better consistency
   const setupUserMarker = useCallback(() => {
@@ -1366,31 +1440,36 @@ const HomeMapController = ({
     map.on('zoomend', () => {
       if (!stateRef.current.isInitialized) return;
 
-      // IMPORTANT: Force refresh on ANY zoom change to ensure clusters break down properly
+      // CRITICAL: Force refresh on EVERY zoom change to ensure clusters break down
       const newZoom = map.getZoom();
       const prevZoom = stateRef.current.previousZoom;
 
       console.log(`Zoom change detected: ${prevZoom} -> ${newZoom}`);
       stateRef.current.previousZoom = newZoom;
 
-      // CRITICAL: Always clear cluster state to refresh all markers on zoom
+      // Force clear all states to ensure fresh data
       stateRef.current.clickedCluster = null;
       stateRef.current.viewingCluster = false;
+      stateRef.current.lastRequestKey = ""; // Clear request cache
 
-      // Calculate new radius based on new zoom level
+      // ENHANCED: Clear existing markers immediately to provide visual feedback
+      clearMarkers();
+
+      // Calculate new radius based on new zoom level - with more dramatic scaling
       const newRadius = calculateRadius(newZoom);
       stateRef.current.currentRadius = newRadius;
 
-      // Force update map data with short timeout to allow zoom to complete
-      setTimeout(() => {
-        const center = map.getCenter();
-        // CRITICAL FIX: Always use minimum 2km radius (API requirement)
-        const safeRadius = Math.max(2, newRadius);
-        fetchMapData(center, safeRadius, true);
+      // Force update map data with true force parameter to refresh all data
+      const center = map.getCenter();
+      const safeRadius = Math.max(2, newRadius); // Ensure minimum 2km radius
 
-        // Also update parent component
-        onMapMove(center, safeRadius);
-      }, 100);
+      // Update parent first
+      onMapMove(center, safeRadius);
+
+      // Then fetch new data with short delay to allow UI to update
+      setTimeout(() => {
+        fetchMapData(center, safeRadius, true); // true = force update
+      }, 50);
     });
 
     // Other map event handlers
@@ -1746,15 +1825,27 @@ export const HomeMap = ({
     // Clear event selection
     setSelectedEvent(null);
 
-    // Log restaurant data to verify it's being passed correctly
+    // Log restaurant data to verify its format
+    console.log('Restaurant data type:', typeof restaurant);
     console.log('Restaurant data for detail card:', restaurant);
 
-    // Set restaurant selection
-    setSelectedRestaurant(restaurant);
+    // CRITICAL FIX: Make sure we have a valid restaurant object
+    if (restaurant && typeof restaurant === 'object') {
+      // Ensure campaigns is always an array to prevent rendering issues
+      const safeRestaurant = {
+        ...restaurant,
+        campaigns: Array.isArray(restaurant.campaigns) ? restaurant.campaigns : []
+      };
 
-    // Call parent handler if provided
-    if (handleRestaurant) {
-      handleRestaurant(restaurant);
+      // Set restaurant selection with safe data
+      setSelectedRestaurant(safeRestaurant);
+
+      // Call parent handler if provided
+      if (handleRestaurant) {
+        handleRestaurant(safeRestaurant);
+      }
+    } else {
+      console.error('Invalid restaurant data received:', restaurant);
     }
   }, [handleRestaurant]);
 
@@ -1844,7 +1935,7 @@ export const HomeMap = ({
       )}
 
       {/* Restaurant Detail Card */}
-      {selectedRestaurant && (
+      {selectedRestaurant && typeof selectedRestaurant === 'object' && (
         <RestaurantDetailCard
           data={selectedRestaurant}
           onClose={handleCloseRestaurantCard}
