@@ -193,8 +193,8 @@
 
 /* Improved Event marker styling */
 .event-marker {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,8 +209,8 @@
 }
 
 .event-marker-inner {
-  width: 52px;
-  height: 52px;
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -147,12 +147,12 @@ const HomeMapController = ({
   };
 
   // Create event icon
-  const createEventIcon = () => {
+  const createEventIcon = (name: string) => {
     return L.divIcon({
       html: `
         <div class="event-marker">
           <div class="event-marker-pulse"></div>
-          <div class="event-marker-inner">EVENT</div>
+          <div class="event-marker-inner">${name}</div>
         </div>
       `,
       className: '',
@@ -579,10 +579,9 @@ const HomeMapController = ({
         const eventLat = parseFloat(lat);
 
         if (isNaN(eventLat) || isNaN(eventLng)) return;
-
         // Create event marker
         const marker = L.marker([eventLat, eventLng], {
-          icon: createEventIcon(),
+          icon: createEventIcon(event.name),
           zIndexOffset: 900,
           interactive: true
         })
@@ -673,7 +672,7 @@ const HomeMapController = ({
 
         // Create event marker
         const marker = L.marker([eventLat, eventLng], {
-          icon: createEventIcon(),
+          icon: createEventIcon(event.name),
           zIndexOffset: 900,
           interactive: true
         })
