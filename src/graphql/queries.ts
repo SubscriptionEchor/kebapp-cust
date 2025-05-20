@@ -276,6 +276,7 @@ export const COMBINED_RESTAURANTS_QUERY = gql`
         minimumOrderValue
       }
       pagination
+      events { _id name address location { coordinates } isActive isAvailable startDate endDate startTime endTime createdAt updatedAt restaurants }
     }
   }
 `;
@@ -774,4 +775,52 @@ export const REVIEW_ORDER = gql`mutation ReviewOrder($reviewInput: ReviewInput!)
 
 export const DELETE_ACCOUNT = gql`mutation Mutation {
   deleteUserAccount
+}`
+
+export const GET_STALLS_BY_EVENT_ID = gql`query GetStallsByEventId($eventId: String!) {
+  getStallsByEventId(eventId: $eventId) {
+    _id
+    orderId
+    orderPrefix
+    name
+    image
+    logo
+    address
+    minimumOrder
+    sections
+    rating
+    isActive
+    isAvailable
+    openingTimes {
+      day
+      times {
+        startTime
+        endTime
+      }
+      isOpen
+    }
+    slug
+    stripeDetailsSubmitted
+    commissionRate
+    tax
+    notificationToken
+    enableNotification
+    shopType
+    cuisines
+    keywords
+    tags
+    reviewCount
+    reviewAverage
+    restaurantUrl
+    phone
+    quickSearchKeywords
+    favoriteCount
+    distanceInMeters
+    onboarded
+    onboardingApplicationId
+    restaurantDisplayNumber
+    zoneIdentifier
+    googleMapLink
+    username
+  }
 }`

@@ -27,6 +27,7 @@ import SaveAddress from './pages/SaveAddress';
 import { AppRoutes } from './routeenums';
 import TermsAndCondition from './pages/termsandcondition';
 import ProtectedRoute from './protectedRoute';
+import { HomeMap } from './components/Map/OpenStreetMap';
 
 
 
@@ -41,7 +42,7 @@ function App() {
                 <ProtectedRoute>
                   <Routes>
                     {/* Default route redirects to splash */}
-                    <Route path="/" element={<Navigate to={AppRoutes.SPLASH} replace />} />
+                    <Route path="/" element={<Navigate to={AppRoutes.HOME} replace />} />
                     <Route path={AppRoutes.SPLASH} element={<Splash />} />
                     <Route path={AppRoutes.ONBOARDING} element={<Onboarding />} />
                     <Route path={AppRoutes.HOME} element={<Home />} />
