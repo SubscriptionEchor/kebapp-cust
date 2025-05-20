@@ -410,6 +410,7 @@ const HomeMapController = ({
         });
 
         if (data?.restaurantClusters?.clusters) {
+          return;
           renderClusters(data.restaurantClusters.clusters, center, radius);
         }
       } else {
@@ -708,11 +709,7 @@ const HomeMapController = ({
         </div>
       )}
 
-      <div className="absolute top-4 left-4 z-[1000] bg-white p-2 rounded shadow-lg text-sm">
-        <div className="font-medium text-gray-700">
-          <span>Ctrl+Click to place location pin</span>
-        </div>
-      </div>
+     
     </>
   );
 };
@@ -823,7 +820,7 @@ export const HomeMap = ({
         zoom={14}
         style={{ height: '100%', width: '100%' }}
         className="rounded-lg"
-        minZoom={3}
+        minZoom={MAX_ZOOM_LEVEL - 2}
         maxZoom={MAX_ZOOM_LEVEL}
         zoomControl={true}
         attributionControl={false}
@@ -860,12 +857,7 @@ export const HomeMap = ({
           }}
         />
 
-        <div className="absolute bottom-4 right-4 bg-white px-4 py-3 rounded-lg shadow-md z-[1000] radius-indicator">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#93c5fd]"></div>
-            <p className="text-sm font-medium">Radius: {currentRadius.toFixed(1)}km</p>
-          </div>
-        </div>
+       
       </MapContainer>
 
       {/* Event Card */}
@@ -1046,7 +1038,7 @@ export const LocationSelectorMap = ({
 }) => {
   const center = initialLocation
     ? [initialLocation.lat, initialLocation.lng]
-    : [52.516267, 13.322455];
+    : [13.436279296875002, 52.496159531097106];
 
   const LocationSelectorController = ({ onLocationSelect }) => {
     const map = useMap();

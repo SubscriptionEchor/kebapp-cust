@@ -243,3 +243,6 @@
         font-size: 13px;
     }
 }
+.card-width {
+    width: auto !important;
+}
