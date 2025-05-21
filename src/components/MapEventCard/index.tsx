@@ -130,11 +130,11 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                                 <div key={stall._id} className="stall-card-wrapper">
                                     <HorizontalCard
                                         id={stall._id}
-                                        name={stall.name || "Stall"}
+                                        name={stall.name || ""}
                                         image={stall.image || null}
-                                        rating={stall.reviewAverage || 4.0}
+                                        rating={stall.reviewAverage || 0}
                                         cuisine={stall.cuisines?.[0] || "Food"}
-                                        distance={"At event"}
+                                        distance={"At Event"}
                                         description={stall.address || "Food stall"}
                                         likes={stall.favoriteCount || 0}
                                         reviews={stall.reviewCount || 0}
