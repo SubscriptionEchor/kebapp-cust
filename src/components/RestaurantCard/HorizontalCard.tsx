@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next'; // Add this import
 import { Star, Heart, Loader2, Users, MapPin, MessageCircleCode, Sparkles, BadgePercent, AlertTriangle } from 'lucide-react';
 import { useFavorite } from '../../hooks/useFavorite';
 import { useRestaurantNotifications } from '../../hooks/useRestaurantNotifications';
@@ -36,6 +37,7 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
   onboarded = false,
   campaigns = []
 }) => {
+  const { t } = useTranslation(); // Add this hook
   const [imageError, setImageError] = useState(false);
   const { bootstrapData } = useBootstrap();
   const { isLiked, likeCount, isLoading, handleLike } = useFavorite({
@@ -69,6 +71,7 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
     });
     localStorage.setItem("restaurant", id)
   };
+
   return (
     <div onClick={handleCardClick} className={`w-[180px] flex-shrink-0 shadow-sm bg-white rounded-xl overflow-hidden card-hover animate-scale-in card-width`}>
       <div className="relative overflow-hidden">
@@ -111,7 +114,6 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
         )}
 
         {campaigns?.length > 0 && (
-
           <div className="absolute bottom-0 left-0 right-0">
             <div className={`px-2.5 py-1.5 rounded-lg backdrop-blur-sm ${'bg-gradient-to-r from-black/80 to-gray-900/80 text-white'
 
@@ -119,18 +121,18 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
               {campaigns.length > 1 ? (
                 <span className="text-[11px] flex items-center font-medium">
                   <BadgePercent size={12} className="text-secondary me-1" />
-                  {campaigns.length} offers available
+                  {t('horizontalcard.offersavailable', { count: campaigns.length })}
                 </span>
               ) : (
                 <div className="flex items-center gap-1">
                   <BadgePercent size={12} className="text-current" />
                   <span className="text-[11px] font-semibold">
                     {campaigns[0]?.campaignType === "PERCENTAGE"
-                      ? `${campaigns[0].percentageDiscount}% off`
-                      : `${bootstrapData?.currencyConfig?.currencySymbol} ${campaigns[0].flatDiscount} off`}
+                      ? t('horizontalcard.percentageoff', { percentageDiscount: campaigns[0].percentageDiscount })
+                      : t('horizontalcard.flatoff', { currencySymbol: bootstrapData?.currencyConfig?.currencySymbol, flatDiscount: campaigns[0].flatDiscount })}
                   </span>
                   <span className="text-[10px] opacity-90">
-                    min. {bootstrapData?.currencyConfig?.currencySymbol} {campaigns[0].minimumOrderValue}
+                    {t('horizontalcard.minimumordervalue', { currencySymbol: bootstrapData?.currencyConfig?.currencySymbol, minimumOrderValue: campaigns[0].minimumOrderValue })}
                   </span>
                 </div>
               )}
@@ -157,7 +159,9 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
           </div>
           <div className="flex items-center gap-1 text-[10px] text-gray-500">
             <MessageCircleCode size={10} />
-            <p className="line-clamp-1 text-[10px] text-gray-500">{reviews} reviews</p>
+            <p className="line-clamp-1 text-[10px] text-gray-500">
+              {t('horizontalcard.reviews', { count: reviews })}
+            </p>
           </div>
         </div>
 

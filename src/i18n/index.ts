@@ -20,11 +20,11 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: localStorage.getItem('selectedLanguage') || 'en', // default language
-    fallbackLng: 'en', // fallback language
+    lng: localStorage.getItem('selectedLanguage') || 'de', // default language
+    fallbackLng: 'de', // fallback language
     interpolation: {
       escapeValue: false
     }
   });
 
-export default i18n;
+export default i18n;	

@@ -123,7 +123,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
       });
       if (nextTime) {
         return {
-          message: `${t('restaurant.hours')}: ${formatTimeTo12Hour(nextTime.startTime)}`,
+          message: `${t('restaurant.hour')}: ${formatTimeTo12Hour(nextTime.startTime)}`,
           isOpen: false,
           color: 'text-gray-600',
           bgColor: 'bg-gray-50',
@@ -220,7 +220,6 @@ const VerticalCard: React.FC<RestaurantProps> = ({
               <Star size={12} className="text-black" />
             </div>
           )}
-
         </div>
 
         <div className="flex-1 ml-4">
@@ -252,7 +251,6 @@ const VerticalCard: React.FC<RestaurantProps> = ({
             </div>
           </div>
         </div>
-
       </div>
       <div className="flex items-center px-4  pb-3 gap-2">
         {showPromotion && (
@@ -268,7 +266,7 @@ const VerticalCard: React.FC<RestaurantProps> = ({
             <div className="flex items-center gap-1.5">
               <Sparkles size={14} className="text-gray-600" />
               <span className="text-[11px] font-bold">
-                {campaigns.length - (showPromotion ? 1 : 0)} more offer{campaigns.length - (showPromotion ? 1 : 0) > 1 ? 's' : ''}
+                {t('verticalcard.moreoffers', { count: campaigns.length - (showPromotion ? 1 : 0) })}
               </span>
             </div>
           </div>

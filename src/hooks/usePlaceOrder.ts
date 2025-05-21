@@ -2,6 +2,7 @@ import { useMutation } from '@apollo/client';
 import { PLACE_ORDER } from '../graphql/queries';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { AppRoutes } from '../routeenums';
 
 interface OrderInput {
@@ -36,33 +37,34 @@ interface PlaceOrderVariables {
 }
 
 export const usePlaceOrder = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [placeOrder, { loading }] = useMutation(PLACE_ORDER, {
     onCompleted: (data) => {
       if (data?.placeOrder) {
-        toast.success('Order placed successfully!');
+        toast.success(t('checkouts.orderPlacedSuccessfully'));
         navigate(AppRoutes.ORDER, {
           replace: true,
           state: {
             id: data.placeOrder._id
           }
         });
-        localStorage.setItem("order", data.placeOrder._id)
+        localStorage.setItem("order", data.placeOrder._id);
       }
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to place order');
+      toast.error(error.message || t('checkouts.failedToPlaceOrder'));
     }
   });
 
   const handlePlaceOrder = async (variables: PlaceOrderVariables) => {
     try {
-      await placeOrder({
-        variables: {
-          ...variables,
-          orderDate: new Date().toISOString()
-        }
-      });
+    await placeOrder({
+      variables: {
+        ...variables,
+        orderDate: new Date().toISOString()
+      }
+    });
     } catch (error) {
       console.error('Error placing order:', error);
     }

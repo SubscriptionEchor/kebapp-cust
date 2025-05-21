@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Circle, useMap } from 'react-leaflet';
 import { useApolloClient } from '@apollo/client';
+import { useTranslation } from 'react-i18next'; // Added for translations
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { GET_RESTAURANT_CLUSTERS, GET_RESTAURANTS_MAP_API } from '../../graphql/queries';
@@ -47,6 +48,7 @@ const HomeMapController = ({
 }) => {
   const map = useMap();
   const client = useApolloClient();
+  const { t } = useTranslation(); // Added for translations
 
   // Use refs to maintain state without triggering re-renders
   const markersRef = useRef({
@@ -218,8 +220,8 @@ const HomeMapController = ({
         zIndexOffset: 1000
       }).addTo(map);
 
-      // Add tooltip
-      marker.bindTooltip("Drag to move your location", {
+      // Add tooltip with translation
+      marker.bindTooltip(t('map.yourlocationdrag') || "Drag to move your location", {
         permanent: false,
         direction: 'top'
       });
@@ -256,7 +258,7 @@ const HomeMapController = ({
         zIndexOffset: 900
       })
         .addTo(map)
-        .bindTooltip(`${cluster.count} restaurants in this area`, {
+        .bindTooltip(t('map.restaurantsinarea', { count: cluster.count }) || `${cluster.count} restaurants in this area`, {
           direction: 'top',
           offset: [0, -20]
         });
@@ -349,7 +351,7 @@ const HomeMapController = ({
         zIndexOffset: 800
       })
         .addTo(map)
-        .bindTooltip(restaurant.name || "Restaurant", {
+        .bindTooltip(restaurant.name || t('map.restaurant') || "Restaurant", {
           direction: 'top',
           offset: [0, -15]
         });
@@ -545,8 +547,8 @@ const HomeMapController = ({
           zIndexOffset: 1000
         }).addTo(map);
 
-        // Add tooltip
-        marker.bindTooltip("Your location (drag to move)", {
+        // Add tooltip with translation
+        marker.bindTooltip(t('map.yourlocationdrag') || "Your location (drag to move)", {
           permanent: false,
           direction: 'top'
         });
@@ -586,7 +588,7 @@ const HomeMapController = ({
           interactive: true
         })
           .addTo(map)
-          .bindTooltip(event.name || "Event", {
+          .bindTooltip(event.name || t('map.event') || "Event", {
             direction: 'top',
             offset: [0, -20]
           })
@@ -677,7 +679,7 @@ const HomeMapController = ({
           interactive: true
         })
           .addTo(map)
-          .bindTooltip(event.name || "Event", {
+          .bindTooltip(event.name || t('map.event') || "Event", {
             direction: 'top',
             offset: [0, -20]
           })
@@ -691,7 +693,7 @@ const HomeMapController = ({
         markersRef.current.eventMarkers[event._id] = marker;
       });
     }
-  }, [map, events, handleEvent]);
+  }, [map, events, handleEvent, t]); // Added t to dependencies
 
   return (
     <>
@@ -703,12 +705,10 @@ const HomeMapController = ({
               <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
               <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
             </div>
-            <span className="text-sm font-medium text-gray-600">Loading</span>
+            <span className="text-sm font-medium text-gray-600">{t('map.loading') || 'Loading'}</span>
           </div>
         </div>
       )}
-
-     
     </>
   );
 };
@@ -855,8 +855,6 @@ export const HomeMap = ({
             weight: 3,
           }}
         />
-
-       
       </MapContainer>
 
       {/* Event Card */}

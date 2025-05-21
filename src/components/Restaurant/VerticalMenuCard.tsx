@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next'; // Add this import
 import { Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { MenuItem } from './MenuSection';
 import DishInfoModal from './DishInfoModal';
@@ -16,6 +17,7 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
   fallbackImage,
   optionSetList
 }) => {
+  const { t } = useTranslation(); // Add this hook
   const { addToCart, removeFromCart, getItemCount, getCartItems } = useCart();
   const [showFullDescription, setShowFullDescription] = React.useState(false);
   const [showDishInfo, setShowDishInfo] = React.useState(false);
@@ -34,12 +36,10 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
   const originalPrice = price + item.variationList?.[0]?.discountedPrice || 0;
 
   const handleAddClick = () => {
-    // Only show bottom sheet if there are multiple variations
     if (item.variationList?.length > 1) {
       setIsDecrementing(false)
       setShowVariations(true);
     } else {
-      // Add item with single variation
       const cartItem = {
         categoryId: item.categoryId || '',
         foodId: item._id,
@@ -80,7 +80,9 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
           <div className={`w-4 h-4 border-2 ${isVeg ? 'border-green-500' : 'border-red-500'} rounded-sm p-0.5`}>
             <div className={`w-full h-full rounded-full ${isVeg ? 'bg-green-500' : 'bg-red-500'}`} />
           </div>
-          <h3 className="text-[15px] font-medium text-gray-900 truncate">{item.name}</h3>
+          <h3 className="text-[15px] font-medium text-gray-900 truncate">
+            {item.name}
+          </h3>
         </div>
 
         <div className="mb-1.5">
@@ -103,12 +105,12 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
             >
               {showFullDescription ? (
                 <>
-                  Show less
+                  {t('verticalmenucard.showless')}
                   <ChevronUp size={14} />
                 </>
               ) : (
                 <>
-                  Show more
+                  {t('verticalmenucard.showmore')}
                   <ChevronDown size={14} />
                 </>
               )}
@@ -120,7 +122,7 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
           onClick={() => setShowDishInfo(true)}
           className="flex items-center gap-1.5 text-[12px] bg-gray-200 rounded-full px-2 py-1 text-gray-900 transition-colors"
         >
-          <span>View dish info</span>
+          <span>{t('verticalmenucard.viewdishinfo')}</span>
         </button>
       </div>
 
@@ -135,7 +137,7 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
           {item.outOfStock && (
             <div className="absolute inset-0 bg-white/75 backdrop-blur-[2px] flex items-center justify-center">
               <span className="text-gray-900 font-medium font-bold text-md">
-                Out of Stock
+                {t('verticalmenucard.outofstock')}
               </span>
             </div>
           )}
@@ -147,7 +149,7 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
             } py-1.5 rounded-lg text-[14px] font-medium ${item.outOfStock
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-white text-green-600 shadow-md '
-            } transition-all`}
+          } transition-all`}
         >
           {itemCount > 0 ? (
             <div className="flex items-center gap-2">
@@ -172,15 +174,16 @@ const VerticalMenuCard: React.FC<VerticalMenuCardProps> = ({
               </div>
             </div>
           ) : (
-            'ADD'
+            t('verticalmenucard.add')
           )}
         </button>
 
         {item.variationList.length > 0 && (
           <div className="text-center mt-4">
             <span className="text-[11px] text-gray-500 px-2 py-0.5">
-              {item.variationList.length > 1 || item.variationList[0]?.optionSetList?.length > 0
-                ? 'Customizable'
+              {item.variationList.length > 1 ||
+              item.variationList[0]?.optionSetList?.length > 0
+                ? t('verticalmenucard.customizable')
                 : ''}
             </span>
           </div>

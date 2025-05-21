@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next'; // Add this import
 import { MenuItem } from './MenuSection';
 import VariationBottomSheet from './VariationBottomSheet';
 import DishInfoModal from './DishInfoModal';
@@ -16,6 +17,7 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
   fallbackImage,
   optionSetList
 }) => {
+  const { t } = useTranslation(); // Add this hook
   const { addToCart, removeFromCart, getItemCount, getCartItems } = useCart();
   const [showVariations, setShowVariations] = React.useState(false);
   const [isDecrementing, setIsDecrementing] = React.useState(false);
@@ -41,7 +43,6 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
       setIsDecrementing(false)
       setShowVariations(true);
     } else {
-      // Add item with single variation
       const cartItem = {
         categoryId: item.categoryId || '',
         foodId: item._id,
@@ -73,7 +74,6 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
     }
   };
 
-  // Safely get the price from variations or use a default
   const price = item.variationList?.[0]?.price || item.price || 0;
   const originalPrice = price + item.variationList?.[0]?.discountedPrice || 0;
   const isVeg = item?.dietaryType?.includes("VEG")
@@ -110,14 +110,14 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
               className="mt-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg text-[11px] text-white font-medium flex items-center gap-1.5 hover:bg-white/20 transition-colors"
             >
               <Info size={12} />
-              View dish info
+              {t('horizontalmenucard.viewdishinfo')}
             </button>
           </div>
 
           {item.outOfStock && (
             <div className="absolute inset-0 bg-white/75 backdrop-blur-[2px] flex items-center justify-center">
               <span className="text-gray-900 font-medium text-md">
-                Out of Stock
+                {t('horizontalmenucard.outofstock')}
               </span>
             </div>
           )}
@@ -165,7 +165,7 @@ const HorizontalMenuCard: React.FC<HorizontalMenuCardProps> = ({
                 }}
                 className="px-5 py-2 rounded-lg text-sm font-medium bg-white text-black hover:bg-opacity-90 transition-colors"
               >
-                ADD
+                {t('horizontalmenucard.add')}
               </button>
             )}
           </div>

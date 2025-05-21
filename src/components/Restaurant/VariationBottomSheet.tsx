@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next'; // Add this import
 import { X, Plus, Minus, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { CartItem, useCart } from '../../context/CartContext';
 import { useBootstrap } from '../../context/BootstrapContext';
@@ -47,6 +48,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
   restaurantId,
   foodId
 }) => {
+  const { t } = useTranslation(); // Add this hook
   const { cart, setCart, removeFromCart } = useCart();
   const [step, setStep] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState<string | null>(null);
@@ -79,7 +81,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
         const selectedCount = initialAddons[addon._id]?.length || 0;
         if (selectedCount < addon.minQty) {
           const remaining = addon.minQty - selectedCount;
-          initialErrors[addon._id] = `Select ${remaining} more ${remaining === 1 ? 'option' : 'options'}`;
+          initialErrors[addon._id] = t('variationbottomsheet.selectmoreoptions', { count: remaining, remaining }); // Updated to use t() with pluralization
           initialValid = false;
         }
       });
@@ -92,8 +94,6 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
   const relatedCartItems = (restaurantId && foodId) ? cart.filter(item =>
     item.foodId === foodId && item?.restaurantId == restaurantId
   ) : [];
-
-
 
   const resetState = () => {
     setStep(1);
@@ -135,7 +135,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
         const selectedCount = initialAddons[addon._id]?.length || 0;
         if (selectedCount < addon.minQty) {
           const remaining = addon.minQty - selectedCount;
-          initialErrors[addon._id] = `Select ${remaining} more ${remaining === 1 ? 'option' : 'options'}`;
+          initialErrors[addon._id] = t('variationbottomsheet.selectmoreoptions', { count: remaining, remaining }); // Updated to use t() with pluralization
           initialValid = false;
         }
       });
@@ -190,8 +190,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
         const selectedCount = newAddons[addon._id]?.length || 0;
         if (selectedCount < addon.minQty) {
           const remaining = addon.minQty - selectedCount;
-          const message = `Select ${remaining} more ${remaining === 1 ? 'option' : 'options'}`;
-          newErrors[addon._id] = message;
+          newErrors[addon._id] = t('variationbottomsheet.selectmoreoptions', { count: remaining, remaining }); // Updated to use t() with pluralization
           allValid = false;
         }
       });
@@ -214,7 +213,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
       optionSets.forEach(addon => {
         if (addon.minQty > 0) {
           initialValid = false;
-          initialErrors[addon._id] = `Select ${addon.minQty} ${addon.minQty === 1 ? 'option' : 'options'}`;
+          initialErrors[addon._id] = t('variationbottomsheet.selectoptions', { count: addon.minQty, minQty: addon.minQty }); // Updated to use t() with pluralization
         }
       });
 
@@ -277,7 +276,6 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
           // If we got here, everything matches
           return true;
         }) : null;
-
 
         if (editingVariation) {
           if (matchingCartItem) {
@@ -358,6 +356,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
       handleClose();
     }
   };
+
   const handleBack = () => {
     if (step === 2) {
       setStep(1);
@@ -365,6 +364,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
   };
 
   if (!isOpen) return null;
+
   return (
     <>
       {/* Backdrop */}
@@ -375,9 +375,9 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
       />
 
       {/* Bottom Sheet */}
-      <div style={{ zIndex: 100 }} className="fixed bottom-0  left-0 right-0 bg-white rounded-t-2xl  max-h-[90vh] flex flex-col animate-slide-up">
+      <div style={{ zIndex: 100 }} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[90vh] flex flex-col animate-slide-up">
         {/* Header */}
-        <div className="sticky  top-0 bg-white border-b  rounded-t-3xl border-gray-100 px-4 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b rounded-t-3xl border-gray-100 px-4 py-4 flex items-center justify-between">
           <div>
             <div className="flex items-center">
               <div className={`w-4 h-4 border-2 ${isVeg ? 'border-green-500' : 'border-red-500'} rounded-sm p-0.5`}>
@@ -387,11 +387,10 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                 {itemName}
               </h3>
             </div>
-
           </div>
           <button
             onClick={handleClose}
-            className="p-3  absolute -top-14 bg-black left-[44%] hover:bg-gray-100 rounded-full transition-colors"
+            className="p-3 absolute -top-14 bg-black left-[44%] hover:bg-gray-100 rounded-full transition-colors"
           >
             <X size={20} className="text-gray-100" />
           </button>
@@ -404,7 +403,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
               {selectedOptionSetList && !showVariationList && relatedCartItems.length > 0 ? (
                 <>
                   <h4 className="text-[13px] font-medium text-gray-900 mb-4">
-                    Current Selections
+                    {t('variationbottomsheet.currentselections')} {/* Updated to use t() */}
                   </h4>
 
                   {relatedCartItems.map((item, index) => (
@@ -413,62 +412,59 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                         <div>
                           <p className="text-sm text-gray-700 mb-1">
                             {item.variationName}
-
                           </p>
                           <div className="flex">
                             <p className="text-xs text-gray-900">
                               {bootstrapData?.currencyConfig?.currencySymbol}{item.variationPrice}
                             </p>
-                            {item.variationDiscountedPrice ? <p className=" ms-2 line-through text-xs text-gray-500">
-                              {bootstrapData?.currencyConfig?.currencySymbol} {item.variationPrice + item.variationDiscountedPrice}
+                            {item.variationDiscountedPrice ? <p className="ms-2 line-through text-xs text-gray-500">
+                              {bootstrapData?.currencyConfig?.currencySymbol}{item.variationPrice + item.variationDiscountedPrice}
                             </p> : null}
                           </div>
                           {item.optionSetList?.length > 0 && (
                             <div className="mt-1 text-xs text-gray-500">
                               {item.optionSetList.map((addon, idx) => {
-
                                 const options = addon.selectedOptions;
                                 const displayOptions = showAll ? options : options.slice(0, 2);
                                 const hasMore = options.length > 2;
 
-                                return (<div key={idx} className="flex justify-center items-center flex-col gap-0.5">
-                                  {/* <span className="font-medium">{addon.addonName}</span> */}
-                                  <div className="flex justify-center">
-                                    {displayOptions.map((option, optIdx) => (
-                                      <div key={optIdx} className="flex me-2 items-center justify-between">
-                                        <span>
-                                          {option.name}
-                                          {optIdx < displayOptions.length - 1 && ", "}
-                                        </span>
-                                      </div>
-                                    ))}
-                                    {hasMore && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setShowAll(!showAll);
-                                        }}
-                                        className="text-secondary ms-2 flex items-center text-[11px] font-medium mt-0.5"
-                                      >
+                                return (
+                                  <div key={idx} className="flex justify-center items-center flex-col gap-0.5">
+                                    {/* <span className="font-medium">{addon.addonName}</span> */}
+                                    <div className="flex justify-center">
+                                      {displayOptions.map((option, optIdx) => (
+                                        <div key={optIdx} className="flex me-2 items-center justify-between">
+                                          <span>
+                                            {option.name}
+                                            {optIdx < displayOptions.length - 1 && ", "}
+                                          </span>
+                                        </div>
+                                      ))}
+                                      {hasMore && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowAll(!showAll);
+                                          }}
+                                          className="text-secondary ms-2 flex items-center text-[11px] font-medium mt-0.5"
+                                        >
                                         {/* {showAll ? 'Show less' : `Show more`} */}
-                                        {showAll ? <ChevronDown height={8} /> : <ChevronUp height={18} />}
-                                      </button>
-                                    )}
+                                          {showAll ? <ChevronDown height={8} /> : <ChevronUp height={18} />}
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                                )
+                                );
                               })}
                             </div>
                           )}
                         </div>
-
 
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-3">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-
                                 if (isDecrementing) {
                                   removeFromCart(item.foodId, item.variationId);
                                   if (relatedCartItems.length === 1 && item.itemCount === 1) {
@@ -518,7 +514,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                           }}
                           className="text-sm items-center flex text-secondary font-medium"
                         >
-                          Edit
+                          {t('variationbottomsheet.edit')} {/* Updated to use t() */}
                           <ChevronRight height={18} />
                         </button>
                       )}
@@ -536,10 +532,10 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                     >
                       <div>
                         <p className="text-[13px] text-left text-gray-900">
-                          Add New Customization
+                          {t('variationbottomsheet.addnewcustomization')} {/* Updated to use t() */}
                         </p>
                         <p className="text-[11px] text-gray-500">
-                          Choose a different variation
+                          {t('variationbottomsheet.chooseadifferentvariation')} {/* Updated to use t() */}
                         </p>
                       </div>
                       <ChevronRight size={18} className="text-gray-400" />
@@ -550,7 +546,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                 // Show variation list for new selection or when editing
                 <>
                   <h4 className="text-[13px] font-medium text-gray-900 mb-4">
-                    {isDecrementing ? 'Select Item to Remove' : 'Select a Variation'}
+                    {isDecrementing ? t('variationbottomsheet.selectitemtoremove') : t('variationbottomsheet.selectavariation')} {/* Updated to use t() */}
                   </h4>
                   <div className="space-y-3">
                     {variations.map((variation) => (
@@ -562,12 +558,11 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                         className={`w-full flex items-center justify-between p-4 rounded-lg border transition-colors ${selectedVariation === variation._id || (editingVariation === variation._id && !selectedVariation)
                           ? 'border-secondary bg-secondary/10'
                           : 'border-gray-200'
-                          }`}
+                        }`}
                       >
                         <div>
                           <p className="text-[13px] text-left text-gray-900">
                             {variation.title}
-
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -580,7 +575,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                           <div className={`w-4 h-4 rounded-full border transition-colors ${selectedVariation === variation._id || (editingVariation === variation._id && !selectedVariation)
                             ? 'border-secondary bg-secondary'
                             : 'border-gray-300'
-                            }`}>
+                          }`}>
                             {(selectedVariation === variation._id || (editingVariation === variation._id && !selectedVariation)) && (
                               <div className="w-full h-full flex items-center justify-center">
                                 <div className="w-1.5 h-1.5 bg-white rounded-full" />
@@ -599,7 +594,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
           {step === 2 && addons && (
             <div className="p-4">
               <h4 className="text-[13px] font-medium text-gray-900 mb-4">
-                Select Option set
+                {t('variationbottomsheet.selectoptionset')} {/* Updated to use t() */}
               </h4>
               <div className="space-y-6">
                 {getSelectedVariation()?.optionSetList?.map((addon) => (
@@ -611,9 +606,9 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                         </h5>
                         <p className="text-[11px] text-gray-500">
                           {addon.minQty > 0 ? (
-                            <span>Select {addon.minQty} {addon.minQty === 1 ? 'option' : 'options'}</span>
+                            <span>{t('variationbottomsheet.selectoptions', { count: addon.minQty, minQty: addon.minQty })}</span> // Updated to use t() with pluralization
                           ) : (
-                            <span>Optional • Select up to {addon.maxQty}</span>
+                            <span>{t('variationbottomsheet.optional_selectupto', { maxQty: addon.maxQty })}</span> // Updated to use t()
                           )}
                         </p>
                       </div>
@@ -645,7 +640,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                             : isDisabled
                               ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
                               : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                          }`;
+                        }`;
 
                         return (
                           <button
@@ -654,14 +649,12 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                             disabled={isDisabled}
                             className={buttonClasses}
                           >
-                            <span className={`text-[13px] ${isDisabled ? 'text-gray-400' : 'text-gray-900'
-                              }`}>
+                            <span className={`text-[13px] ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
                               {option?.name}
                             </span>
                             <div className="flex items-center gap-3">
                               {option.price > 0 && (
-                                <span className={`text-[13px] ${isDisabled ? 'text-gray-400' : 'text-gray-900'
-                                  }`}>
+                                <span className={`text-[13px] ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
                                   {bootstrapData?.currencyConfig?.currencySymbol}{option.price.toFixed(2)}
                                 </span>
                               )}
@@ -672,7 +665,7 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
                                   : isDisabled
                                     ? 'border-gray-300 bg-gray-100'
                                     : 'border-gray-300'
-                                }`}>
+                              }`}>
                                 {(isSelected || (isEditingSelected && !selectedVariation)) && (
                                   <div className="w-full h-full flex items-center justify-center animate-scale-in">
                                     <div className="w-1.5 h-1.5 bg-white rounded-full" />
@@ -692,17 +685,16 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className={`flex-shrink-0 bg-white border-t border-gray-100 p-4 flex gap-3 ${(relatedCartItems?.length && !selectedOptionSetList?.length && !showVariationList && !isDecrementing) || isDecrementing ? 'hidden' : ''
-          }`}>
+        <div className={`flex-shrink-0 bg-white border-t border-gray-100 p-4 flex gap-3 ${(relatedCartItems?.length && !selectedOptionSetList?.length && !showVariationList && !isDecrementing) || isDecrementing ? 'hidden' : ''}`}>
           <button
             onClick={handleBack}
             disabled={step === 1}
             className={`flex-1 py-3 rounded-lg text-[13px] font-medium transition-colors ${step === 1
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-              }`}
+            }`}
           >
-            Back
+            {t('variationbottomsheet.back')} {/* Updated to use t() */}
           </button>
           <button
             onClick={handleNext}
@@ -710,9 +702,9 @@ const VariationBottomSheet: React.FC<VariationBottomSheetProps> = ({
             className={`flex-1 py-3 rounded-lg text-[13px] font-medium transition-colors ${(selectedVariation && (step === 1 || isValid) || (editingVariation && step == 1))
               ? 'bg-secondary text-black hover:bg-opacity-90'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
+            }`}
           >
-            {hasAddons() && step === 1 ? 'Next' : 'Add'}
+            {hasAddons() && step === 1 ? t('variationbottomsheet.next') : t('variationbottomsheet.add')} {/* Updated to use t() */}
           </button>
         </div>
       </div>

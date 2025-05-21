@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next'; // Add this import
 import { useNavigate } from 'react-router-dom';
 import { Star, Heart, Navigation, Users, Loader2, QrCode, Bell, BellOff, Info } from 'lucide-react';
 import { useMutation, useQuery } from '@apollo/client';
@@ -50,7 +51,8 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   isMapView,
   location
 }) => {
-  const navigate = useNavigate();
+   const { t } = useTranslation();
+    const navigate = useNavigate();
   const [showUnfollowModal, setShowUnfollowModal] = React.useState(false);
   const [showQrModal, setShowQrModal] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState<boolean>(false);
@@ -65,13 +67,11 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   const [setRestaurantNotification] = useMutation(SET_RESTAURANT_NOTIFICATION);
   const { temporaryLocation } = UseLocationDetails();
 
-  // Query to get notification status
   const { data: notificationData } = useQuery(GET_RESTAURANT_NOTIFICATION_STATUS, {
     variables: { restaurantId: id },
     skip: !id
   });
 
-  // Initialize notifications state from query data
   useEffect(() => {
     if (notificationData?.getUserRestaurantSubscriptionStatus !== undefined) {
       setNotificationsEnabled(notificationData.getUserRestaurantSubscriptionStatus);
@@ -90,19 +90,24 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
         }
       });
       setNotificationsEnabled(!notificationsEnabled);
-      toast.success(notificationsEnabled ? 'Notifications disabled' : 'Notifications enabled');
+      toast.success(
+        notificationsEnabled
+          ? t('restaurantheader.notificationsdisabled')
+          : t('restaurantheader.notificationsenabled')
+      );
     } catch (error) {
       console.error('Error toggling notifications:', error);
-      toast.error('Failed to update notification settings');
+      toast.error(t('restaurantheader.failednotificationupdate'));
     } finally {
       setIsTogglingNotification(false);
     }
   };
+
   useEffect(() => {
     if (!isLiked) {
-      setShowUnfollowModal(false)
+      setShowUnfollowModal(false);
     }
-  }, [isLiked])
+  }, [isLiked]);
 
   const handleFollowClick = async () => {
     if (isLiked) {
@@ -119,10 +124,10 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           }
         });
         setNotificationsEnabled(true);
-        toast.success('Following restaurant with notifications enabled');
+        toast.success(t('restaurantheader.followingwithnotifications'));
       } catch (error) {
         console.error('Error following restaurant:', error);
-        toast.error('Failed to follow restaurant');
+        toast.error(t('restaurantheader.failedtofollow'));
       }
     }
   };
@@ -130,7 +135,6 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
   const handleUnfollow = async () => {
     try {
       await handleLike();
-      // Disable notifications when unfollowing
       await setRestaurantNotification({
         variables: {
           input: {
@@ -141,7 +145,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
       });
       setNotificationsEnabled(false);
       setShowUnfollowModal(false);
-      toast.success('Unfollowed restaurant');
+      toast.success(t('restaurantheader.unfollowedrestaurant'));
     } catch (error) {
       console.error('Error unfollowing restaurant:', error);
       toast.error('Failed to unfollow restaurant');
@@ -170,7 +174,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
         <h1 className="text-xl font-bold text-gray-900 mb-2">{name}</h1>
 
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex items-center ">
+          <div className="flex items-center">
             <Star size={16} className="text-emerald-600 fill-emerald-600" />
             <span className="font-semibold ml-1">{rating.toFixed(1)}</span>
             <span className="text-gray-900 ml-1">({reviews})</span>
@@ -211,7 +215,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
         </div>
         <div className="flex items-center gap-1 mb-2">
           <Users size={16} className="text-gray-600" />
-          <span className="text-gray-600">{likeCount} Followers</span>
+          <span className="text-gray-600">{likeCount} {t('restaurantheader.followers', { count: likeCount })}</span>
         </div>
         <p className="text-gray-600 text-sm mb-4">{address}</p>
 
@@ -219,24 +223,23 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           <button
             onClick={handleFollowClick}
             disabled={isLoading}
-            className={`flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-colors flex items-center justify-center gap-2 ${isLiked
-              ? ' border-secondary text-secondary'
-              : 'border-gray-200 text-gray-700'
-              }`}
+            className={`flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+              isLiked ? 'border-secondary text-secondary' : 'border-gray-200 text-gray-700'
+            }`}
           >
             {isLoading ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
               <Heart size={16} className={isLiked ? 'fill-secondary' : ''} />
             )}
-            {isLiked ? 'Following' : 'Follow'}
+            {isLiked ? t('restaurantheader.following') : t('restaurantheader.follow')}
           </button>
 
           <button
             onClick={() => setIsMapView(prev => !prev)}
             className="flex-1 py-2.5 px-4 rounded-lg border border-gray-200 text-gray-900 text-sm font-medium transition-colors"
           >
-            {!isMapView ? "View Map" : "View Menu"}
+            {!isMapView ? t('restaurantheader.viewmap') : t('restaurantheader.viewmenu')}
           </button>
 
           <button
@@ -245,13 +248,11 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           >
             <Navigation size={16} />
           </button>
-
         </div>
       </div>
 
       {/* Unfollow Confirmation Modal */}
       {showUnfollowModal && (
-
         <div
           style={{ zIndex: 1000000 }}
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
@@ -259,18 +260,16 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
         >
           <div className="bg-white rounded-xl w-full max-w-sm overflow-hidden p-8">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Unfollow Restaurant
+              {t('unfollowmodal.title')}
             </h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to unfollow <strong>{name}?</strong>
-            </p>
+            <p className="text-gray-600 mb-6" dangerouslySetInnerHTML={{ __html: t('unfollowmodal.prompt', { name }) }} />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowUnfollowModal(false)}
                 className="flex-1 py-2.5 px-4 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium"
                 disabled={isLoading}
               >
-                Cancel
+                {t('unfollowmodal.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -280,7 +279,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
                 className="flex-1 py-2.5 px-4 rounded-lg bg-secondary text-white text-sm font-medium flex items-center justify-center gap-2"
               >
                 {isLoading && <Loader2 size={16} className="animate-spin" />}
-                {isLoading ? 'Unfollowing...' : 'Unfollow'}
+                {isLoading ? t('unfollowmodal.unfollowing') : t('unfollowmodal.unfollow')}
               </button>
             </div>
           </div>
@@ -289,12 +288,12 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
 
       {/* QR Code Modal */}
       {showQrModal && (
-        <div style={{ zIndex: 1000 }} className="fixed inset-0 bg-black/50  flex items-center justify-center p-4">
+        <div style={{ zIndex: 1000 }} className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-sm overflow-hidden">
             <div className="p-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Scan QR Code</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('qrcodemodal.title')}</h3>
               <p className="text-sm text-gray-500 mt-1">
-                Scan this QR code to share {name}
+                {t('qrcodemodal.description', { name })}
               </p>
             </div>
 
@@ -308,14 +307,14 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
               </div>
 
               <p className="text-sm text-gray-600 text-center mb-4">
-                Share this QR code to let others discover this restaurant
+                {t('qrcodemodal.instruction')}
               </p>
 
               <button
                 onClick={() => setShowQrModal(false)}
                 className="w-full py-3 bg-secondary text-black rounded-lg font-medium"
               >
-                Close
+                {t('qrcodemodal.close')}
               </button>
             </div>
           </div>
@@ -327,36 +326,36 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
         <>
           <div
             style={{ zIndex: 100000 }}
-            className="fixed inset-0 bg-black/50  animate-fade-in"
+            className="fixed inset-0 bg-black/50 animate-fade-in"
             onClick={() => setShowDetailsSheet(false)}
           />
           <div style={{ zIndex: 100000 }} className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl animate-slide-up max-h-[90vh] overflow-auto">
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Restaurant Details</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">{t('detailsheet.title')}</h3>
 
               {/* Basic Info */}
               <div className="space-y-4 mb-8">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Address</h4>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">{t('detailsheet.address')}</h4>
                   <p className="text-[15px] text-gray-900">{address}</p>
                 </div>
 
                 {/* Contact Info */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Contact</h4>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">{t('detailsheet.contact')}</h4>
                   {phone ? (
                     <a href={`tel:${phone}`} className="text-[15px] text-secondary hover:underline">
                       {phone}
                     </a>
                   ) : (
-                    <p className="text-[15px] text-gray-500">No phone number available</p>
+                    <p className="text-[15px] text-gray-500">{t('detailsheet.nophone')}</p>
                   )}
                 </div>
 
                 {/* Opening Hours */}
                 {openingTimes?.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Opening Hours</h4>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">{t('detailsheet.openinghours')}</h4>
                     <div className="space-y-2">
                       {openingTimes.map((schedule, index) => (
                         <div key={index} className="flex justify-between items-center">
@@ -372,7 +371,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
                                 </span>
                               ))
                             ) : (
-                              <span className="text-[15px] text-red-500">Closed</span>
+                              <span className="text-[15px] text-red-500">{t('detailsheet.closed')}</span>
                             )}
                           </div>
                         </div>
@@ -380,16 +379,13 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
                     </div>
                   </div>
                 )}
-
-                {/* Owner Details */}
-
               </div>
 
               <button
                 onClick={() => setShowDetailsSheet(false)}
                 className="w-full py-3 bg-secondary text-black rounded-lg font-medium"
               >
-                Close
+                {t('detailsheet.close')}
               </button>
             </div>
           </div>

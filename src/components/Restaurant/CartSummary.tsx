@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next'; // Add this import
 import { useCart } from '../../context/CartContext';
 import { ChevronLeft, ChevronRight, Store, ChevronUp, ChevronDown, X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,7 @@ interface CartSummaryProps {
 }
 
 const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
+  const { t } = useTranslation(); // Add this hook
   const { cart, setCart } = useCart();
   const navigate = useNavigate();
   const [touchStart, setTouchStart] = React.useState<number | null>(null);
@@ -124,11 +126,11 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
   const toggleExpand = () => {
     setIsExpanded(prev => !prev);
   };
+
   return (
     <div
       style={{ bottom: restaurantId ? 0 : 70 }}
-      className={`fixed z-50 left-0 px-3 right-0 bg-white transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[80vh]  border rounded-t-3xl pt-3' : 'max-h-[72px]'
-        }`}
+      className={`fixed z-50 left-0 px-3 right-0 bg-white transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[80vh]  border rounded-t-3xl pt-3' : 'max-h-[72px]'}`}
     >
       {isExpanded ? <button
         onClick={toggleExpand}
@@ -162,18 +164,24 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
             >
               <div className="flex relative items-center justify-between">
                 {!isExpanded && restaurantCarts.length > 1 ? <div className="flex items-center absolute text-[10px] font-bold text-secondary bg-white z-50 shadow-sm py-2 px-3 rounded-3xl" style={{ top: -40, left: '40%' }}>
-                  {isExpanded ? 'Collapse' : 'All carts'}
+                  {isExpanded ? t('cartsummary.collapse') : t('cartsummary.allcarts')} {/* Updated to use t() */}
                   <ChevronUp width={20} height={20} />
                 </div> : null}
                 <div>
                   <div className="flex items-center">
-
                     <p className="text-sm font-bold text-gray-900">{restaurantCarts[0].restaurantName}</p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{restaurantCarts[0].itemCount} item(s)</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('cartsummary.items', { count: restaurantCarts[0].itemCount })} {/* Updated to use t() with pluralization */}
+                  </p>
                 </div>
                 <div className="text-right flex items-center">
-                  <button onClick={() => navigate(AppRoutes.CHECKOUT, { state: { restaurantId: restaurantCarts[0].restaurantId } })} className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
+                  <button
+                    onClick={() => navigate(AppRoutes.CHECKOUT, { state: { restaurantId: restaurantCarts[0].restaurantId } })}
+                    className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2"
+                  >
+                    {t('cartsummary.viewcart')} {/* Updated to use t() */}
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -207,15 +215,19 @@ const CartSummary: React.FC<CartSummaryProps> = ({ restaurantId }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center">
-
                     <p className="text-sm font-bold text-gray-900">{item.restaurantName}</p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{item.itemCount} item(s)</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('cartsummary.items', { count: item.itemCount })} {/* Updated to use t() with pluralization */}
+                  </p>
                 </div>
                 <div className="text-right">
                   <button
                     onClick={() => navigate(AppRoutes.CHECKOUT, { state: { restaurantId: item.restaurantId } })}
-                    className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2">View Cart</button>
+                    className="bg-secondary p-2 rounded-lg px-3 text-xs font-semibold me-2"
+                  >
+                    {t('cartsummary.viewcart')} {/* Updated to use t() */}
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

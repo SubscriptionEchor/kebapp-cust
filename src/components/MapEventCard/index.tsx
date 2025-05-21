@@ -64,6 +64,7 @@ const StatusIcon = () => (
 
 // Improved Stalls Flyout component with animations and better UX
 const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
+    const { t } = useTranslation(); // Added for translations
     const handleBackdropClick = (e) => {
         e.stopPropagation();
         onClose();
@@ -89,14 +90,14 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                 {/* Header with improved styling */}
                 <div className="stalls-flyout-header">
                     <h3 className="stalls-flyout-title">
-                        {eventName ? `${eventName} (${stalls?.length || 0})` : `Event Stalls (${stalls?.length || 0})`}
+                        {eventName ? t('stallsflyout.title', { eventName, count: stalls?.length || 0 }) || `${eventName} (${stalls?.length || 0})` : t('stallsflyout.titledefault', { count: stalls?.length || 0 }) || `Event Stalls (${stalls?.length || 0})`}
                     </h3>
 
                     {/* Close button with improved hit area */}
                     <button
                         onClick={onClose}
                         className="stalls-close-btn"
-                        aria-label="Close stalls panel"
+                        aria-label={t('stallsflyout.errorclose') || "Close stalls panel"}
                     >
                         <CloseIcon />
                     </button>
@@ -107,7 +108,7 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                     {isLoading ? (
                         <div className="stalls-loading">
                             <div className="spinner"></div>
-                            <p>Loading stalls...</p>
+                            <p>{t('stallsflyout.loading') || "Loading stalls..."}</p>
                         </div>
                     ) : error ? (
                         <div className="stalls-error">
@@ -116,12 +117,12 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                                 <path d="M12 7V13" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" />
                                 <circle cx="12" cy="16" r="1" fill="#EF4444" />
                             </svg>
-                            <p>Error loading stalls: {error.message}</p>
+                            <p>{t('stallsflyout.error', { message: error.message }) || `Error loading stalls: ${error.message}`}</p>
                             <button
                                 onClick={onClose}
                                 className="stalls-error-btn"
                             >
-                                Close
+                                {t('stallsflyout.errorclose') || "Close"}
                             </button>
                         </div>
                     ) : stalls?.length > 0 ? (
@@ -130,12 +131,12 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                                 <div key={stall._id} className="stall-card-wrapper">
                                     <HorizontalCard
                                         id={stall._id}
-                                        name={stall.name || "Stall"}
+                                        name={stall.name || t('stallsflyout.stall') || "Stall"}
                                         image={stall.image || null}
                                         rating={stall.reviewAverage || 4.0}
-                                        cuisine={stall.cuisines?.[0] || "Food"}
-                                        distance={"At event"}
-                                        description={stall.address || "Food stall"}
+                                        cuisine={stall.cuisines?.[0] || t('stallsflyout.food') || "Food"}
+                                        distance={t('stallsflyout.atevent') || "At event"}
+                                        description={stall.address || t('stallsflyout.foodstall') || "Food stall"}
                                         likes={stall.favoriteCount || 0}
                                         reviews={stall.reviewCount || 0}
                                         onboarded={stall.onboarded || false}
@@ -151,12 +152,12 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                                 <path d="M3 12L21 12" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
                                 <path d="M3 18L21 18" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
                             </svg>
-                            <p>No stalls found for this event.</p>
+                            <p>{t('stallsflyout.empty') || "No stalls found for this event."}</p>
                             <button
                                 onClick={onClose}
                                 className="stalls-empty-btn"
                             >
-                                Close
+                                {t('stallsflyout.emptyclose') || "Close"}
                             </button>
                         </div>
                     )}
@@ -167,7 +168,7 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                     <button
                         onClick={onClose}
                         className="stalls-home-btn"
-                        aria-label="Return to map"
+                        aria-label={t('stallsflyout.home') || "Return to map"}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -283,14 +284,14 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
             <div className="event-card" onClick={handleCardClick}>
                 {/* Header with yellow background */}
                 <div className="event-card-header">
-                    <div className="event-badge">EVENT</div>
+                    <div className="event-badge">{t('mapeventcard.eventbadge') || "EVENT"}</div>
 
                     {/* Close button */}
                     <button
                         className="event-close-btn"
                         onClick={handleClose}
                         type="button"
-                        aria-label="Close event card"
+                        aria-label={t('stallsflyout.errorclose') || "Close event card"}
                     >
                         <CloseIcon />
                     </button>
@@ -299,13 +300,13 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                 {/* Content */}
                 <div className="event-card-content">
                     <div className="event-main-content">
-                        <h2 className="event-title">{data?.name || "Event"}</h2>
+                        <h2 className="event-title">{data?.name || t('mapeventcard.event') || "Event"}</h2>
 
                         {/* Status indicator */}
                         {isEventActive && (
                             <div className="event-status-container">
                                 <StatusIcon />
-                                <span className="status-text active">Active & Available</span>
+                                <span className="status-text active">{t('mapeventcard.statusactive') || "Active & Available"}</span>
                             </div>
                         )}
 
@@ -350,27 +351,27 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
 
                     {/* Event Details */}
                     <div className="event-details-section">
-                        <h3 className="details-heading">Event Details</h3>
+                        <h3 className="details-heading">{t('mapeventcard.detailsheading') || "Event Details"}</h3>
 
                         <div className="details-container">
                             <div className="details-item">
-                                <span className="details-label">Event ID:</span>
+                                <span className="details-label">{t('details.eventid') || "Event ID"}:</span>
                                 <span className="details-value">{data._id}</span>
                             </div>
 
                             <div className="details-item">
-                                <span className="details-label">Created:</span>
+                                <span className="details-label">{t('details.created') || "Created"}:</span>
                                 <span className="details-value">{formatEventDate(data.createdAt)}</span>
                             </div>
 
                             <div className="details-item">
-                                <span className="details-label">Updated:</span>
+                                <span className="details-label">{t('details.updated') || "Updated"}:</span>
                                 <span className="details-value">{formatEventDate(data.updatedAt)}</span>
                             </div>
 
                             <div className="details-item">
-                                <span className="details-label">Restaurants:</span>
-                                <span className="details-value">{data.restaurants?.length || 0} registered</span>
+                                <span className="details-label">{t('details.restaurants', { count: data.restaurants?.length || 0 }) || "Restaurants"}:</span>
+                                <span className="details-value">{t('details.restaurants', { count: data.restaurants?.length || 0 }) || `${data.restaurants?.length || 0} registered`}</span>
                             </div>
                         </div>
                     </div>
@@ -395,7 +396,7 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                     >
                         <StallsIcon />
                         <span>
-                            {stallsLoading ? 'Loading...' : ('Visit Stalls')}
+                            {stallsLoading ? t('map.loading') || 'Loading...' : (t('mapeventcard.visitstalls') || 'Visit Stalls')}
                         </span>
                     </button>
                 </div>
