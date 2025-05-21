@@ -301,7 +301,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
             <div className="p-8 flex flex-col items-center">
               <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${window.location.href}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://t.me/T1998_bot/qa_web?startapp=${id}`}
                   alt="Restaurant QR Code"
                   className="w-40 h-40"
                 />
