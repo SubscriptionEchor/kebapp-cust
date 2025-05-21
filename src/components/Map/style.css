@@ -193,8 +193,8 @@
 
 /* Improved Event marker styling */
 .event-marker {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,8 +209,8 @@
 }
 
 .event-marker-inner {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -220,15 +220,15 @@
   font-size: 14px;
   font-weight: bold;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  border: 3px solid white;
+  border: 7px solid white;
 }
 
 .event-marker-pulse {
   position: absolute;
-  width: 70px;
-  height: 70px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  background: rgba(255, 205, 56, 0.4);
+  background: rgba(255, 205, 56, 0.8);
   animation: pulse-event 2s infinite;
   z-index: -1;
 }

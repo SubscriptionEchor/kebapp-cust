@@ -47,7 +47,7 @@ const Home: React.FC = () => {
     latitude: 52.516267, // Default fallback coordinates
     longitude: 13.322455
   };
-  
+
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -99,7 +99,7 @@ const Home: React.FC = () => {
             data.allRestaurants.restaurants,
             data.allRestaurants.campaigns
           );
-          
+
           const sectionData = data.allRestaurants.sections.map((section: any) => ({
             ...section,
             restaurants: section.restaurants
@@ -228,14 +228,14 @@ const Home: React.FC = () => {
           events={events}
           debug={true}
         />
-        <button
+        {/* <button
           style={{ zIndex: 10000 }}
           onClick={() => setShowFilters(true)}
           className="fixed top-10 right-4 bg-white text-black p-4 rounded-full shadow-lg hover:bg-gray-50 transition-all duration-200"
         >
           <SlidersHorizontal size={24} />
-        </button>
-       
+        </button> */}
+
         <FilterBottomSheet
           isOpen={showFilters}
           onClose={() => setShowFilters(false)}
@@ -254,13 +254,13 @@ const Home: React.FC = () => {
     <Layout title="" showHeader={false}>
       <HomeHeader />
       <div className="pt-[120px] pb-20">
-        <ConsentPopup
+        {bootstrapData?.activeConsentDocData?.docVersionId && <ConsentPopup
           isOpen={showConsentPopup}
           onClose={() => setShowConsentPopup(false)}
           docVersionId={bootstrapData?.activeConsentDocData?.docVersionId}
           privacyPolicyUrl={bootstrapData?.activeConsentDocData?.linkedDocuments[0]?.docPublicLink}
           termsUrl={bootstrapData?.activeConsentDocData?.linkedDocuments[1]?.docPublicLink}
-        />
+        />}
         {(loading || profileLoading) && !allRestaurants.length && (
           <div className="flex justify-center py-8">
             <LoadingAnimation />

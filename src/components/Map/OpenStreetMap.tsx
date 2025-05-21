@@ -9,6 +9,11 @@ import Kebab from "../../assets/svg/kebabBlack.svg";
 import MapEventCard from '../MapEventCard';
 import RestaurantDetailCard from '../RestaurantDetailCard/RestaurantDetailCard';
 import "./style.css";
+import { Map, UserCircle2 } from 'lucide-react';
+import Profile from "../../assets/svg/profile.svg";
+import { AppRoutes } from '../../routeenums';
+import { useNavigate } from 'react-router-dom';
+
 
 // Constants
 const MAX_ZOOM_LEVEL = 18;
@@ -43,7 +48,9 @@ const HomeMapController = ({
   handleRestaurant,
   handleEvent,
   activeFilters = {},
-  events = []
+  events = [],
+  showStallsFlyout,
+  setShowStallsFlyout
 }) => {
   const map = useMap();
   const client = useApolloClient();
@@ -152,12 +159,12 @@ const HomeMapController = ({
       html: `
         <div class="event-marker">
           <div class="event-marker-pulse"></div>
-          <div class="event-marker-inner">${name}</div>
+          <div class="event-marker-inner"></div>
         </div>
       `,
       className: '',
-      iconSize: [60, 60],
-      iconAnchor: [30, 30]
+      iconSize: [80, 80],
+      iconAnchor: [40, 40]
     });
   };
 
@@ -201,41 +208,41 @@ const HomeMapController = ({
       markersRef.current.user = null;
     }
 
-    if (userLocation) {
-      // Create draggable user location marker
-      const marker = L.marker([userLocation.lat, userLocation.lng], {
-        icon: L.divIcon({
-          className: 'user-location-marker',
-          html: `
-            <div class="user-location-dot">
-              <div class="user-location-pulse"></div>
-            </div>
-          `,
-          iconSize: [40, 40],
-          iconAnchor: [20, 20]
-        }),
-        draggable: true,
-        zIndexOffset: 1000
-      }).addTo(map);
+    // if (userLocation) {
+    //   // Create draggable user location marker
+    //   const marker = L.marker([userLocation.lat, userLocation.lng], {
+    //     icon: L.divIcon({
+    //       className: 'user-location-marker',
+    //       html: `
+    //         <div class="user-location-dot">
+    //           <div class="user-location-pulse"></div>
+    //         </div>
+    //       `,
+    //       iconSize: [40, 40],
+    //       iconAnchor: [20, 20]
+    //     }),
+    //     draggable: true,
+    //     zIndexOffset: 1000
+    //   }).addTo(map);
 
-      // Add tooltip
-      marker.bindTooltip("Drag to move your location", {
-        permanent: false,
-        direction: 'top'
-      });
+    //   // Add tooltip
+    //   marker.bindTooltip("Drag to move your location", {
+    //     permanent: false,
+    //     direction: 'top'
+    //   });
 
-      // Handle drag end to update location
-      marker.on('dragend', function (e) {
-        const newPos = e.target.getLatLng();
-        onLocationChange({ lat: newPos.lat, lng: newPos.lng });
+    //   // Handle drag end to update location
+    //   marker.on('dragend', function (e) {
+    //     const newPos = e.target.getLatLng();
+    //     onLocationChange({ lat: newPos.lat, lng: newPos.lng });
 
-        // Update center and fetch new data
-        stateRef.current.currentCenter = newPos;
-        fetchMapData(newPos, stateRef.current.currentRadius, true);
-      });
+    //     // Update center and fetch new data
+    //     stateRef.current.currentCenter = newPos;
+    //     fetchMapData(newPos, stateRef.current.currentRadius, true);
+    //   });
 
-      markersRef.current.user = marker;
-    }
+    //   markersRef.current.user = marker;
+    // }
   }, [map, userLocation, onLocationChange]);
 
   // Render clusters on map
@@ -693,6 +700,8 @@ const HomeMapController = ({
     }
   }, [map, events, handleEvent]);
 
+  const navigate = useNavigate();
+
   return (
     <>
       {isLoading && (
@@ -708,7 +717,20 @@ const HomeMapController = ({
         </div>
       )}
 
-     
+      {/* Profile Button at Top Right */}
+      {!showStallsFlyout && <button
+        style={{ top: 20, right: 20, zIndex: 2000, position: 'absolute' }}
+        onClick={() => navigate(AppRoutes.PROFILE)}
+        className="bg-white border border-gray-200 p-2 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition-all duration-200"
+      >
+        {/* Use SVG profile icon if available, else fallback to lucide icon */}
+        {Profile ? (
+          <img src={Profile} alt="Profile" style={{ width: 50, height: 50, borderRadius: '50%' }} />
+        ) : (
+          <UserCircle2 size={32} className="text-gray-700" />
+        )}
+      </button>}
+
     </>
   );
 };
@@ -755,6 +777,14 @@ export const HomeMap = ({
   const [currentRadius, setCurrentRadius] = useState(radius);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [showStallsFlyout, setShowStallsFlyout] = useState(false);
+
+  // Set initial event when events load (only if not already set)
+  useEffect(() => {
+    if (!selectedEvent && events && events.length > 0) {
+      setSelectedEvent(events[0]);
+    }
+  }, [events, selectedEvent]);
 
   // Update radius from filters if available
   useEffect(() => {
@@ -821,7 +851,15 @@ export const HomeMap = ({
         className="rounded-lg"
         minZoom={MAX_ZOOM_LEVEL - 2}
         maxZoom={MAX_ZOOM_LEVEL}
-        zoomControl={true}
+        // zoomControl={false}
+        zoomControl={false}          // hides the +/– buttons
+        scrollWheelZoom={false}      // disables wheel zoom
+        doubleClickZoom={false}      // disables double-click zoom
+        touchZoom={false}            // disables pinch zoom
+        boxZoom={false}              // disables shift-drag box zoom
+        keyboard={false}             // disables +/- from keyboard
+        // minZoom={14}                 // lock zoom level
+        // maxZoom={14}                 // same as initial zoom
         attributionControl={false}
         preferCanvas={true}
       >
@@ -843,6 +881,8 @@ export const HomeMap = ({
           handleEvent={handleEvent}
           activeFilters={activeFilters}
           events={events}
+          showStallsFlyout={showStallsFlyout}
+          setShowStallsFlyout={setShowStallsFlyout}
         />
 
         <Circle
@@ -856,7 +896,7 @@ export const HomeMap = ({
           }}
         />
 
-       
+
       </MapContainer>
 
       {/* Event Card */}
@@ -865,6 +905,9 @@ export const HomeMap = ({
           data={selectedEvent}
           onClose={handleCloseEventCard}
           onVisitStalls={handleVisitStalls}
+          userLocation={userLocation}
+          showStallsFlyout={showStallsFlyout}
+          setShowStallsFlyout={setShowStallsFlyout}
         />
       )}
 
@@ -876,6 +919,7 @@ export const HomeMap = ({
           userLocation={userLocation}
         />
       )}
+
     </div>
   );
 };
