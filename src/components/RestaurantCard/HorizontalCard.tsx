@@ -107,11 +107,11 @@ const HorizontalCard: React.FC<RestaurantProps> = ({
         </button>
 
         {/* Onboarded Badge */}
-        {onboarded && (
+        {/* {onboarded && (
           <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-secondary/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm animate-slide-in-right" style={{ animationDelay: '0.3s' }}>
             <Star size={12} className="text-black" />
           </div>
-        )}
+        )} */}
 
         {campaigns?.length > 0 && (
           <div className="absolute bottom-0 left-0 right-0">

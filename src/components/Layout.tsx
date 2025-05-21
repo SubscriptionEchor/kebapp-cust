@@ -46,11 +46,11 @@ const Layout: React.FC<LayoutProps> = ({
         {children}
       </main>
 
-      {showNavigation && (
+      {/* {showNavigation && (
         <div className="fixed bottom-0 left-0 right-0">
           <Navigation />
         </div>
-      )}
+      )} */}
     </div>
   );
 };

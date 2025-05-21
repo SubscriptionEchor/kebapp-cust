@@ -73,8 +73,9 @@
     /* Yellow theme */
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: space-between;
     position: relative;
+    padding: 0 16px;
 }
 
 .event-badge {

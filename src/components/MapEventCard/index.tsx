@@ -133,7 +133,7 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
                                         id={stall._id}
                                         name={stall.name || t('stallsflyout.stall') || "Stall"}
                                         image={stall.image || null}
-                                        rating={stall.reviewAverage || 4.0}
+                                        rating={stall.reviewAverage ||0.0}
                                         cuisine={stall.cuisines?.[0] || t('stallsflyout.food') || "Food"}
                                         distance={t('stallsflyout.atevent') || "At event"}
                                         description={stall.address || t('stallsflyout.foodstall') || "Food stall"}
@@ -181,9 +181,8 @@ const StallsFlyout = ({ stalls, onClose, isLoading, error, eventName }) => {
     );
 };
 
-const MapEventCard = ({ data, onClose, onVisitStalls }) => {
+const MapEventCard = ({ data, onClose, onVisitStalls, userLocation, showStallsFlyout, setShowStallsFlyout }) => {
     const { t } = useTranslation();
-    const [showStallsFlyout, setShowStallsFlyout] = useState(false);
 
     // GraphQL query to fetch stalls data
     const { data: stallsData, loading: stallsLoading, error: stallsError } = useQuery(GET_STALLS_BY_EVENT_ID, {
@@ -240,6 +239,23 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
         e.stopPropagation();
     };
 
+
+    // const onClickViewDirections = () => {
+    //     let cords = {
+    //         user_lat: Number(selectedLocation?.latitude),
+    //         user_lng: Number(selectedLocation?.longitude),
+    //         rest_lat: Number(props?.data?.location?.coordinates[1]),
+    //         rest_lng: Number(props?.data?.location?.coordinates[0])
+    //     }
+    //     let url = `https://www.google.com/maps/dir/?api=1&origin=${cords?.user_lat},${cords?.user_lng}&destination=${cords?.rest_lat},${cords?.rest_lng}`
+    //     if (window.Telegram && window.Telegram.WebApp) {
+    //         const webApp = window.Telegram.WebApp;
+    //         webApp.openLink(url, { try_instant_view: false });
+    //     } else {
+    //         window.open(url, '_blank');
+    //     }
+    // }
+
     const onClickViewDirections = () => {
         if (!data?.location?.coordinates) return;
 
@@ -247,10 +263,12 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
 
         let cords = {
             rest_lat: parseFloat(lat),
-            rest_lng: parseFloat(lng)
+            rest_lng: parseFloat(lng),
+            user_lat: userLocation?.lat,
+            user_lng: userLocation?.lng
         };
 
-        let url = `https://www.google.com/maps/dir/?api=1&destination=${cords.rest_lat},${cords.rest_lng}`;
+        let url = `https://www.google.com/maps/dir/?api=1&origin=${cords?.user_lat},${cords?.user_lng}&destination=${cords?.rest_lat},${cords?.rest_lng}`;
 
         if (window.Telegram && window.Telegram.WebApp) {
             const webApp = window.Telegram.WebApp;
@@ -279,22 +297,25 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
     // Get stalls from query result
     const stalls = stallsData?.getStallsByEventId || [];
 
+    console.log(data, "dfgtyuio");
+
+
     return (
         <div className="event-card-container" onClick={handleClose}>
             <div className="event-card" onClick={handleCardClick}>
                 {/* Header with yellow background */}
                 <div className="event-card-header">
-                    <div className="event-badge">{t('mapeventcard.eventbadge') || "EVENT"}</div>
+                    {/* <div className="event-badge">EVENT</div> */}
 
                     {/* Close button */}
-                    <button
+                    {/* <button
                         className="event-close-btn"
                         onClick={handleClose}
                         type="button"
                         aria-label={t('stallsflyout.errorclose') || "Close event card"}
                     >
                         <CloseIcon />
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Content */}
@@ -340,18 +361,18 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                             )}
 
                             {/* Coordinates */}
-                            {data?.location?.coordinates && (
+                            {/* {data?.location?.coordinates && (
                                 <div className="event-info-item">
                                     <InfoIcon />
                                     <span>Coordinates: {data.location.coordinates[1]}, {data.location.coordinates[0]}</span>
                                 </div>
-                            )}
+                            )} */}
                         </div>
                     </div>
 
                     {/* Event Details */}
-                    <div className="event-details-section">
-                        <h3 className="details-heading">{t('mapeventcard.detailsheading') || "Event Details"}</h3>
+                    {/* <div className="event-details-section">
+                        <h3 className="details-heading">Event Details</h3>
 
                         <div className="details-container">
                             <div className="details-item">
@@ -374,7 +395,7 @@ const MapEventCard = ({ data, onClose, onVisitStalls }) => {
                                 <span className="details-value">{t('details.restaurants', { count: data.restaurants?.length || 0 }) || `${data.restaurants?.length || 0} registered`}</span>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Action buttons */}
