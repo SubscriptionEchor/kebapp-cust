@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ShoppingBag, ChefHat, Utensils, PackageCheck, ThumbsUp, XCircle, Store, PersonStanding, ChevronDown, ChevronUp, X, Navigation } from 'lucide-react';
+import { Check, ShoppingBag, ChefHat, Utensils, PackageCheck, XCircle, Store, PersonStanding, ChevronDown, ChevronUp, X, Navigation } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from '@apollo/client';
 import { GET_ORDER } from '../graphql/queries';
 import LoadingAnimation from '../components/LoadingAnimation';
@@ -16,7 +16,6 @@ import Layout from '../components/Layout';
 import TelegramBackButton from '../components/TelegramBackButton';
 import { AppRoutes } from '../routeenums';
 
-
 const ORDER_STATUS = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
@@ -24,46 +23,6 @@ const ORDER_STATUS = {
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
 };
-
-const STATUS_CONFIG = {
-  [ORDER_STATUS.PENDING]: {
-    icon: ShoppingBag,
-    title: 'Order Placed',
-    description: 'Thank you! Your order has been received and is awaiting confirmation.',
-    color: '#00B37A'
-  },
-  [ORDER_STATUS.ACCEPTED]: {
-    icon: ChefHat,
-    title: 'Order Accepted',
-    description: 'Restaurant has accepted your order and your order is being prepared with care.',
-    color: '#00B37A'
-  },
-  [ORDER_STATUS.PREPARED]: {
-    icon: Utensils,
-    title: 'Prepared',
-    description: 'Your order preparation completed.',
-    color: '#00B37A'
-  },
-  [ORDER_STATUS.DELIVERED]: {
-    icon: PackageCheck,
-    title: 'Delivered',
-    description: 'Order delivered successfully.',
-    color: '#00B37A'
-  },
-  [ORDER_STATUS.CANCELLED]: {
-    icon: XCircle,
-    title: 'Cancelled',
-    description: 'Order cancelled.',
-    color: '#EF4444'
-  }
-};
-
-const STATUS_ORDER = [
-  ORDER_STATUS.PENDING,
-  ORDER_STATUS.ACCEPTED,
-  ORDER_STATUS.PREPARED,
-  ORDER_STATUS.DELIVERED
-];
 
 const OrderStatus: React.FC = () => {
   const { t } = useTranslation();
@@ -98,14 +57,55 @@ const OrderStatus: React.FC = () => {
     if (currentStatus === ORDER_STATUS.CANCELLED || currentStatus === ORDER_STATUS.DELIVERED) {
       stopPolling();
       if (currentStatus === ORDER_STATUS.CANCELLED) {
-        toast.error("sorry for the inconvinience. Your order has been cancelled")
+        toast.error(t('orderStatus.orderCancelledToast'));
         setTimeout(() => {
-          toast.error("Navigating back to home page")
-          navigate(AppRoutes.HOME, { replace: true })
-        }, 5000)
+          toast.error(t('orderStatus.navigatingBackToast'));
+          navigate(AppRoutes.HOME, { replace: true });
+        }, 5000);
       }
     }
-  }, [data, stopPolling, state?.type]);
+  }, [data, stopPolling, state?.type, t, navigate]);
+
+  // Define STATUS_CONFIG with translations
+  const STATUS_CONFIG = {
+    [ORDER_STATUS.PENDING]: {
+      icon: ShoppingBag,
+      title: t('orderStatus.orderPlaced'),
+      description: t('orderStatus.orderPlacedDesc'),
+      color: '#00B37A'
+    },
+    [ORDER_STATUS.ACCEPTED]: {
+      icon: ChefHat,
+      title: t('orderStatus.orderAccepted'),
+      description: t('orderStatus.orderAcceptedDesc'),
+      color: '#00B37A'
+    },
+    [ORDER_STATUS.PREPARED]: {
+      icon: Utensils,
+      title: t('orderStatus.prepared'),
+      description: t('orderStatus.preparedDesc'),
+      color: '#00B37A'
+    },
+    [ORDER_STATUS.DELIVERED]: {
+      icon: PackageCheck,
+      title: t('orderStatus.delivered'),
+      description: t('orderStatus.deliveredDesc'),
+      color: '#00B37A'
+    },
+    [ORDER_STATUS.CANCELLED]: {
+      icon: XCircle,
+      title: t('orderStatus.cancelled'),
+      description: t('orderStatus.cancelledDesc'),
+      color: '#EF4444'
+    }
+  };
+
+  const STATUS_ORDER = [
+    ORDER_STATUS.PENDING,
+    ORDER_STATUS.ACCEPTED,
+    ORDER_STATUS.PREPARED,
+    ORDER_STATUS.DELIVERED
+  ];
 
   const currentStatus = data?.order?.orderStatus || ORDER_STATUS.PENDING;
   console.log(currentStatus, "CS")
@@ -127,12 +127,12 @@ const OrderStatus: React.FC = () => {
         <TelegramBackButton />
         <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
-            <p className="text-red-500 mb-4">Failed to load order details</p>
+            <p className="text-red-500 mb-4">{t('orderStatus.failedToLoadOrder')}</p>
             <button
               onClick={() => navigate(AppRoutes.ORDERS)}
               className="px-4 py-2 bg-secondary text-black rounded-lg"
             >
-              Go Back
+              {t('orderStatus.goBack')}
             </button>
           </div>
         </div>
@@ -141,13 +141,12 @@ const OrderStatus: React.FC = () => {
   }
 
   const order = data.order;
-  console.log(OrderStatus, ORDER_STATUS?.DELIVERED)
+  console.log(OrderStatus, ORDER_STATUS?.DELIVERED);
   if (currentStatus === ORDER_STATUS?.DELIVERED && state?.type !== "history") {
     return <Review restaurant={{
       ...order?.restaurant,
       orderId: order?._id
-    }
-    } />
+    }} />;
   }
 
   return (
@@ -155,7 +154,9 @@ const OrderStatus: React.FC = () => {
       <TelegramBackButton />
       <div className="min-h-screen bg-white">
         <div className="p-4 space-y-6">
-          <h1 className="text-xl font-semibold text-gray-900">Order #{order?.orderId}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">
+            {t('orderStatus.orderTitle', { orderId: order?.orderId })}
+          </h1>
 
           <div className="mt-6 mb-4">
             <div className="flex items-center gap-3">
@@ -193,8 +194,7 @@ const OrderStatus: React.FC = () => {
                 return (
                   <div
                     key={index}
-                    className={`flex flex-col items-center ${isComplete ? `text-[${config.color}]` : 'text-gray-400'
-                      }`}
+                    className={`flex flex-col items-center ${isComplete ? `text-[${config.color}]` : 'text-gray-400'}`}
                     style={{ width: '20%' }}
                   >
                     <div className="relative">
@@ -233,26 +233,30 @@ const OrderStatus: React.FC = () => {
                       </motion.div>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
-          {temporaryLocation?.latitude && order?.restaurant?.location?.coordinates && <RestaurantDetailMap
-            userLocation={{
-              lat: Number(temporaryLocation?.latitude),
-              lng: Number(temporaryLocation?.longitude)
-            }}
 
-            restaurantLocation={{
-              lat: Number(order?.restaurant?.location?.coordinates[1]),
-              lng: Number(order?.restaurant?.location?.coordinates[0])
-            }}
-            height={"150px"}
+          {temporaryLocation?.latitude && order?.restaurant?.location?.coordinates && (
+            <RestaurantDetailMap
+              userLocation={{
+                lat: Number(temporaryLocation?.latitude),
+                lng: Number(temporaryLocation?.longitude)
+              }}
+              restaurantLocation={{
+                lat: Number(order?.restaurant?.location?.coordinates[1]),
+                lng: Number(order?.restaurant?.location?.coordinates[0])
+              }}
+              height={"150px"}
+            />
+          )}
 
-          />}
           {/* Section 2: Restaurant Details */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">In-restaurant pick-up</h2>
+            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+              {t('orderStatus.inRestaurantPickup')}
+            </h2>
 
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
@@ -265,12 +269,6 @@ const OrderStatus: React.FC = () => {
                   <p className="text-[13px] text-gray-500 mt-1">{order.restaurant.address}</p>
                 </div>
 
-                {/* <div className=" gap-2">
-                <button className="px-4 py-2 bg-white text-[13px] text-gray-900 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                  Contact Deatils
-                </button>
-                <p></p>
-              </div> */}
                 <button
                   onClick={() => onClickViewDirections(temporaryLocation, data?.order?.restaurant?.location)}
                   className="mx-auto px-4 inline-flex items-center justify-center gap-2 py-2 border border-[#CCAD11] text-[#CCAD11] rounded-lg text-[13px] font-medium mt-2"
@@ -286,14 +284,16 @@ const OrderStatus: React.FC = () => {
                 <PersonStanding size={20} className="text-gray-600" />
               </div>
               <div>
-                <p className="text-[13px] text-gray-900">Distance</p>
-                <p className="text-xs text-gray-600 mt-0.5">{(order.restaurant.distanceInMeters / 1000).toFixed(1)} kilometers</p>
+                <p className="text-[13px] text-gray-900">{t('orderStatus.distance')}</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {(order.restaurant.distanceInMeters / 1000).toFixed(1)} {t('orderStatus.kilometers')}
+                </p>
               </div>
             </div>
 
             <div className="flex items-center gap-4 mt-4 justify-between">
               <div>
-                <h3 className="text-[15px] font-semibold text-gray-900">Reference ID</h3>
+                <h3 className="text-[15px] font-semibold text-gray-900">{t('orderStatus.referenceId')}</h3>
                 <p className="text-[13px] text-green-600 mt-1">{order.orderId}</p>
               </div>
             </div>
@@ -318,16 +318,15 @@ const OrderStatus: React.FC = () => {
               </button>
             </div>
 
-            <h2 className="text-[15px] font-semibold text-gray-900">Your Items</h2>
+            <h2 className="text-[15px] font-semibold text-gray-900">{t('orderStatus.yourItems')}</h2>
             <div className="space-y-3 mt-4">
               {order.items.map((item, index) => {
-                totalDiscount += (item.variation.discountedPrice || 0) * item.quantity
+                totalDiscount += (item.variation.discountedPrice || 0) * item.quantity;
                 return (
                   <div key={index} className="flex justify-between items-start">
                     <div>
                       <h3 className="text-[13px] text-gray-900">{item.title}</h3>
                       <p className="text-xs text-gray-500 mt-0.5">{item.description || ''}</p>
-
                     </div>
                     <div className="text-right">
                       <span className="text-[13px] font-medium">
@@ -336,12 +335,12 @@ const OrderStatus: React.FC = () => {
                       </span>
                       {item.variation?.discountedPrice > 0 && (
                         <p className="text-xs text-green-600">
-                          Saved {bootstrapData?.currencyConfig?.currencySymbol}{((item.variation.discountedPrice) * item.quantity).toFixed(2)}
+                          {t('orderStatus.saved', { amount: `${bootstrapData?.currencyConfig?.currencySymbol}${((item.variation.discountedPrice) * item.quantity).toFixed(2)}` })}
                         </p>
                       )}
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -351,7 +350,7 @@ const OrderStatus: React.FC = () => {
                 onClick={() => setShowBillingDetails(!showBillingDetails)}
                 className="w-full flex items-center justify-between cursor-pointer"
               >
-                <span className="text-[15px] font-medium">Billing info</span>
+                <span className="text-[15px] font-medium">{t('orderStatus.billingInfo')}</span>
                 {showBillingDetails ? (
                   <ChevronUp size={18} className="text-gray-500" />
                 ) : (
@@ -370,23 +369,15 @@ const OrderStatus: React.FC = () => {
                   >
                     <div className="space-y-3">
                       <div className="flex justify-between text-[13px] text-gray-900">
-                        <span>Item total</span>
+                        <span>{t('orderStatus.itemTotal')}</span>
                         <span>{bootstrapData?.currencyConfig?.currencySymbol}{(order.orderAmount - order.taxationAmount).toFixed(2)}</span>
                       </div>
-                      {/* <div className="flex justify-between text-[13px] text-gray-900">
-                      <span>Restaurant tip</span>
-                      <span>{bootstrapData?.currencyConfig?.{bootstrapData?.currencyConfig?.currencySymbol}{order.tipping.toFixed(2)}</span>
-                    </div> */}
-                      {/* <div className="flex justify-between text-[13px] text-gray-900">
-                      <span>Platform fee</span>
-                      <span>{bootstrapData?.currencyConfig?.{bootstrapData?.currencyConfig?.currencySymbol}{order.deliveryCharges.toFixed(2)}</span>
-                    </div> */}
                       <div className="flex justify-between text-[13px] font-medium text-gray-900 pt-2 border-t border-gray-100">
-                        <span>Total</span>
+                        <span>{t('orderStatus.total')}</span>
                         <div className="text-right">
                           <p>{bootstrapData?.currencyConfig?.currencySymbol}{order.orderAmount.toFixed(2)}</p>
                           <p className="text-[11px] text-green-600 font-normal">
-                            {bootstrapData?.currencyConfig?.currencySymbol}{totalDiscount.toFixed(2)} saved on this order
+                            {t('orderStatus.savedOnThisOrder', { amount: `${bootstrapData?.currencyConfig?.currencySymbol}${totalDiscount.toFixed(2)}` })}
                           </p>
                         </div>
                       </div>
@@ -397,11 +388,11 @@ const OrderStatus: React.FC = () => {
 
               {!showBillingDetails && (
                 <div className="mt-3 flex justify-between items-end">
-                  <span className="text-[13px] text-gray-900">Total</span>
+                  <span className="text-[13px] text-gray-900">{t('orderStatus.total')}</span>
                   <div className="text-right">
                     <p className="text-[13px] font-medium text-gray-900">{bootstrapData?.currencyConfig?.currencySymbol}{order?.orderAmount?.toFixed(2)}</p>
                     <p className="text-[11px] text-green-600">
-                      {bootstrapData?.currencyConfig?.currencySymbol}{totalDiscount?.toFixed(2)} saved on this order
+                      {t('orderStatus.savedOnThisOrder', { amount: `${bootstrapData?.currencyConfig?.currencySymbol}${totalDiscount?.toFixed(2)}` })}
                     </p>
                   </div>
                 </div>
@@ -411,12 +402,11 @@ const OrderStatus: React.FC = () => {
 
           {/* Cancellation Policy */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <h3 className="text-[15px] font-semibold text-gray-900 mb-2">Cancellation Policy</h3>
+            <h3 className="text-[15px] font-semibold text-gray-900 mb-2">{t('orderStatus.cancellationPolicy')}</h3>
             <p className="text-[13px] text-gray-600">
-              Cancellations are accepted up to 1 hour before the pickup time. Please review your order and restaurant details carefully to avoid charges.
+              {t('orderStatus.cancellationPolicyDesc')}
             </p>
           </div>
-
 
           {/* Holding Time Info Modal */}
           {showHoldingTimeInfo && (

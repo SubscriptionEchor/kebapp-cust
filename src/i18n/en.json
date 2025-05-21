@@ -6,6 +6,7 @@
             "restaurantName": "Restaurant Name",
             "km": "Km",
             "new": "New",
+            "openNow": "Open now",
             "termsLine1": "By proceeding, you accept our",
             "termsLine2": "We only collect data necessary to improve your experience.",
             "termsLine3": "revised",
@@ -179,6 +180,7 @@
             "follow": "Follow",
             "map": "Map",
             "menu": "Menu",
+            "hour": "Opens at",
             "customizeAsPerYourTaste": "Customize as per your taste",
             "notAvailable": "This restaurant is not accepting any orders right now. It should be open soon.",
             "orderAbove": "Order above",
@@ -205,6 +207,7 @@
             "restaurantsNearYou": "Restaurants Near You",
             "map": "Map",
             "home": "Home",
+    
             "cod": "cod",
             "available": "available",
             "searchResults": "Search Results",
@@ -288,6 +291,7 @@
             "couponMessage2": "Once you exceed that amount, you can apply the discount",
             "ok": "Okay"
         },
+
         "orderStatus": {
             "orderId": "Order id",
             "otp": "OTP",
@@ -304,6 +308,32 @@
             "pending": "PENDING",
             "completed": "COMPLETED",
             "cancelled": "CANCELLED",
+            "orderTitle": "Order #{{orderId}}",
+      "inRestaurantPickup": "In-restaurant pick-up",
+      
+      "referenceId": "Reference ID",
+      "yourItems": "Your Items",
+      
+      "billingInfo": "Billing info",
+      "itemTotal": "Item total",
+      "total": "Total",
+      "savedOnThisOrder": "{{amount}} saved on this order",
+      "cancellationPolicy": "Cancellation Policy",
+      "cancellationPolicyDesc": "Cancellations are accepted up to 1 hour before the pickup time. Please review your order and restaurant details carefully to avoid charges.",
+      "orderPlaced": "Order Placed",
+      "orderPlacedDesc": "Thank you! Your order has been received and is awaiting confirmation.",
+      "orderAccepted": "Order Accepted",
+      "orderAcceptedDesc": "Restaurant has accepted your order and your order is being prepared with care.",
+      
+      "preparedDesc": "Your order preparation completed.",
+     
+      "deliveredDesc": "Order delivered successfully.",
+   
+      "cancelledDesc": "Order cancelled.",
+      "orderCancelledToast": "Sorry for the inconvenience. Your order has been cancelled.",
+      "navigatingBackToast": "Navigating back to home page",
+      "failedToLoadOrder": "Failed to load order details",
+      "goBack": "Go Back",
             "orderStatusText": {
                 "pending": "Your order is pending.",
                 "accepted": "Your order has been accepted.",
@@ -384,6 +414,7 @@
             "HappyHours": "Happy Hours",
             "specialday": "Special Day",
             "chefspecial": "Chef's Last Call",
+            "rating": "Ratings 4.0+",
             "searchnearbyshops": "Search Nearby Shops",
             "getdirections": "Get Directions",
             "Loading": "Loading...",
@@ -393,6 +424,8 @@
             "distancesort": "Distance (Low to High)",
             "ratingsort": "Rating (High to low)"
         },
+        
+
         "placeholdertext": {
             "searchforlocation": "Search for location"
         },
@@ -441,6 +474,151 @@
             "searchPlaceholder": "Search for area, street name...",
             "currentLocation": "Your current location",
             "addAddress": "Add Address"
-        }
-    }
+        },
+     
+"mapeventcard": {
+    "eventbadge": "Stall",
+    "statusactive": "Active & Available",
+    "route": "Route",
+    "visitstalls": "Visit Stalls",
+    "detailsheading": "Event Details"
+  },
+  "stallsflyout": {
+    "title": "{{eventName}} ({{count}})",
+    "titledefault": "Event Stalls ({{count}})",
+    "loading": "Loading stalls...",
+    "error": "Error loading stalls: {{message}}",
+    "errorclose": "Close",
+    "empty": "No stalls found for this event.",
+    "emptyclose": "Close",
+    "home": "Return to map",
+    "atevent":"At Event",
+    "foodstall":"Food Stall",
+    "stall":"Stall"
+  },
+  "details": {
+    "eventid": "Event ID:",
+    "created": "Created:",
+    "updated": "Updated:",
+    "restaurants": "{{count}} registered"
+  },
+  "map": {
+    "dragtomove": "Drag to move your location",
+    "yourlocationdrag": "Your location (drag to move)",
+    "restaurantsinarea": "{{count}} restaurants in this area",
+    "restaurant": "Restaurant",
+    "loading": "Loading"
+  },
+  "restaurantheader": {
+        "notificationsdisabled": "Notifications disabled",
+        "notificationsenabled": "Notifications enabled",
+        "failednotificationupdate": "Failed to update notification settings",
+        "followingwithnotifications": "Following restaurant with notifications enabled",
+        "failedtofollow": "Failed to follow restaurant",
+        "unfollowedrestaurant": "Unfollowed restaurant",
+        "failedtounfollow": "Failed to unfollow restaurant",
+        "following": "Following",
+        "follow": "Follow",
+        "viewmap": "View Map",
+        "viewmenu": "View Menu",
+        "followers": "Followers"
+      },
+      "unfollowmodal": {
+        "title": "Unfollow Restaurant",
+        "prompt": "Are you sure you want to unfollow <strong>{{name}}</strong>?",
+        "cancel": "Cancel",
+        "unfollowing": "Unfollowing...",
+        "unfollow": "Unfollow"
+      },
+      "qrcodemodal": {
+        "title": "Scan QR Code",
+        "description": "Scan this QR code to share {{name}}",
+        "instruction": "Share this QR code to let others discover this restaurant",
+        "close": "Close"
+      },
+      "detailsheet": {
+        "title": "Restaurant Details",
+        "address": "Address",
+        "contact": "Contact",
+        "openinghours": "Opening Hours",
+        "nophone": "No phone number available",
+        "closed": "Closed",
+        "close": "Close"
+      },
+      "horizontalmenucard": {
+        "viewdishinfo": "View dish info",
+        "add": "ADD",
+        "outofstock": "Out of Stock"
+      },
+      "verticalmenucard": {
+        "showless": "Show less",
+        "showmore": "Show more",
+        "viewdishinfo": "View dish info",
+        "add": "ADD",
+        "outofstock": "Out of Stock",
+        "customizable": "Customizable"
+      },
+      "horizontalcard": {
+        "offersavailable": "{{count}} offers available",
+        "percentageoff": "{{percentageDiscount}}% off",
+        "flatoff": "{{currencySymbol}} {{flatDiscount}} off",
+        "minimumordervalue": "min. {{currencySymbol}} {{minimumOrderValue}}",
+        "reviews": "{{count}} reviews"
+      },
+      "verticalcard": {
+        "moreoffers_1": "more offer",
+        "moreoffers": "more offers"
+      },
+      "cartsummary": {
+        "collapse": "Collapse",
+        "allcarts": "All carts",
+        "viewcart": "View Cart",
+        "items_1": "item",
+        "items": "items"
+      },
+      "variationbottomsheet": {
+        "currentselections": "Current Selections",
+        "selectitemtoremove": "Select Item to Remove",
+        "selectavariation": "Select a Variation",
+        "selectoptionset": "Select Option set",
+        "edit": "Edit",
+        "addnewcustomization": "Add New Customization",
+        "chooseadifferentvariation": "Choose a different variation",
+        "back": "Back",
+        "next": "Next",
+        "add": "Add",
+        "selectmoreoptions_1": "Select {{remaining}} more option",
+        "selectmoreoptions": "Select {{remaining}} more options",
+        "selectoptions_1": "Select {{minQty}} option",
+        "selectoptions": "Select {{minQty}} options",
+        "optional_selectupto": "Optional • Select up to {{maxQty}}"
+      },
+    "checkouts": {
+        "yourcartisempty": "Your cart is empty",
+        "additemstocart": "Add items to your cart to proceed with checkout",
+        "browserestaurants": "Browse Restaurants",
+        "hr": "hr",
+        "youritems": "Your items",
+        "added": "Added",
+        "addnote": "Add Note",
+        "addspecialinstructions": "Add special instructions for this item...",
+        "cookingrequests": "Cooking requests",
+        "addmoreitems": "Add more items",
+        "addcookinginstructions": "Add Cooking Instructions",
+        "addcookinginstructionsplaceholder": "Add any special cooking instructions...",
+        "applycoupon": "Apply Coupon",
+        "couponapplied": "Coupon {{couponCodeId}} applied",
+        "savemore": "Save more on your order",
+        "cancellationpolicy": "Cancellation Policy",
+        "cancellationpolicydesc": "Cancellations are accepted up to 1 hour before the pickup time. Please review your order and restaurant details carefully to avoid charges",
+        "verifymobilenumber": "Verify Mobile Number",
+        "verifyemailaddress": "Verify Email Address",
+        "placingyourorder": "Placing your order...",
+        "payonpickup": "Pay on pickup",
+        "processingyourorder": "Processing your order...",
+        "placeorder": "Place Order",
+      "orderPlacedSuccessfully": "Order placed successfully!",
+      "failedToPlaceOrder": "Failed to place order"
+      }
+}
 }

@@ -45,13 +45,13 @@ const Checkout: React.FC = () => {
   const [isDecrementing, setIsDecrementing] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<any>(null);
   const [showAll, setShowAll] = React.useState(false);
-  const [notes, setNotes] = React.useState('')
+  const [notes, setNotes] = React.useState('');
   const location = useLocation();
   const state = location.state as { restaurantId?: string } || {};
   const restaurantId = state.restaurantId;
-  const { temporaryLocation } = UseLocationDetails()
-  const { bootstrapData } = useBootstrap()
-  const { couponCodeId, setCouponCodeId } = useAuth()
+  const { temporaryLocation } = UseLocationDetails();
+  const { bootstrapData } = useBootstrap();
+  const { couponCodeId, setCouponCodeId } = useAuth();
 
   // Fetch restaurant data
   const { data: restaurantData, loading: restaurantLoading } = useQuery(SINGLE_RESTAURANT_QUERY, {
@@ -106,7 +106,6 @@ const Checkout: React.FC = () => {
   };
 
   const handleNoteDone = (itemIndex: string) => {
-
     const trimmedNote = notes?.trim();
 
     if (trimmedNote) {
@@ -121,7 +120,7 @@ const Checkout: React.FC = () => {
         return item;
       }));
     }
-    setNotes('')
+    setNotes('');
     setEditingNoteId(null);
     setShowNoteInput(prev => ({
       ...prev,
@@ -199,10 +198,8 @@ const Checkout: React.FC = () => {
       setSlidePosition(0);
     } else {
       if (!isMobileVerified) {
-        // Show mobile verification first
         setShowMobileVerification(true);
       } else if (!isEmailVerified) {
-        // Then show email verification
         setShowEmailVerification(true);
       } else if (!placeOrderLoading) {
         handlePlaceOrder();
@@ -225,7 +222,6 @@ const Checkout: React.FC = () => {
       specialInstructions: item.instructions || ''
     }));
 
-    // Use dummy Berlin address
     const address = {
       label: temporaryLocation?.label || temporaryLocation?.area,
       deliveryAddress: temporaryLocation?.address,
@@ -238,7 +234,7 @@ const Checkout: React.FC = () => {
       paymentMethod: 'COD',
       couponCode: couponCodeId || '',
       tipping: 0,
-      taxationAmount: 0, // 10% tax
+      taxationAmount: 0,
       address: address,
       isPickedUp: true,
       deliveryCharges: 0,
@@ -260,19 +256,16 @@ const Checkout: React.FC = () => {
   };
 
   const handleMobileVerify = (mobile: string) => {
-    // Only update if actually verified in profile
     if (profile?.phoneIsVerified) {
       setIsMobileVerified(true);
     }
     setShowMobileVerification(false);
-    // Show email verification immediately after mobile verification
     if (!isEmailVerified) {
       setShowEmailVerification(true);
     }
   };
 
   const handleEmailVerify = (email: string) => {
-    // Only update if actually verified in profile
     if (profile?.emailIsVerified) {
       setIsEmailVerified(true);
     }
@@ -304,8 +297,8 @@ const Checkout: React.FC = () => {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Store size={24} className="text-gray-400" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
-            <p className="text-gray-500 mb-6">Add items to your cart to proceed with checkout</p>
+            <h2 className="text-xl font-semibold mb-2">{t('checkouts.yourcartisempty')}</h2>
+            <p className="text-gray-500 mb-6">{t('checkouts.additemstocart')}</p>
             <button
               onClick={() => navigate(AppRoutes.RESTAURANT, {
                 state: {
@@ -314,13 +307,14 @@ const Checkout: React.FC = () => {
               })}
               className="px-6 py-3 bg-secondary text-black rounded-lg font-medium"
             >
-              Browse Restaurants
+              {t('checkouts.browserestaurants')}
             </button>
           </div>
         </div>
       </>
     );
   }
+
   return (
     <>
       <TelegramBackButton />
@@ -328,19 +322,17 @@ const Checkout: React.FC = () => {
         {/* Location Section */}
         <div className="bg-white shadow-sm">
           <div className="p-4">
-            {/* Time and Location */}
             <div className="mb-2">
-              <div className="flex items-center  gap-2">
+              <div className="flex items-center gap-2">
                 <Clock size={20} className="text-gray-600" />
                 <h2 className="text-md font-medium text-gray-900">{t('orderStatus.timeAndLocation')}</h2>
               </div>
             </div>
 
-            {/* Holding Time */}
             <div className="mb-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm text-gray-900">
-                  {t('orderStatus.holdingTime')}: <span className="text-gray-900 font-medium">4 {t('orderStatus.hr')}</span>
+                  {t('orderStatus.holdingTime')}: <span className="text-gray-900 font-medium">4 {t('checkouts.hr')}</span>
                 </p>
                 <button
                   onClick={() => setShowHoldingTimeInfo(true)}
@@ -352,29 +344,23 @@ const Checkout: React.FC = () => {
               </div>
             </div>
 
-            {/* Map Placeholder */}
-            {/* <div className="h-[150px] bg-[#F3F4F6] rounded-lg mb-4" /> */}
+            {temporaryLocation?.latitude && restaurantData?.restaurant?.location?.coordinates && (
+              <RestaurantDetailMap
+                userLocation={{
+                  lat: Number(temporaryLocation?.latitude),
+                  lng: Number(temporaryLocation?.longitude)
+                }}
+                restaurantLocation={{
+                  lat: Number(restaurantData?.restaurant?.location?.coordinates[1]),
+                  lng: Number(restaurantData?.restaurant?.location?.coordinates[0])
+                }}
+                height={"150px"}
+              />
+            )}
 
-            {temporaryLocation?.latitude && restaurantData?.restaurant?.location?.coordinates && <RestaurantDetailMap
-              userLocation={{
-                lat: Number(temporaryLocation?.latitude),
-                lng: Number(temporaryLocation?.longitude)
-              }}
-
-              restaurantLocation={{
-                lat: Number(restaurantData?.restaurant?.location?.coordinates[1]),
-                lng: Number(restaurantData?.restaurant?.location?.coordinates[0])
-              }}
-              height={"150px"}
-
-            />}
-
-            {/* Restaurant Details */}
             <div className="ps-10 pb-5 border-b">
               <div className="flex items-center gap-3 mb-3 mt-8">
-                {/* <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center flex-shrink-0"> */}
-                <Store size={25} className="text-gray-600 " />
-                {/* </div> */}
+                <Store size={25} className="text-gray-600" />
                 <div className="flex-1">
                   <h3 className="text-md font-medium text-gray-900">{restaurant?.name}</h3>
                   <p className="text-xs text-gray-500">{restaurant.address}</p>
@@ -388,11 +374,9 @@ const Checkout: React.FC = () => {
                 {t('orderStatus.getDirections')}
               </button>
             </div>
-            {/* Distance */}
+
             <div className="flex items-center gap-3 mb-3 ms-10 mt-4">
-              {/* <div className="w-7 h-7 bg-[#F3F4F6] rounded-lg flex items-center justify-center flex-shrink-0"> */}
               <Person size={25} className="text-gray-900" />
-              {/* </div> */}
               <div>
                 <p className="text-md text-black">{t('orderStatus.distance')}</p>
                 <p className="text-xs font-medium text-gray-600">
@@ -400,10 +384,8 @@ const Checkout: React.FC = () => {
                 </p>
               </div>
             </div>
-
-            {/* Saved Amount */}
-
           </div>
+
           <div className="flex items-center justify-center gap-1.5 text-sm bg-[#E6FFE6] p-2">
             <div className="flex items-center gap-1">
               <span className="text-[#00B37A]">{bootstrapData?.currencyConfig?.currencySymbol}</span>
@@ -424,7 +406,7 @@ const Checkout: React.FC = () => {
 
         {/* Cart Items Section */}
         <div className="bg-white mt-4 p-4 m-3 rounded-lg">
-          <h2 className="text-lg font-semibold mb-4">Your items</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('checkouts.youritems')}</h2>
           <div className="space-y-6">
             {restaurantCartItems.map((item, index) => {
               const isVeg = item.dietaryType?.includes("VEG");
@@ -440,7 +422,6 @@ const Checkout: React.FC = () => {
                       </div>
                       <div className="text-[13px] text-gray-500 flex">
                         <p>{item.variationName}</p>
-
                       </div>
 
                       {item.optionSetList?.length > 0 && (
@@ -470,7 +451,6 @@ const Checkout: React.FC = () => {
                                     {showAll ? <ChevronDown height={8} /> : <ChevronUp height={18} />}
                                   </button>
                                 )}
-
                               </div>
                             );
                           })}
@@ -512,26 +492,23 @@ const Checkout: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Customizations */}
                   {item?.instructions && !showNoteInput[item.itemIndex] && (
                     <div className="mt-3 flex items-center gap-2">
                       <div className="w-5 h-5 rounded-full bg-[#E6FFE6] flex items-center justify-center">
                         <PenLine size={12} className="text-[#00B37A]" />
                       </div>
-                      <span className="text-[13px] text-[#00B37A]">Added</span>
+                      <span className="text-[13px] text-[#00B37A]">{t('checkouts.added')}</span>
                     </div>
                   )}
 
-                  {/* Note Button/Input */}
                   <div className="mt-3">
                     {showNoteInput[item.itemIndex] && (
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-[13px] font-medium">Add Note</h4>
-
+                          <h4 className="text-[13px] font-medium">{t('checkouts.addnote')}</h4>
                         </div>
                         <textarea
-                          placeholder="Add special instructions for this item..."
+                          placeholder={t('checkouts.addspecialinstructions')}
                           value={notes || ''}
                           onChange={(e) => handleNoteChange(item.itemIndex, e.target.value)}
                           className="w-full h-20 bg-white rounded-lg p-2 text-[13px] outline-none border border-gray-200 focus:border-secondary resize-none"
@@ -545,7 +522,7 @@ const Checkout: React.FC = () => {
                         className="flex items-center gap-2 text-[13px] text-gray-600 hover:text-gray-900 transition-colors"
                       >
                         <MessageSquare size={16} />
-                        Add Note
+                        {t('checkouts.addnote')}
                       </button>
                     )}
 
@@ -556,64 +533,58 @@ const Checkout: React.FC = () => {
                           onClick={() => toggleNoteInput(item.itemIndex, item?.instructions)}
                           className="ml-3 text-[13px] text-secondary font-medium"
                         >
-                          Edit
+                          {t('variationbottomsheet.edit')} {/* Note: This key is not in the provided JSON */}
                         </button>
                       </div>
                     )}
-                    {showNoteInput[item.itemIndex] && <div className="flex justify-end">
-                      <button
-                        onClick={() => {
-                          setNotes('')
-                          setShowNoteInput((prev) => ({ ...prev, [item.itemIndex]: !prev[item.itemIndex] }))
-                        }}
-                        className="me-3 text-[13px] p-2 py-1 rounded-lg text-secondary border border-secondary"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => handleNoteDone(item.itemIndex)}
-                        className="text-[13px] text-[13px] p-2 py-1 rounded-lg text-white bg-secondary"
-                      >
-                        Done
-                      </button>
-
-                    </div>}
+                    {showNoteInput[item.itemIndex] && (
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => {
+                            setNotes('');
+                            setShowNoteInput((prev) => ({ ...prev, [item.itemIndex]: !prev[item.itemIndex] }));
+                          }}
+                          className="me-3 text-[13px] p-2 py-1 rounded-lg text-secondary border border-secondary"
+                        >
+                          {t('variationbottomsheet.cancel')} {/* Note: This key is not in the provided JSON */}
+                        </button>
+                        <button
+                          onClick={() => handleNoteDone(item.itemIndex)}
+                          className="text-[13px] text-[13px] p-2 py-1 rounded-lg text-white bg-secondary"
+                        >
+                          {t('variationbottomsheet.done')} {/* Note: This key is not in the provided JSON */}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Edit button for customized items */}
                   {item.customized && (
                     <button
                       onClick={() => handleEditItem(item)}
                       className="mt-3 text-sm text-secondary font-medium flex items-center"
                     >
-                      Edit
+                      {t('variationbottomsheet.edit')} {/* Note: This key is not in the provided JSON */}
                       <ChevronRight size={16} />
                     </button>
                   )}
                 </div>
-              )
+              );
             })}
           </div>
 
-          {/* Bottom Actions */}
           <div className="flex items-center gap-3 mt-6">
             <button
-              onClick={() => { setCookingRequest(confirmedCookingRequest); setShowCookingRequests(true) }}
+              onClick={() => { setCookingRequest(confirmedCookingRequest); setShowCookingRequests(true); }}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-lg text-[13px] font-medium"
             >
-
-              <>
-
-                {confirmedCookingRequest ? (<div className="w-5 h-5 rounded-full bg-[#E6FFE6] flex items-center justify-center ml-1">
+              {confirmedCookingRequest ? (
+                <div className="w-5 h-5 rounded-full bg-[#E6FFE6] flex items-center justify-center ml-1">
                   <PenLine size={12} className="text-[#00B37A]" />
                 </div>
-
-                ) :
-
-                  <MessageSquare size={16} />}
-                Cooking requests
-              </>
-
+              ) : (
+                <MessageSquare size={16} />
+              )}
+              {t('checkouts.cookingrequests')}
             </button>
             <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-lg text-[13px] font-medium">
               <span className="text-xl">+</span>
@@ -623,7 +594,9 @@ const Checkout: React.FC = () => {
                     id: restaurantId
                   }
                 })}
-              >Add more items</span>
+              >
+                {t('checkouts.addmoreitems')}
+              </span>
             </button>
           </div>
 
@@ -633,21 +606,19 @@ const Checkout: React.FC = () => {
             </div>
           )}
 
-          {/* Cooking Requests Input */}
           {showCookingRequests && (
             <div className="mt-4 bg-gray-50 p-3 rounded-lg">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-[13px] font-medium">Add Cooking Instructions</h4>
+                <h4 className="text-[13px] font-medium">{t('checkouts.addcookinginstructions')}</h4>
                 <div>
                   <button
                     onClick={() => {
-
                       setCookingRequest('');
                       setShowCookingRequests(false);
                     }}
                     className="text-[13px] text-gray-500"
                   >
-                    Cancel
+                    {t('variationbottomsheet.cancel')} {/* Note: This key is not in the provided JSON */}
                   </button>
                   <button
                     onClick={() => {
@@ -658,12 +629,12 @@ const Checkout: React.FC = () => {
                     }}
                     className="ms-3 text-[13px] text-secondary"
                   >
-                    Done
+                    {t('variationbottomsheet.done')} {/* Note: This key is not in the provided JSON */}
                   </button>
                 </div>
               </div>
               <textarea
-                placeholder="Add any special cooking instructions..."
+                placeholder={t('checkouts.addcookinginstructionsplaceholder')}
                 value={cookingRequest}
                 onChange={(e) => setCookingRequest(e.target.value)}
                 className="w-full h-20 bg-white rounded-lg p-2 text-[13px] outline-none border border-gray-200 focus:border-secondary resize-none"
@@ -672,7 +643,6 @@ const Checkout: React.FC = () => {
           )}
         </div>
 
-        {/* Variation Bottom Sheet */}
         {selectedItem && (
           <VariationBottomSheet
             isOpen={showVariations}
@@ -707,13 +677,11 @@ const Checkout: React.FC = () => {
                 restaurantName: selectedItem.restaurantName,
                 categoryId: selectedItem.categoryId || ''
               });
-              // setShowVariations(false);
             }}
             isDecrementing={isDecrementing}
           />
         )}
 
-        {/* Coupon Section */}
         <div className="bg-white mt-4 p-4 m-3 rounded-lg">
           <button
             onClick={() => navigate(AppRoutes.COUPONS, {
@@ -728,11 +696,11 @@ const Checkout: React.FC = () => {
                 <Ticket size={20} className="text-secondary" />
               </div>
               <div className="text-left">
-                <h3 className="text-[15px] font-medium text-gray-900">Apply Coupon</h3>
+                <h3 className="text-[15px] font-medium text-gray-900">{t('checkouts.applycoupon')}</h3>
                 {couponCodeId ? (
-                  <p className="text-xs text-[#00B37A]">Coupon {couponCodeId} applied</p>
+                  <p className="text-xs text-[#00B37A]">{t('checkouts.couponapplied', { couponCodeId })}</p>
                 ) : (
-                  <p className="text-xs text-gray-500">Save more on your order</p>
+                  <p className="text-xs text-gray-500">{t('checkouts.savemore')}</p>
                 )}
               </div>
             </div>
@@ -740,7 +708,6 @@ const Checkout: React.FC = () => {
           </button>
         </div>
 
-        {/* Payment Details */}
         <div className="bg-white mt-4 p-4 m-3 rounded-lg">
           <h2 className="text-lg font-semibold mb-4">{t('checkout.paymentDetails')}</h2>
 
@@ -757,8 +724,6 @@ const Checkout: React.FC = () => {
               </div>
             )}
 
-
-
             <div className="pt-3 mt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
                 <span className="font-medium">{t('checkout.toPay')}</span>
@@ -768,15 +733,13 @@ const Checkout: React.FC = () => {
           </div>
         </div>
 
-        {/* Cancellation Policy */}
         <div className="bg-white mt-4 p-4 m-3 rounded-lg">
-          <h2 className="text-[15px] font-semibold mb-2">Cancellation Policy</h2>
+          <h2 className="text-[15px] font-semibold mb-2">{t('checkouts.cancellationpolicy')}</h2>
           <p className="text-[13px] text-gray-600 leading-relaxed">
-            Cancellations are accepted up to 1 hour before the pickup time. Please review your order and restaurant details carefully to avoid charges
+            {t('checkouts.cancellationpolicydesc')}
           </p>
         </div>
 
-        {/* Place Order Button */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 select-none">
           {!isMobileVerified || !isEmailVerified ? (
             <div className="space-y-3">
@@ -786,7 +749,7 @@ const Checkout: React.FC = () => {
                   className="w-full py-3 bg-secondary text-black rounded-lg font-medium flex items-center justify-center gap-2"
                 >
                   <Phone size={20} />
-                  Verify Mobile Number
+                  {t('checkouts.verifymobilenumber')}
                 </button>
               ) : !isEmailVerified && (
                 <button
@@ -794,28 +757,27 @@ const Checkout: React.FC = () => {
                   className="w-full py-3 bg-secondary text-black rounded-lg font-medium flex items-center justify-center gap-2"
                 >
                   <Mail size={20} />
-                  Verify Email Address
+                  {t('checkouts.verifyemailaddress')}
                 </button>
               )}
             </div>
           ) : (
             <div>
               <p className="text-center font-bold text-lg pb-3">
-                {placeOrderLoading ? 'Placing your order...' : 'Pay on pickup'}
+                {placeOrderLoading ? t('checkouts.placingyourorder') : t('checkouts.payonpickup')}
               </p>
               <button
                 onClick={handlePlaceOrder}
                 disabled={placeOrderLoading}
-                className={`w-full py-3 rounded-lg font-medium flex items-center justify-center gap-2 ${placeOrderLoading ? 'bg-gray-300 text-gray-500' : 'bg-[#16B364] text-white'
-                  }`}
+                className={`w-full py-3 rounded-lg font-medium flex items-center justify-center gap-2 ${placeOrderLoading ? 'bg-gray-300 text-gray-500' : 'bg-[#16B364] text-white'}`}
               >
                 {placeOrderLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                    Processing your order...
+                    {t('checkouts.processingyourorder')}
                   </>
                 ) : (
-                  `Place Order | ${bootstrapData?.currencyConfig?.currencySymbol} ${(calculateTotal()).toFixed(2)}`
+                  `${t('checkouts.placeorder')} | ${bootstrapData?.currencyConfig?.currencySymbol} ${(calculateTotal()).toFixed(2)}`
                 )}
               </button>
             </div>
@@ -841,7 +803,7 @@ const Checkout: React.FC = () => {
           onVerify={handleEmailVerify}
         />
       </div>
-    </ >
+    </>
   );
 };
 
