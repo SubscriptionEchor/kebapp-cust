@@ -8,7 +8,8 @@ import {
   getColorScheme,
   getThemeParams
 } from '../utils/telegram';
-
+import { useNavigate } from 'react-router-dom';
+import { AppRoutes } from '../routeenums';
 interface TelegramContextType {
   webApp: any;
   user: any;
@@ -38,6 +39,7 @@ interface TelegramProviderProps {
 }
 
 export const TelegramProvider: React.FC<TelegramProviderProps> = ({ children }) => {
+  const navigate = useNavigate();
   const [webApp, setWebApp] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [initData, setInitData] = useState<string | null>(null);
@@ -59,15 +61,27 @@ export const TelegramProvider: React.FC<TelegramProviderProps> = ({ children }) 
           return;
         }
 
+        let initDataUnsafe = getInitDataUnsafe();
+        const startParam = initDataUnsafe?.start_param;
+
         setWebApp(webAppInstance);
         setUser(getUser());
         setInitData(getInitData());
         setInitDataUnsafe(getInitDataUnsafe());
         setColorScheme(getColorScheme());
         setThemeParams(getThemeParams());
-
         notifyReadyState();
         setIsReady(true);
+
+        if (startParam) {
+          console.log(startParam, "startParam")
+          navigate(AppRoutes.RESTAURANT, {
+            state: {
+              id: startParam
+            }
+          });
+          localStorage.setItem("restaurant", startParam)
+        }
         setIsLoading(false);
       } catch (err) {
         console.error('Error initializing Telegram WebApp:', err);
